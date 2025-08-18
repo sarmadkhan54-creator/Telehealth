@@ -644,7 +644,10 @@ const AdminDashboard = ({ user, onLogout }) => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900">Appointment Management</h2>
-              <button className="btn-secondary flex items-center space-x-2">
+              <button 
+                onClick={exportAppointments}
+                className="btn-secondary flex items-center space-x-2"
+              >
                 <Download className="w-4 h-4" />
                 <span>Export Data</span>
               </button>
