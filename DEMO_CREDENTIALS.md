@@ -13,23 +13,23 @@
 ## 👥 **Demo User Accounts**
 
 ### 🔧 **Admin User**
-- **Username:** `admin_112720`
-- **Password:** `TestPass123!`
+- **Username:** `demo_admin`
+- **Password:** `Demo123!`
 - **Role:** Administrator
 - **Access:** Full system management, user creation, reports
 
 ### 👨‍⚕️ **Doctor/Consultant**  
-- **Username:** `doctor_112720`
-- **Password:** `TestPass123!`
+- **Username:** `demo_doctor`
+- **Password:** `Demo123!`
 - **Role:** Doctor
 - **Specialty:** General Medicine
 - **Access:** View appointments, accept consultations, video calls
 
 ### 🏥 **Healthcare Provider**
-- **Username:** `provider_112720` 
-- **Password:** `TestPass123!`
+- **Username:** `demo_provider` 
+- **Password:** `Demo123!`
 - **Role:** Provider
-- **District:** Test District
+- **District:** Demo District
 - **Access:** Create appointments, patient forms, video calls
 
 ---
