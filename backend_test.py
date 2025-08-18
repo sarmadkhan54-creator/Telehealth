@@ -447,6 +447,9 @@ class MedConnectAPITester:
 
     def test_create_appointment(self):
         """Test creating an appointment (provider only)"""
+        print("\n📅 Testing Appointment Creation")
+        print("-" * 50)
+        
         if 'provider' not in self.tokens:
             print("❌ No provider token available")
             return False
@@ -468,7 +471,7 @@ class MedConnectAPITester:
         }
         
         success, response = self.run_test(
-            "Create Appointment",
+            "Create Appointment (Provider)",
             "POST",
             "appointments",
             200,
@@ -478,42 +481,164 @@ class MedConnectAPITester:
         
         if success:
             self.appointment_id = response.get('id')
-            print(f"   Created appointment ID: {self.appointment_id}")
+            print(f"   ✅ Created appointment ID: {self.appointment_id}")
         
         return success
 
-    def test_get_appointments(self):
-        """Test getting appointments for different roles"""
-        for role in ['provider', 'doctor', 'admin']:
-            if role not in self.tokens:
-                print(f"❌ No {role} token available")
-                continue
-                
+    def test_role_based_appointment_access(self):
+        """Test role-based appointment filtering"""
+        print("\n🔐 Testing Role-Based Appointment Access")
+        print("-" * 50)
+        
+        all_success = True
+        
+        # Test provider access (should only see own appointments)
+        if 'provider' in self.tokens:
             success, response = self.run_test(
-                f"Get Appointments ({role.title()})",
+                "Get Appointments (Provider - Own Only)",
                 "GET",
                 "appointments",
                 200,
-                token=self.tokens[role]
+                token=self.tokens['provider']
             )
             
             if success:
-                print(f"   {role.title()} can see {len(response)} appointments")
-
-    def test_update_appointment(self):
-        """Test updating appointment status (doctor only)"""
-        if 'doctor' not in self.tokens or not self.appointment_id:
-            print("❌ No doctor token or appointment ID available")
-            return False
+                provider_appointments = response
+                print(f"   ✅ Provider can see {len(provider_appointments)} appointments")
+                # Verify all appointments belong to this provider
+                for apt in provider_appointments:
+                    if apt.get('provider_id') != self.users['provider']['id']:
+                        print(f"   ❌ Provider seeing appointment not owned by them: {apt.get('id')}")
+                        all_success = False
+                        break
+                else:
+                    print("   ✅ Provider only sees own appointments")
+            else:
+                all_success = False
+        
+        # Test doctor access (should see pending + own accepted appointments)
+        if 'doctor' in self.tokens:
+            success, response = self.run_test(
+                "Get Appointments (Doctor - Pending + Own)",
+                "GET",
+                "appointments",
+                200,
+                token=self.tokens['doctor']
+            )
             
+            if success:
+                doctor_appointments = response
+                print(f"   ✅ Doctor can see {len(doctor_appointments)} appointments")
+                # Verify appointments are either pending or assigned to this doctor
+                for apt in doctor_appointments:
+                    if apt.get('status') != 'pending' and apt.get('doctor_id') != self.users['doctor']['id']:
+                        print(f"   ❌ Doctor seeing inappropriate appointment: {apt.get('id')}")
+                        all_success = False
+                        break
+                else:
+                    print("   ✅ Doctor sees appropriate appointments")
+            else:
+                all_success = False
+        
+        # Test admin access (should see all appointments)
+        if 'admin' in self.tokens:
+            success, response = self.run_test(
+                "Get Appointments (Admin - All)",
+                "GET",
+                "appointments",
+                200,
+                token=self.tokens['admin']
+            )
+            
+            if success:
+                admin_appointments = response
+                print(f"   ✅ Admin can see {len(admin_appointments)} appointments (all)")
+            else:
+                all_success = False
+        
+        return all_success
+
+    def test_appointment_details(self):
+        """Test getting detailed appointment information"""
+        print("\n📋 Testing Appointment Details Access")
+        print("-" * 50)
+        
+        if not self.appointment_id:
+            print("❌ No appointment ID available")
+            return False
+        
+        all_success = True
+        
+        # Test doctor access to appointment details
+        if 'doctor' in self.tokens:
+            success, response = self.run_test(
+                "Get Appointment Details (Doctor)",
+                "GET",
+                f"appointments/{self.appointment_id}",
+                200,
+                token=self.tokens['doctor']
+            )
+            
+            if success:
+                print("   ✅ Doctor can view appointment details")
+                # Check if response includes patient, provider, and notes
+                if 'patient' in response and 'provider' in response:
+                    print("   ✅ Details include patient and provider information")
+                else:
+                    print("   ❌ Missing patient or provider information in details")
+                    all_success = False
+            else:
+                all_success = False
+        
+        # Test provider access to own appointment details
+        if 'provider' in self.tokens:
+            success, response = self.run_test(
+                "Get Appointment Details (Provider - Own)",
+                "GET",
+                f"appointments/{self.appointment_id}",
+                200,
+                token=self.tokens['provider']
+            )
+            
+            if success:
+                print("   ✅ Provider can view own appointment details")
+            else:
+                all_success = False
+        
+        # Test admin access to appointment details
+        if 'admin' in self.tokens:
+            success, response = self.run_test(
+                "Get Appointment Details (Admin)",
+                "GET",
+                f"appointments/{self.appointment_id}",
+                200,
+                token=self.tokens['admin']
+            )
+            
+            if success:
+                print("   ✅ Admin can view appointment details")
+            else:
+                all_success = False
+        
+        return all_success
+
+    def test_doctor_notes_system(self):
+        """Test doctor notes to provider functionality"""
+        print("\n📝 Testing Doctor Notes System")
+        print("-" * 50)
+        
+        if not self.appointment_id or 'doctor' not in self.tokens:
+            print("❌ No appointment ID or doctor token available")
+            return False
+        
+        # First, doctor accepts the appointment
         update_data = {
             "status": "accepted",
-            "doctor_id": self.users['doctor']['id'],
-            "consultation_notes": "Appointment accepted by doctor"
+            "doctor_id": self.users['doctor']['id']
         }
         
         success, response = self.run_test(
-            "Update Appointment Status",
+            "Doctor Accepts Appointment",
             "PUT",
             f"appointments/{self.appointment_id}",
             200,
@@ -521,30 +646,185 @@ class MedConnectAPITester:
             token=self.tokens['doctor']
         )
         
-        return success
-
-    def test_start_video_call(self):
-        """Test starting a video call"""
-        if 'doctor' not in self.tokens or not self.appointment_id:
-            print("❌ No doctor token or appointment ID available")
+        if not success:
+            print("❌ Doctor could not accept appointment")
             return False
-            
+        
+        # Doctor adds a note
+        note_data = {
+            "note": "Patient vitals look good. Recommend follow-up in 2 weeks.",
+            "sender_role": "doctor"
+        }
+        
         success, response = self.run_test(
-            "Start Video Call",
+            "Doctor Adds Note",
             "POST",
-            f"video-call/start/{self.appointment_id}",
+            f"appointments/{self.appointment_id}/notes",
             200,
+            data=note_data,
             token=self.tokens['doctor']
         )
         
-        if success:
-            session_token = response.get('session_token')
-            print(f"   Video call session token: {session_token}")
+        if not success:
+            print("❌ Doctor could not add note")
+            return False
         
-        return success
+        print("   ✅ Doctor successfully added note")
+        
+        # Provider should be able to see the note
+        if 'provider' in self.tokens:
+            success, response = self.run_test(
+                "Provider Views Notes",
+                "GET",
+                f"appointments/{self.appointment_id}/notes",
+                200,
+                token=self.tokens['provider']
+            )
+            
+            if success and len(response) > 0:
+                print(f"   ✅ Provider can see {len(response)} notes")
+                # Check if the doctor's note is there
+                doctor_notes = [note for note in response if note.get('sender_role') == 'doctor']
+                if doctor_notes:
+                    print("   ✅ Doctor's note visible to provider")
+                else:
+                    print("   ❌ Doctor's note not visible to provider")
+                    return False
+            else:
+                print("   ❌ Provider cannot see notes")
+                return False
+        
+        return True
+
+    def test_appointment_cancellation(self):
+        """Test appointment cancellation by provider"""
+        print("\n❌ Testing Appointment Cancellation")
+        print("-" * 50)
+        
+        if not self.appointment_id or 'provider' not in self.tokens:
+            print("❌ No appointment ID or provider token available")
+            return False
+        
+        # Provider cancels their own appointment
+        update_data = {
+            "status": "cancelled"
+        }
+        
+        success, response = self.run_test(
+            "Provider Cancels Own Appointment",
+            "PUT",
+            f"appointments/{self.appointment_id}",
+            200,
+            data=update_data,
+            token=self.tokens['provider']
+        )
+        
+        if success:
+            print("   ✅ Provider can cancel own appointment")
+        else:
+            print("   ❌ Provider cannot cancel own appointment")
+            return False
+        
+        return True
+
+    def test_appointment_deletion(self):
+        """Test appointment deletion permissions"""
+        print("\n🗑️ Testing Appointment Deletion Permissions")
+        print("-" * 50)
+        
+        # Create a new appointment for deletion testing
+        if 'provider' not in self.tokens:
+            print("❌ No provider token available")
+            return False
+        
+        appointment_data = {
+            "patient": {
+                "name": "Delete Test Patient",
+                "age": 30,
+                "gender": "Female",
+                "vitals": {
+                    "blood_pressure": "110/70",
+                    "heart_rate": 68,
+                    "temperature": 98.4
+                },
+                "consultation_reason": "Test appointment for deletion"
+            },
+            "appointment_type": "non_emergency",
+            "consultation_notes": "Test appointment"
+        }
+        
+        success, response = self.run_test(
+            "Create Appointment for Deletion Test",
+            "POST",
+            "appointments",
+            200,
+            data=appointment_data,
+            token=self.tokens['provider']
+        )
+        
+        if not success:
+            print("❌ Could not create test appointment")
+            return False
+        
+        delete_test_appointment_id = response.get('id')
+        all_success = True
+        
+        # Test doctor deletion (should fail - doctors can't delete)
+        if 'doctor' in self.tokens:
+            success, response = self.run_test(
+                "Delete Appointment (Doctor - Should Fail)",
+                "DELETE",
+                f"appointments/{delete_test_appointment_id}",
+                403,
+                token=self.tokens['doctor']
+            )
+            
+            if success:
+                print("   ✅ Doctor correctly denied appointment deletion")
+            else:
+                print("   ❌ Doctor unexpectedly allowed to delete appointment")
+                all_success = False
+        
+        # Test provider deletion of own appointment (should work)
+        if 'provider' in self.tokens:
+            success, response = self.run_test(
+                "Delete Own Appointment (Provider - Should Work)",
+                "DELETE",
+                f"appointments/{delete_test_appointment_id}",
+                200,
+                token=self.tokens['provider']
+            )
+            
+            if success:
+                print("   ✅ Provider can delete own appointment")
+                delete_test_appointment_id = None  # Mark as deleted
+            else:
+                print("   ❌ Provider cannot delete own appointment")
+                all_success = False
+        
+        # Test admin deletion (should work for any appointment)
+        if delete_test_appointment_id and 'admin' in self.tokens:
+            success, response = self.run_test(
+                "Delete Any Appointment (Admin - Should Work)",
+                "DELETE",
+                f"appointments/{delete_test_appointment_id}",
+                200,
+                token=self.tokens['admin']
+            )
+            
+            if success:
+                print("   ✅ Admin can delete any appointment")
+            else:
+                print("   ❌ Admin cannot delete appointment")
+                all_success = False
+        
+        return all_success
 
     def test_emergency_appointment(self):
         """Test creating an emergency appointment"""
+        print("\n🚨 Testing Emergency Appointment Creation")
+        print("-" * 50)
+        
         if 'provider' not in self.tokens:
             print("❌ No provider token available")
             return False
@@ -573,6 +853,33 @@ class MedConnectAPITester:
             data=emergency_data,
             token=self.tokens['provider']
         )
+        
+        if success:
+            emergency_appointment_id = response.get('id')
+            print(f"   ✅ Created emergency appointment ID: {emergency_appointment_id}")
+        
+        return success
+
+    def test_video_call_functionality(self):
+        """Test video call functionality"""
+        print("\n📹 Testing Video Call Functionality")
+        print("-" * 50)
+        
+        if 'doctor' not in self.tokens or not self.appointment_id:
+            print("❌ No doctor token or appointment ID available")
+            return False
+            
+        success, response = self.run_test(
+            "Start Video Call",
+            "POST",
+            f"video-call/start/{self.appointment_id}",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if success:
+            session_token = response.get('session_token')
+            print(f"   ✅ Video call session token generated: {session_token[:20]}...")
         
         return success
 
