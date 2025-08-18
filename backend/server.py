@@ -478,7 +478,14 @@ async def get_appointment_notes(appointment_id: str, current_user: User = Depend
         raise HTTPException(status_code=403, detail="Access denied")
     
     notes = await db.appointment_notes.find({"appointment_id": appointment_id}).to_list(1000)
-    return sorted(notes, key=lambda x: x["timestamp"])
+    
+    # Clean MongoDB ObjectId fields
+    cleaned_notes = []
+    for note in notes:
+        cleaned_note = {k: v for k, v in note.items() if k != "_id"}
+        cleaned_notes.append(cleaned_note)
+    
+    return sorted(cleaned_notes, key=lambda x: x["timestamp"])
 
 @api_router.delete("/appointments/{appointment_id}")
 async def delete_appointment(appointment_id: str, current_user: User = Depends(get_current_user)):
