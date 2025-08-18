@@ -106,6 +106,56 @@ const DoctorDashboard = ({ user, onLogout }) => {
     }
   };
 
+  const viewAppointmentDetails = async (appointment) => {
+    try {
+      const response = await axios.get(`${API}/appointments/${appointment.id}`);
+      setSelectedAppointment(response.data);
+      
+      // Fetch appointment notes
+      const notesResponse = await axios.get(`${API}/appointments/${appointment.id}/notes`);
+      setAppointmentNotes(notesResponse.data);
+      
+      setShowAppointmentModal(true);
+    } catch (error) {
+      console.error('Error fetching appointment details:', error);
+      alert('Error loading appointment details');
+    }
+  };
+
+  const sendNoteToProvider = async () => {
+    if (!noteText.trim() || !selectedAppointment) return;
+
+    try {
+      await axios.post(`${API}/appointments/${selectedAppointment.id}/notes`, {
+        note: noteText,
+        sender_role: 'doctor',
+        timestamp: new Date().toISOString()
+      });
+
+      alert('Note sent to provider successfully!');
+      setNoteText('');
+      
+      // Refresh notes
+      const notesResponse = await axios.get(`${API}/appointments/${selectedAppointment.id}/notes`);
+      setAppointmentNotes(notesResponse.data);
+    } catch (error) {
+      console.error('Error sending note:', error);
+      alert('Error sending note to provider');
+    }
+  };
+
+  const callProvider = (appointment) => {
+    if (appointment.provider?.phone) {
+      // In a real app, this would integrate with a calling system
+      if (window.confirm(`Call ${appointment.provider.full_name} at ${appointment.provider.phone}?`)) {
+        // Simulate call - in real app would use telephony integration
+        alert(`Calling ${appointment.provider.phone}...\n\nIn a production app, this would initiate a real phone call.`);
+      }
+    } else {
+      alert('Provider phone number not available');
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString();
   };
