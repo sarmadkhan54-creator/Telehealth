@@ -251,6 +251,29 @@ const Dashboard = ({ user, onLogout }) => {
                         </button>
                       </div>
                     )}
+
+                    {/* Provider Actions */}
+                    {(appointment.status === 'pending' || appointment.status === 'accepted') && (
+                      <div className="ml-4 flex flex-col space-y-2">
+                        <button
+                          onClick={() => handleCancelAppointment(appointment.id, appointment.patient?.name)}
+                          className="btn-secondary flex items-center space-x-2 text-orange-600 hover:text-orange-800"
+                        >
+                          <X className="w-4 h-4" />
+                          <span>Cancel</span>
+                        </button>
+                        
+                        {appointment.status === 'pending' && (
+                          <button
+                            onClick={() => handleDeleteAppointment(appointment.id, appointment.patient?.name)}
+                            className="btn-secondary flex items-center space-x-2 text-red-600 hover:text-red-800"
+                          >
+                            <X className="w-4 h-4" />
+                            <span>Delete</span>
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
