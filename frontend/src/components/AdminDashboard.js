@@ -96,7 +96,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-        await axios.post(`${API}/register`, formData);
+        await axios.post(`${API}/admin/create-user`, formData);
         setShowAddUserForm(false);
         fetchData();
         alert('User added successfully!');
