@@ -689,14 +689,35 @@ const AdminDashboard = ({ user, onLogout }) => {
                           </span>
                         </td>
                         <td className="py-3 px-4">
-                          <div className="flex space-x-2">
-                            <button className="text-blue-600 hover:text-blue-800">
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button className="text-red-600 hover:text-red-800">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                          {/* Only show action buttons for admin users */}
+                          {user.role === 'admin' ? (
+                            <div className="flex space-x-2">
+                              <button 
+                                onClick={() => handleEditUser(user.id)}
+                                className="text-blue-600 hover:text-blue-800 transition-colors"
+                                title="Edit User"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button 
+                                onClick={() => handleToggleUserStatus(user.id, user.is_active, user.full_name)}
+                                className={`transition-colors ${user.is_active ? 'text-orange-600 hover:text-orange-800' : 'text-green-600 hover:text-green-800'}`}
+                                title={user.is_active ? 'Deactivate User' : 'Activate User'}
+                              >
+                                {user.is_active ? '🚫' : '✅'}
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteUser(user.id, user.full_name)}
+                                className="text-red-600 hover:text-red-800 transition-colors"
+                                title="Delete User"
+                                disabled={user.id === user.id} // Prevent self-deletion
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 text-sm">Admin Only</span>
+                          )}
                         </td>
                       </tr>
                     ))}
