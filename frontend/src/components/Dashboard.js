@@ -64,6 +64,44 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
+  const viewAppointmentDetails = async (appointment) => {
+    try {
+      const response = await axios.get(`${API}/appointments/${appointment.id}`);
+      setSelectedAppointment(response.data);
+      
+      // Fetch appointment notes
+      const notesResponse = await axios.get(`${API}/appointments/${appointment.id}/notes`);
+      setAppointmentNotes(notesResponse.data);
+      
+      setShowAppointmentModal(true);
+    } catch (error) {
+      console.error('Error fetching appointment details:', error);
+      alert('Error loading appointment details');
+    }
+  };
+
+  const sendNoteToDoctor = async () => {
+    if (!noteText.trim() || !selectedAppointment) return;
+
+    try {
+      await axios.post(`${API}/appointments/${selectedAppointment.id}/notes`, {
+        note: noteText,
+        sender_role: 'provider',
+        timestamp: new Date().toISOString()
+      });
+
+      alert('Note sent to doctor successfully!');
+      setNoteText('');
+      
+      // Refresh notes
+      const notesResponse = await axios.get(`${API}/appointments/${selectedAppointment.id}/notes`);
+      setAppointmentNotes(notesResponse.data);
+    } catch (error) {
+      console.error('Error sending note:', error);
+      alert('Error sending note to doctor');
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'pending': return 'status-pending';
