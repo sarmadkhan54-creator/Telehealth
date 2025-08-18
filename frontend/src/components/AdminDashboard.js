@@ -628,13 +628,16 @@ const AdminDashboard = ({ user, onLogout }) => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
-              <button
-                onClick={() => setShowAddUserForm(true)}
-                className="btn-primary flex items-center space-x-2"
-              >
-                <UserPlus className="w-4 h-4" />
-                <span>Add User</span>
-              </button>
+              {/* Only show Add User button for admin users */}
+              {user.role === 'admin' && (
+                <button
+                  onClick={() => setShowAddUserForm(true)}
+                  className="btn-primary flex items-center space-x-2"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>Add User</span>
+                </button>
+              )}
             </div>
 
             <div className="glass-card">
