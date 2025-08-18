@@ -272,20 +272,20 @@ class MedConnectAPITester:
         return success
 
 def main():
-    print("🏥 MedConnect Telehealth API Testing")
-    print("=" * 50)
+    print("🏥 MedConnect Telehealth API Testing - LOGIN CREDENTIALS FIX VERIFICATION")
+    print("=" * 80)
     
     tester = MedConnectAPITester()
     
-    # Test sequence
+    # Test sequence - focusing on login credentials fix
     tests = [
         ("Health Check", tester.test_health_check),
-        ("User Registration", tester.test_register_users),
-        ("User Login", tester.test_login_users),
-        ("Get Users", tester.test_get_users),
-        ("Create Appointment", tester.test_create_appointment),
-        ("Get Appointments", tester.test_get_appointments),
-        ("Update Appointment", tester.test_update_appointment),
+        ("NEW Demo Login Credentials", tester.test_demo_login_credentials),
+        ("OLD Credentials Should Fail", tester.test_old_credentials_fail),
+        ("Get Users (Admin Access)", tester.test_get_users),
+        ("Create Appointment (Provider)", tester.test_create_appointment),
+        ("Get Appointments (All Roles)", tester.test_get_appointments),
+        ("Update Appointment (Doctor)", tester.test_update_appointment),
         ("Start Video Call", tester.test_start_video_call),
         ("Emergency Appointment", tester.test_emergency_appointment),
     ]
@@ -300,14 +300,24 @@ def main():
             print(f"❌ Test suite '{test_name}' failed with error: {str(e)}")
     
     # Print final results
-    print(f"\n{'='*50}")
+    print(f"\n{'='*80}")
     print(f"📊 Final Results:")
     print(f"   Tests Run: {tester.tests_run}")
     print(f"   Tests Passed: {tester.tests_passed}")
     print(f"   Success Rate: {(tester.tests_passed/tester.tests_run*100):.1f}%" if tester.tests_run > 0 else "No tests run")
     
+    # Special focus on login credentials
+    print(f"\n🔑 LOGIN CREDENTIALS SUMMARY:")
+    if len(tester.tokens) == 3:
+        print(f"   ✅ All 3 demo user types can login successfully")
+        print(f"   ✅ Provider: {tester.demo_credentials['provider']['username']}")
+        print(f"   ✅ Doctor: {tester.demo_credentials['doctor']['username']}")
+        print(f"   ✅ Admin: {tester.demo_credentials['admin']['username']}")
+    else:
+        print(f"   ⚠️  Only {len(tester.tokens)}/3 demo users can login")
+    
     if tester.tests_passed == tester.tests_run:
-        print("🎉 All tests passed!")
+        print("🎉 All tests passed! Login fix is working correctly.")
         return 0
     else:
         print("⚠️  Some tests failed - check logs above")
