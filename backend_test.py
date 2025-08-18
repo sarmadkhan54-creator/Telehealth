@@ -93,24 +93,355 @@ class MedConnectAPITester:
         
         return all_success
 
-    def test_get_users(self):
-        """Test getting users (admin only)"""
-        if 'admin' not in self.tokens:
-            print("❌ No admin token available")
+    def test_admin_only_get_users(self):
+        """Test that only admin can get all users"""
+        print("\n👥 Testing Admin-Only Get Users Access")
+        print("-" * 50)
+        
+        # Test admin access (should work)
+        if 'admin' in self.tokens:
+            success, response = self.run_test(
+                "Get All Users (Admin - Should Work)",
+                "GET",
+                "users", 
+                200,
+                token=self.tokens['admin']
+            )
+            
+            if success:
+                print(f"   ✅ Admin can access users list ({len(response)} users found)")
+            else:
+                print("   ❌ Admin cannot access users list")
+                return False
+        else:
+            print("   ❌ No admin token available")
             return False
             
+        # Test provider access (should fail with 403)
+        if 'provider' in self.tokens:
+            success, response = self.run_test(
+                "Get All Users (Provider - Should Fail)",
+                "GET",
+                "users", 
+                403,
+                token=self.tokens['provider']
+            )
+            
+            if success:
+                print("   ✅ Provider correctly denied access to users list")
+            else:
+                print("   ❌ Provider unexpectedly allowed access to users list")
+                return False
+        
+        # Test doctor access (should fail with 403)
+        if 'doctor' in self.tokens:
+            success, response = self.run_test(
+                "Get All Users (Doctor - Should Fail)",
+                "GET",
+                "users", 
+                403,
+                token=self.tokens['doctor']
+            )
+            
+            if success:
+                print("   ✅ Doctor correctly denied access to users list")
+            else:
+                print("   ❌ Doctor unexpectedly allowed access to users list")
+                return False
+        
+        return True
+
+    def test_admin_only_create_user(self):
+        """Test that only admin can create new users"""
+        print("\n➕ Testing Admin-Only Create User Access")
+        print("-" * 50)
+        
+        test_user_data = {
+            "username": f"test_user_{datetime.now().strftime('%H%M%S')}",
+            "email": f"test_{datetime.now().strftime('%H%M%S')}@example.com",
+            "password": "TestPass123!",
+            "phone": "+1234567890",
+            "full_name": "Test User Created",
+            "role": "provider",
+            "district": "Test District"
+        }
+        
+        # Test admin access (should work)
+        if 'admin' in self.tokens:
+            success, response = self.run_test(
+                "Create User (Admin - Should Work)",
+                "POST",
+                "admin/create-user", 
+                200,
+                data=test_user_data,
+                token=self.tokens['admin']
+            )
+            
+            if success:
+                self.created_user_id = response.get('id')
+                print(f"   ✅ Admin can create users (Created user ID: {self.created_user_id})")
+            else:
+                print("   ❌ Admin cannot create users")
+                return False
+        else:
+            print("   ❌ No admin token available")
+            return False
+            
+        # Test provider access (should fail with 403)
+        if 'provider' in self.tokens:
+            test_user_data['username'] = f"test_provider_{datetime.now().strftime('%H%M%S')}"
+            test_user_data['email'] = f"test_provider_{datetime.now().strftime('%H%M%S')}@example.com"
+            
+            success, response = self.run_test(
+                "Create User (Provider - Should Fail)",
+                "POST",
+                "admin/create-user", 
+                403,
+                data=test_user_data,
+                token=self.tokens['provider']
+            )
+            
+            if success:
+                print("   ✅ Provider correctly denied user creation access")
+            else:
+                print("   ❌ Provider unexpectedly allowed to create users")
+                return False
+        
+        # Test doctor access (should fail with 403)
+        if 'doctor' in self.tokens:
+            test_user_data['username'] = f"test_doctor_{datetime.now().strftime('%H%M%S')}"
+            test_user_data['email'] = f"test_doctor_{datetime.now().strftime('%H%M%S')}@example.com"
+            
+            success, response = self.run_test(
+                "Create User (Doctor - Should Fail)",
+                "POST",
+                "admin/create-user", 
+                403,
+                data=test_user_data,
+                token=self.tokens['doctor']
+            )
+            
+            if success:
+                print("   ✅ Doctor correctly denied user creation access")
+            else:
+                print("   ❌ Doctor unexpectedly allowed to create users")
+                return False
+        
+        return True
+
+    def test_admin_only_delete_user(self):
+        """Test that only admin can delete users"""
+        print("\n🗑️ Testing Admin-Only Delete User Access")
+        print("-" * 50)
+        
+        if not self.created_user_id:
+            print("   ❌ No test user available for deletion")
+            return False
+            
+        # Test provider access (should fail with 403)
+        if 'provider' in self.tokens:
+            success, response = self.run_test(
+                "Delete User (Provider - Should Fail)",
+                "DELETE",
+                f"users/{self.created_user_id}", 
+                403,
+                token=self.tokens['provider']
+            )
+            
+            if success:
+                print("   ✅ Provider correctly denied user deletion access")
+            else:
+                print("   ❌ Provider unexpectedly allowed to delete users")
+                return False
+        
+        # Test doctor access (should fail with 403)
+        if 'doctor' in self.tokens:
+            success, response = self.run_test(
+                "Delete User (Doctor - Should Fail)",
+                "DELETE",
+                f"users/{self.created_user_id}", 
+                403,
+                token=self.tokens['doctor']
+            )
+            
+            if success:
+                print("   ✅ Doctor correctly denied user deletion access")
+            else:
+                print("   ❌ Doctor unexpectedly allowed to delete users")
+                return False
+        
+        # Test admin access (should work)
+        if 'admin' in self.tokens:
+            success, response = self.run_test(
+                "Delete User (Admin - Should Work)",
+                "DELETE",
+                f"users/{self.created_user_id}", 
+                200,
+                token=self.tokens['admin']
+            )
+            
+            if success:
+                print(f"   ✅ Admin can delete users")
+                self.created_user_id = None  # Clear since user is deleted
+            else:
+                print("   ❌ Admin cannot delete users")
+                return False
+        else:
+            print("   ❌ No admin token available")
+            return False
+        
+        return True
+
+    def test_self_deletion_prevention(self):
+        """Test that admin cannot delete their own account"""
+        print("\n🚫 Testing Self-Deletion Prevention")
+        print("-" * 50)
+        
+        if 'admin' not in self.tokens:
+            print("   ❌ No admin token available")
+            return False
+            
+        admin_user_id = self.users['admin']['id']
+        
         success, response = self.run_test(
-            "Get All Users (Admin)",
-            "GET",
-            "users", 
-            200,
+            "Admin Self-Deletion (Should Fail)",
+            "DELETE",
+            f"users/{admin_user_id}", 
+            400,  # Expecting 400 Bad Request
             token=self.tokens['admin']
         )
         
         if success:
-            print(f"   Found {len(response)} users")
+            print("   ✅ Admin correctly prevented from deleting own account")
+            return True
+        else:
+            print("   ❌ Admin unexpectedly allowed to delete own account")
+            return False
+
+    def test_admin_only_update_user_status(self):
+        """Test that only admin can update user status"""
+        print("\n🔄 Testing Admin-Only Update User Status Access")
+        print("-" * 50)
         
-        return success
+        # First create a test user to modify
+        if 'admin' not in self.tokens:
+            print("   ❌ No admin token available")
+            return False
+            
+        test_user_data = {
+            "username": f"status_test_{datetime.now().strftime('%H%M%S')}",
+            "email": f"status_test_{datetime.now().strftime('%H%M%S')}@example.com",
+            "password": "TestPass123!",
+            "phone": "+1234567890",
+            "full_name": "Status Test User",
+            "role": "provider",
+            "district": "Test District"
+        }
+        
+        success, response = self.run_test(
+            "Create Test User for Status Update",
+            "POST",
+            "admin/create-user", 
+            200,
+            data=test_user_data,
+            token=self.tokens['admin']
+        )
+        
+        if not success:
+            print("   ❌ Could not create test user for status update")
+            return False
+            
+        test_user_id = response.get('id')
+        status_update = {"is_active": False}
+        
+        # Test provider access (should fail with 403)
+        if 'provider' in self.tokens:
+            success, response = self.run_test(
+                "Update User Status (Provider - Should Fail)",
+                "PUT",
+                f"users/{test_user_id}/status", 
+                403,
+                data=status_update,
+                token=self.tokens['provider']
+            )
+            
+            if success:
+                print("   ✅ Provider correctly denied user status update access")
+            else:
+                print("   ❌ Provider unexpectedly allowed to update user status")
+                return False
+        
+        # Test doctor access (should fail with 403)
+        if 'doctor' in self.tokens:
+            success, response = self.run_test(
+                "Update User Status (Doctor - Should Fail)",
+                "PUT",
+                f"users/{test_user_id}/status", 
+                403,
+                data=status_update,
+                token=self.tokens['doctor']
+            )
+            
+            if success:
+                print("   ✅ Doctor correctly denied user status update access")
+            else:
+                print("   ❌ Doctor unexpectedly allowed to update user status")
+                return False
+        
+        # Test admin access (should work)
+        success, response = self.run_test(
+            "Update User Status (Admin - Should Work)",
+            "PUT",
+            f"users/{test_user_id}/status", 
+            200,
+            data=status_update,
+            token=self.tokens['admin']
+        )
+        
+        if success:
+            print("   ✅ Admin can update user status")
+        else:
+            print("   ❌ Admin cannot update user status")
+            return False
+        
+        # Clean up - delete the test user
+        self.run_test(
+            "Cleanup Test User",
+            "DELETE",
+            f"users/{test_user_id}", 
+            200,
+            token=self.tokens['admin']
+        )
+        
+        return True
+
+    def test_self_deactivation_prevention(self):
+        """Test that admin cannot deactivate their own account"""
+        print("\n🚫 Testing Self-Deactivation Prevention")
+        print("-" * 50)
+        
+        if 'admin' not in self.tokens:
+            print("   ❌ No admin token available")
+            return False
+            
+        admin_user_id = self.users['admin']['id']
+        status_update = {"is_active": False}
+        
+        success, response = self.run_test(
+            "Admin Self-Deactivation (Should Fail)",
+            "PUT",
+            f"users/{admin_user_id}/status", 
+            400,  # Expecting 400 Bad Request
+            data=status_update,
+            token=self.tokens['admin']
+        )
+        
+        if success:
+            print("   ✅ Admin correctly prevented from deactivating own account")
+            return True
+        else:
+            print("   ❌ Admin unexpectedly allowed to deactivate own account")
+            return False
 
     def test_create_appointment(self):
         """Test creating an appointment (provider only)"""
