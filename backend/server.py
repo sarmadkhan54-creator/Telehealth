@@ -58,8 +58,8 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
-# Pydantic Models
-class UserRole(BaseModel):
+# Pydantic Models and Constants
+class UserRole:
     ADMIN = "admin"
     PROVIDER = "provider" 
     DOCTOR = "doctor"
