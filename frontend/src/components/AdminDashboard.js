@@ -654,38 +654,38 @@ const AdminDashboard = ({ user, onLogout }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map((user) => (
-                      <tr key={user.id} className="border-b border-gray-100">
+                    {users.map((userItem) => (
+                      <tr key={userItem.id} className="border-b border-gray-100">
                         <td className="py-3 px-4">
                           <div>
-                            <p className="font-medium text-gray-900">{user.full_name}</p>
-                            <p className="text-sm text-gray-600">@{user.username}</p>
+                            <p className="font-medium text-gray-900">{userItem.full_name}</p>
+                            <p className="text-sm text-gray-600">@{userItem.username}</p>
                           </div>
                         </td>
                         <td className="py-3 px-4">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            user.role === 'admin' ? 'bg-green-100 text-green-800' :
-                            user.role === 'doctor' ? 'bg-blue-100 text-blue-800' :
+                            userItem.role === 'admin' ? 'bg-green-100 text-green-800' :
+                            userItem.role === 'doctor' ? 'bg-blue-100 text-blue-800' :
                             'bg-orange-100 text-orange-800'
                           }`}>
-                            {user.role}
+                            {userItem.role}
                           </span>
-                          {user.specialty && (
-                            <p className="text-xs text-gray-500 mt-1">{user.specialty}</p>
+                          {userItem.specialty && (
+                            <p className="text-xs text-gray-500 mt-1">{userItem.specialty}</p>
                           )}
                         </td>
-                        <td className="py-3 px-4 text-gray-600">{user.district || '-'}</td>
+                        <td className="py-3 px-4 text-gray-600">{userItem.district || '-'}</td>
                         <td className="py-3 px-4">
                           <div className="text-sm">
-                            <p className="text-gray-900">{user.phone}</p>
-                            <p className="text-gray-600">{user.email}</p>
+                            <p className="text-gray-900">{userItem.phone}</p>
+                            <p className="text-gray-600">{userItem.email}</p>
                           </div>
                         </td>
                         <td className="py-3 px-4">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            userItem.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                           }`}>
-                            {user.is_active ? 'Active' : 'Inactive'}
+                            {userItem.is_active ? 'Active' : 'Inactive'}
                           </span>
                         </td>
                         <td className="py-3 px-4">
@@ -693,24 +693,24 @@ const AdminDashboard = ({ user, onLogout }) => {
                           {user.role === 'admin' ? (
                             <div className="flex space-x-2">
                               <button 
-                                onClick={() => handleEditUser(user.id)}
+                                onClick={() => handleEditUser(userItem.id)}
                                 className="text-blue-600 hover:text-blue-800 transition-colors"
                                 title="Edit User"
                               >
                                 <Edit className="w-4 h-4" />
                               </button>
                               <button 
-                                onClick={() => handleToggleUserStatus(user.id, user.is_active, user.full_name)}
-                                className={`transition-colors ${user.is_active ? 'text-orange-600 hover:text-orange-800' : 'text-green-600 hover:text-green-800'}`}
-                                title={user.is_active ? 'Deactivate User' : 'Activate User'}
+                                onClick={() => handleToggleUserStatus(userItem.id, userItem.is_active, userItem.full_name)}
+                                className={`transition-colors ${userItem.is_active ? 'text-orange-600 hover:text-orange-800' : 'text-green-600 hover:text-green-800'}`}
+                                title={userItem.is_active ? 'Deactivate User' : 'Activate User'}
                               >
-                                {user.is_active ? '🚫' : '✅'}
+                                {userItem.is_active ? '🚫' : '✅'}
                               </button>
                               <button 
-                                onClick={() => handleDeleteUser(user.id, user.full_name)}
+                                onClick={() => handleDeleteUser(userItem.id, userItem.full_name)}
                                 className="text-red-600 hover:text-red-800 transition-colors"
                                 title="Delete User"
-                                disabled={user.id === user.id} // Prevent self-deletion
+                                disabled={userItem.id === user.id} // Prevent self-deletion
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
