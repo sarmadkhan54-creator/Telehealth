@@ -1,7 +1,12 @@
 # 🌟 Greenstar Telehealth Platform - Demo Credentials
 
 ## 🚀 **Application URL**
-**Frontend:** https://medconnect-app.preview.emergentagent.com
+**Greenstar Telehealth Platform:** https://medconnect-app.preview.emergentagent.com
+
+---
+
+## 🌟 **About Greenstar**
+**"health • prosperity • future"** - Greenstar Healthcare delivers cutting-edge telehealth solutions connecting healthcare providers with medical professionals for immediate consultations and emergency care.
 
 ---
 
