@@ -175,8 +175,27 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 # Authentication endpoints
 @api_router.post("/register", response_model=User)
-async def register_user(user: UserCreate, current_user: User = Depends(get_current_user)):
-    # Only admins can register new users (except for the initial setup)
+async def register_user(user: UserCreate):
+    # Check if user already exists
+    existing_user = await db.users.find_one({"$or": [{"username": user.username}, {"email": user.email}]})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username or email already exists")
+    
+    # Hash password and create user
+    hashed_password = get_password_hash(user.password)
+    user_dict = user.dict()
+    del user_dict["password"]
+    
+    new_user = User(**user_dict)
+    user_data = new_user.dict()
+    user_data["hashed_password"] = hashed_password
+    
+    await db.users.insert_one(user_data)
+    return new_user
+
+@api_router.post("/admin/create-user", response_model=User)
+async def create_user_admin(user: UserCreate, current_user: User = Depends(get_current_user)):
+    # Only admins can create new users
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Admin access required to create users")
     
