@@ -455,6 +455,35 @@ const AdminDashboard = ({ user, onLogout }) => {
     }
   };
 
+  // Appointment management functions (Admin only)
+  const handleEditAppointment = (appointmentId) => {
+    if (user.role !== 'admin') {
+      alert('Access Denied: Only administrators can edit appointments');
+      return;
+    }
+    // TODO: Implement edit appointment functionality
+    alert('Edit appointment functionality - Coming soon!');
+  };
+
+  const handleDeleteAppointment = async (appointmentId, patientName) => {
+    if (user.role !== 'admin') {
+      alert('Access Denied: Only administrators can delete appointments');
+      return;
+    }
+
+    const confirmed = window.confirm(`Are you sure you want to delete the appointment for "${patientName}"? This action cannot be undone.`);
+    if (!confirmed) return;
+
+    try {
+      await axios.delete(`${API}/appointments/${appointmentId}`);
+      alert('Appointment deleted successfully');
+      fetchData(); // Refresh the appointments list
+    } catch (error) {
+      console.error('Error deleting appointment:', error);
+      alert(error.response?.data?.detail || 'Failed to delete appointment');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
