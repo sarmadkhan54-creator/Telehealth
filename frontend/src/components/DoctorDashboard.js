@@ -24,6 +24,10 @@ const DoctorDashboard = ({ user, onLogout }) => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  const [noteText, setNoteText] = useState('');
+  const [appointmentNotes, setAppointmentNotes] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
