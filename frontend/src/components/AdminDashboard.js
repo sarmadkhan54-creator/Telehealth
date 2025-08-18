@@ -264,6 +264,132 @@ const AdminDashboard = ({ user, onLogout }) => {
     return new Date(dateString).toLocaleString();
   };
 
+  // Export functionality
+  const exportToCSV = (data, filename) => {
+    if (!data || data.length === 0) {
+      alert('No data to export');
+      return;
+    }
+
+    const csvContent = convertToCSV(data);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  const convertToCSV = (data) => {
+    if (!data || data.length === 0) return '';
+    
+    const headers = Object.keys(data[0]);
+    const csvHeaders = headers.join(',');
+    
+    const csvRows = data.map(row => {
+      return headers.map(header => {
+        let value = row[header];
+        if (value === null || value === undefined) {
+          value = '';
+        } else if (typeof value === 'object') {
+          value = JSON.stringify(value);
+        } else {
+          value = String(value);
+        }
+        // Escape quotes and wrap in quotes if contains comma or quote
+        if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+          value = '"' + value.replace(/"/g, '""') + '"';
+        }
+        return value;
+      }).join(',');
+    });
+    
+    return [csvHeaders, ...csvRows].join('\n');
+  };
+
+  const exportAppointments = () => {
+    const exportData = appointments.map(appointment => ({
+      'Patient Name': appointment.patient?.name || '',
+      'Age': appointment.patient?.age || '',
+      'Gender': appointment.patient?.gender || '',
+      'Consultation Reason': appointment.patient?.consultation_reason || '',
+      'Provider': appointment.provider?.full_name || '',
+      'Provider District': appointment.provider?.district || '',
+      'Doctor': appointment.doctor?.full_name || 'Unassigned',
+      'Doctor Specialty': appointment.doctor?.specialty || '',
+      'Type': appointment.appointment_type,
+      'Status': appointment.status,
+      'Created Date': formatDate(appointment.created_at),
+      'Blood Pressure': appointment.patient?.vitals?.blood_pressure || '',
+      'Heart Rate': appointment.patient?.vitals?.heart_rate || '',
+      'Temperature': appointment.patient?.vitals?.temperature || '',
+      'Oxygen Saturation': appointment.patient?.vitals?.oxygen_saturation || '',
+    }));
+    
+    const filename = `greenstar-appointments-${new Date().toISOString().split('T')[0]}.csv`;
+    exportToCSV(exportData, filename);
+  };
+
+  const exportUsers = () => {
+    const exportData = users.map(user => ({
+      'Full Name': user.full_name,
+      'Username': user.username,
+      'Email': user.email,
+      'Phone': user.phone,
+      'Role': user.role,
+      'District': user.district || '',
+      'Specialty': user.specialty || '',
+      'Status': user.is_active ? 'Active' : 'Inactive',
+      'Created Date': formatDate(user.created_at)
+    }));
+    
+    const filename = `greenstar-users-${new Date().toISOString().split('T')[0]}.csv`;
+    exportToCSV(exportData, filename);
+  };
+
+  const exportMonthlyReport = () => {
+    const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+    const monthlyData = [
+      {
+        'Report Type': 'Monthly Summary',
+        'Month': currentMonth,
+        'Total Users': stats.totalUsers,
+        'Total Providers': stats.providers,
+        'Total Doctors': stats.doctors,
+        'Total Appointments': stats.totalAppointments,
+        'Emergency Appointments': stats.emergencyAppointments,
+        'Completed Appointments': stats.completedAppointments,
+        'Today Appointments': stats.todayAppointments,
+        'Generated Date': new Date().toLocaleString()
+      }
+    ];
+    
+    // Add provider performance data
+    const providerStats = users.filter(u => u.role === 'provider').map(provider => {
+      const providerAppts = appointments.filter(a => a.provider_id === provider.id);
+      return {
+        'Report Type': 'Provider Performance',
+        'Provider Name': provider.full_name,
+        'District': provider.district || '',
+        'Total Appointments': providerAppts.length,
+        'Emergency Calls': providerAppts.filter(a => a.appointment_type === 'emergency').length,
+        'Completed Calls': providerAppts.filter(a => a.status === 'completed').length,
+        'Generated Date': new Date().toLocaleString()
+      };
+    });
+    
+    const combinedData = [...monthlyData, ...providerStats];
+    const filename = `greenstar-monthly-report-${new Date().toISOString().split('T')[0]}.csv`;
+    exportToCSV(combinedData, filename);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
