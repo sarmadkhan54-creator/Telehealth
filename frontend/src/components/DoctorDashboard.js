@@ -11,7 +11,10 @@ import {
   Clock, 
   AlertTriangle,
   MessageSquare,
-  Video
+  Video,
+  Eye,
+  Send,
+  PhoneCall
 } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
