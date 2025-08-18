@@ -536,12 +536,21 @@ async def get_appointment_details(appointment_id: str, current_user: User = Depe
     
     notes = await db.appointment_notes.find({"appointment_id": appointment_id}).to_list(1000)
     
+    # Clean MongoDB ObjectId fields from all data
+    def clean_mongo_data(data):
+        if isinstance(data, dict):
+            return {k: v for k, v in data.items() if k != "_id"}
+        elif isinstance(data, list):
+            return [clean_mongo_data(item) for item in data]
+        else:
+            return data
+    
     return {
-        **appointment,
-        "patient": patient,
-        "provider": {k: v for k, v in provider.items() if k not in ["hashed_password", "_id"]} if provider else None,
-        "doctor": {k: v for k, v in doctor.items() if k not in ["hashed_password", "_id"]} if doctor else None,
-        "notes": sorted(notes, key=lambda x: x["timestamp"]) if notes else []
+        **clean_mongo_data(appointment),
+        "patient": clean_mongo_data(patient) if patient else None,
+        "provider": clean_mongo_data(provider) if provider else None,
+        "doctor": clean_mongo_data(doctor) if doctor else None,
+        "notes": clean_mongo_data(notes) if notes else []
     }
 
 # Video call endpoints
