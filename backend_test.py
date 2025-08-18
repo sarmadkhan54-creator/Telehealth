@@ -71,94 +71,55 @@ class MedConnectAPITester:
         """Test the health check endpoint"""
         return self.run_test("Health Check", "GET", "", 200)
 
-    def test_register_users(self):
-        """Register test users for all roles"""
-        timestamp = datetime.now().strftime('%H%M%S')
+    def test_demo_login_credentials(self):
+        """Test the new fixed demo credentials"""
+        print("\n🔑 Testing NEW DEMO CREDENTIALS (Should Work)")
+        print("-" * 50)
         
-        users_to_create = [
-            {
-                "role": "admin",
-                "data": {
-                    "username": f"admin_{timestamp}",
-                    "email": f"admin_{timestamp}@test.com",
-                    "password": "TestPass123!",
-                    "phone": "+1234567890",
-                    "full_name": "Test Admin",
-                    "role": "admin"
-                }
-            },
-            {
-                "role": "provider", 
-                "data": {
-                    "username": f"provider_{timestamp}",
-                    "email": f"provider_{timestamp}@test.com",
-                    "password": "TestPass123!",
-                    "phone": "+1234567891",
-                    "full_name": "Test Provider",
-                    "role": "provider",
-                    "district": "Test District"
-                }
-            },
-            {
-                "role": "doctor",
-                "data": {
-                    "username": f"doctor_{timestamp}",
-                    "email": f"doctor_{timestamp}@test.com", 
-                    "password": "TestPass123!",
-                    "phone": "+1234567892",
-                    "full_name": "Test Doctor",
-                    "role": "doctor",
-                    "specialty": "General Medicine"
-                }
-            }
-        ]
-
-        for user_info in users_to_create:
+        all_success = True
+        for role, credentials in self.demo_credentials.items():
             success, response = self.run_test(
-                f"Register {user_info['role'].title()}",
-                "POST",
-                "register",
-                200,
-                data=user_info['data']
-            )
-            if success:
-                self.users[user_info['role']] = response
-                print(f"   Created user ID: {response.get('id')}")
-            else:
-                print(f"   Failed to create {user_info['role']} user")
-                return False
-        
-        return True
-
-    def test_login_users(self):
-        """Test login for all created users"""
-        for role in ['admin', 'provider', 'doctor']:
-            if role not in self.users:
-                print(f"❌ No {role} user to login")
-                continue
-                
-            user = self.users[role]
-            login_data = {
-                "username": user['username'],
-                "password": "TestPass123!"
-            }
-            
-            success, response = self.run_test(
-                f"Login {role.title()}",
+                f"Login Demo {role.title()}",
                 "POST", 
                 "login",
                 200,
-                data=login_data
+                data=credentials
             )
             
             if success and 'access_token' in response:
                 self.tokens[role] = response['access_token']
-                print(f"   Token obtained for {role}")
+                self.users[role] = response['user']
+                print(f"   ✅ {role.title()} login successful - Token obtained")
+                print(f"   User ID: {response['user'].get('id')}")
+                print(f"   Full Name: {response['user'].get('full_name')}")
             else:
-                print(f"   Failed to get token for {role}")
-                return False
+                print(f"   ❌ {role.title()} login failed")
+                all_success = False
         
-        return True
+        return all_success
+
+    def test_old_credentials_fail(self):
+        """Test that old broken credentials still fail"""
+        print("\n🚫 Testing OLD CREDENTIALS (Should Fail)")
+        print("-" * 50)
+        
+        all_failed_correctly = True
+        for role, credentials in self.old_credentials.items():
+            success, response = self.run_test(
+                f"Login Old {role.title()} (Should Fail)",
+                "POST", 
+                "login",
+                401,  # Expecting 401 Unauthorized
+                data=credentials
+            )
+            
+            if success:  # Success means we got the expected 401 status
+                print(f"   ✅ {role.title()} correctly rejected old credentials")
+            else:
+                print(f"   ❌ {role.title()} unexpectedly accepted old credentials")
+                all_failed_correctly = False
+        
+        return all_failed_correctly
 
     def test_get_users(self):
         """Test getting users (admin only)"""
