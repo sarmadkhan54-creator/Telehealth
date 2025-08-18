@@ -683,31 +683,29 @@ const DoctorDashboard = ({ user, onLogout }) => {
                 )}
               </div>
 
-              {/* Add New Note (for non-emergency appointments) */}
-              {selectedAppointment.appointment_type === 'non_emergency' && (
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Send Note to Provider
-                  </label>
-                  <div className="flex space-x-3">
-                    <textarea
-                      value={noteText}
-                      onChange={(e) => setNoteText(e.target.value)}
-                      className="flex-1 form-input"
-                      rows={3}
-                      placeholder="Type your note to the provider..."
-                    />
-                    <button
-                      onClick={sendNoteToProvider}
-                      disabled={!noteText.trim()}
-                      className="btn-primary flex items-center space-x-2 self-start disabled:opacity-50"
-                    >
-                      <Send className="w-4 h-4" />
-                      <span>Send</span>
-                    </button>
-                  </div>
+              {/* Add New Note (for ALL appointments) */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Send Note to Provider
+                </label>
+                <div className="flex space-x-3">
+                  <textarea
+                    value={noteText}
+                    onChange={(e) => setNoteText(e.target.value)}
+                    className="flex-1 form-input"
+                    rows={3}
+                    placeholder="Type your note to the provider..."
+                  />
+                  <button
+                    onClick={sendNoteToProvider}
+                    disabled={!noteText.trim()}
+                    className="btn-primary flex items-center space-x-2 self-start disabled:opacity-50"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>Send</span>
+                  </button>
                 </div>
-              )}
+              </div>
             </div>
 
             {/* Action Buttons */}
