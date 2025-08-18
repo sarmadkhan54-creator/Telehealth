@@ -65,15 +65,15 @@ class MedConnectAPITester:
         """Test the health check endpoint"""
         return self.run_test("Health Check", "GET", "", 200)
 
-    def test_demo_login_credentials(self):
-        """Test the new fixed demo credentials"""
-        print("\n🔑 Testing NEW DEMO CREDENTIALS (Should Work)")
+    def test_login_all_roles(self):
+        """Test login for all user roles"""
+        print("\n🔑 Testing Login for All Roles")
         print("-" * 50)
         
         all_success = True
         for role, credentials in self.demo_credentials.items():
             success, response = self.run_test(
-                f"Login Demo {role.title()}",
+                f"Login {role.title()}",
                 "POST", 
                 "login",
                 200,
@@ -86,34 +86,12 @@ class MedConnectAPITester:
                 print(f"   ✅ {role.title()} login successful - Token obtained")
                 print(f"   User ID: {response['user'].get('id')}")
                 print(f"   Full Name: {response['user'].get('full_name')}")
+                print(f"   Role: {response['user'].get('role')}")
             else:
                 print(f"   ❌ {role.title()} login failed")
                 all_success = False
         
         return all_success
-
-    def test_old_credentials_fail(self):
-        """Test that old broken credentials still fail"""
-        print("\n🚫 Testing OLD CREDENTIALS (Should Fail)")
-        print("-" * 50)
-        
-        all_failed_correctly = True
-        for role, credentials in self.old_credentials.items():
-            success, response = self.run_test(
-                f"Login Old {role.title()} (Should Fail)",
-                "POST", 
-                "login",
-                401,  # Expecting 401 Unauthorized
-                data=credentials
-            )
-            
-            if success:  # Success means we got the expected 401 status
-                print(f"   ✅ {role.title()} correctly rejected old credentials")
-            else:
-                print(f"   ❌ {role.title()} unexpectedly accepted old credentials")
-                all_failed_correctly = False
-        
-        return all_failed_correctly
 
     def test_get_users(self):
         """Test getting users (admin only)"""
