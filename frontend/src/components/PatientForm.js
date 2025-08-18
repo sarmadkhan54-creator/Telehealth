@@ -84,7 +84,7 @@ const PatientForm = ({ user }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
       {/* Header */}
       <nav className="nav-header">
         <div className="flex items-center justify-between">
@@ -96,6 +96,13 @@ const PatientForm = ({ user }) => {
               <ArrowLeft className="w-5 h-5" />
               <span>Back to Dashboard</span>
             </button>
+            <div className="border-l border-gray-300 pl-3">
+              <img 
+                src="https://customer-assets.emergentagent.com/job_medconnect-app/artifacts/syacsqjj_Greenstar-Logo.png" 
+                alt="Greenstar Healthcare" 
+                className="h-8 w-auto object-contain"
+              />
+            </div>
           </div>
           
           <div className="text-right">
@@ -121,7 +128,7 @@ const PatientForm = ({ user }) => {
                 {appointmentType === 'emergency' ? 'Emergency' : 'Non-Emergency'} Appointment
               </h2>
               <p className="text-gray-600">
-                Enter patient details and vitals for consultation
+                Enter patient details and vitals for Greenstar consultation
               </p>
             </div>
 
@@ -135,7 +142,7 @@ const PatientForm = ({ user }) => {
               {/* Patient Information */}
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                  <User className="w-6 h-6 mr-2 text-blue-600" />
+                  <User className="w-6 h-6 mr-2 text-green-600" />
                   Patient Information
                 </h3>
                 
@@ -314,7 +321,7 @@ const PatientForm = ({ user }) => {
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">
                   Provider Information
                 </h3>
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-green-50 rounded-lg p-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-gray-600">Provider Name</p>

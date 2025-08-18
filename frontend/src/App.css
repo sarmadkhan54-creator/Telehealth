@@ -15,7 +15,7 @@ body {
 
 .App {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #10b981 0%, #065f46 100%);
 }
 
 /* Tablet optimized layouts */
@@ -61,9 +61,9 @@ body {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
-/* Modern button styles */
+/* Modern button styles with Greenstar theme */
 .btn-primary {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   padding: 1rem 2rem;
   border: none;
@@ -93,7 +93,7 @@ body {
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4);
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
 }
 
 .btn-secondary {
@@ -169,9 +169,9 @@ body {
 }
 
 .form-input:focus {
-  border-color: #4f46e5;
+  border-color: #10b981;
   background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
 .form-textarea {
@@ -212,7 +212,7 @@ body {
 .appointment-card:hover {
   transform: translateX(4px);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
-  border-color: #4f46e5;
+  border-color: #10b981;
 }
 
 .appointment-card.emergency {
@@ -241,8 +241,8 @@ body {
 }
 
 .status-accepted {
-  background: rgba(34, 197, 94, 0.2);
-  color: #166534;
+  background: rgba(16, 185, 129, 0.2);
+  color: #065f46;
 }
 
 .status-completed {
@@ -332,8 +332,8 @@ body {
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid rgba(79, 70, 229, 0.2);
-  border-top-color: #4f46e5;
+  border: 4px solid rgba(16, 185, 129, 0.2);
+  border-top-color: #10b981;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -395,4 +395,13 @@ body {
 
 .interactive-element:active {
   transform: translateY(0);
+}
+
+/* Greenstar themed gradients */
+.bg-greenstar {
+  background: linear-gradient(135deg, #10b981 0%, #065f46 100%);
+}
+
+.text-greenstar {
+  color: #10b981;
 }

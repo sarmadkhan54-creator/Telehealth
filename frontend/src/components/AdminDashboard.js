@@ -266,23 +266,25 @@ const AdminDashboard = ({ user, onLogout }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
         <div className="loading-spinner"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
       {/* Navigation Header */}
       <nav className="nav-header">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
+            <img 
+              src="https://customer-assets.emergentagent.com/job_medconnect-app/artifacts/syacsqjj_Greenstar-Logo.png" 
+              alt="Greenstar Healthcare" 
+              className="h-10 w-auto object-contain"
+            />
             <div>
-              <h1 className="nav-brand">MedConnect Admin</h1>
+              <h1 className="nav-brand text-green-700">Greenstar Admin</h1>
               <p className="text-sm text-gray-600">Administrative Dashboard</p>
             </div>
           </div>
@@ -318,7 +320,7 @@ const AdminDashboard = ({ user, onLogout }) => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
                   activeTab === tab.id
-                    ? 'bg-purple-100 text-purple-700 font-medium'
+                    ? 'bg-green-100 text-green-700 font-medium'
                     : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
@@ -340,7 +342,7 @@ const AdminDashboard = ({ user, onLogout }) => {
                     <p className="text-sm text-gray-600">Total Users</p>
                     <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
                   </div>
-                  <Users className="w-8 h-8 text-blue-500" />
+                  <Users className="w-8 h-8 text-green-500" />
                 </div>
               </div>
 
@@ -468,9 +470,9 @@ const AdminDashboard = ({ user, onLogout }) => {
                         </td>
                         <td className="py-3 px-4">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                            user.role === 'doctor' ? 'bg-green-100 text-green-800' :
-                            'bg-blue-100 text-blue-800'
+                            user.role === 'admin' ? 'bg-green-100 text-green-800' :
+                            user.role === 'doctor' ? 'bg-blue-100 text-blue-800' :
+                            'bg-orange-100 text-orange-800'
                           }`}>
                             {user.role}
                           </span>
@@ -585,23 +587,23 @@ const AdminDashboard = ({ user, onLogout }) => {
         {/* Reports Tab */}
         {activeTab === 'reports' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">System Reports</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Greenstar System Reports</h2>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="glass-card">
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Monthly Statistics</h3>
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                  <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
                     <span className="text-gray-700">Total Calls This Month</span>
-                    <span className="font-bold text-blue-600">{appointments.length}</span>
+                    <span className="font-bold text-green-600">{appointments.length}</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
                     <span className="text-gray-700">Emergency Calls</span>
                     <span className="font-bold text-red-600">{stats.emergencyAppointments}</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                  <div className="flex justify-between items-center p-3 bg-emerald-50 rounded-lg">
                     <span className="text-gray-700">Completed Consultations</span>
-                    <span className="font-bold text-green-600">{stats.completedAppointments}</span>
+                    <span className="font-bold text-emerald-600">{stats.completedAppointments}</span>
                   </div>
                 </div>
               </div>
