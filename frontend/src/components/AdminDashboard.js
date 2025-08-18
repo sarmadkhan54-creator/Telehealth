@@ -787,7 +787,8 @@ const AdminDashboard = ({ user, onLogout }) => {
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                             appointment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                             appointment.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                            'bg-blue-100 text-blue-800'
+                            appointment.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                            'bg-red-100 text-red-800'
                           }`}>
                             {appointment.status}
                           </span>
@@ -823,6 +824,28 @@ const AdminDashboard = ({ user, onLogout }) => {
                           </div>
                         </div>
                       </div>
+
+                      {/* Admin Actions */}
+                      {user.role === 'admin' && (
+                        <div className="ml-4 flex flex-col space-y-2">
+                          <button 
+                            onClick={() => handleEditAppointment(appointment.id)}
+                            className="text-blue-600 hover:text-blue-800 transition-colors flex items-center space-x-1"
+                            title="Edit Appointment"
+                          >
+                            <Edit className="w-4 h-4" />
+                            <span className="text-sm">Edit</span>
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteAppointment(appointment.id, appointment.patient?.name)}
+                            className="text-red-600 hover:text-red-800 transition-colors flex items-center space-x-1"
+                            title="Delete Appointment"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span className="text-sm">Delete</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
