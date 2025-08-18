@@ -400,6 +400,13 @@ const DoctorDashboard = ({ user, onLogout }) => {
                         <CheckCircle className="w-4 h-4" />
                         <span>Accept</span>
                       </button>
+                      <button
+                        onClick={() => viewAppointmentDetails(appointment)}
+                        className="btn-secondary flex items-center space-x-2"
+                      >
+                        <Eye className="w-4 h-4" />
+                        <span>View Details</span>
+                      </button>
                     </div>
                   </div>
                 </div>
