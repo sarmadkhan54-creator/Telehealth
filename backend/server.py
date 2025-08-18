@@ -114,8 +114,10 @@ class Appointment(BaseModel):
     appointment_type: str  # "emergency" or "non_emergency"
     status: str = Field(default="pending")  # pending, accepted, completed, cancelled
     consultation_notes: Optional[str] = None
+    doctor_notes: Optional[str] = None  # Notes from doctor to provider
     scheduled_time: Optional[datetime] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class AppointmentCreate(BaseModel):
     patient: PatientCreate
