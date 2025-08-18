@@ -12,6 +12,20 @@ class MedConnectAPITester:
         self.tests_run = 0
         self.tests_passed = 0
         self.appointment_id = None
+        
+        # Fixed demo credentials to test
+        self.demo_credentials = {
+            "provider": {"username": "demo_provider", "password": "Demo123!"},
+            "doctor": {"username": "demo_doctor", "password": "Demo123!"},
+            "admin": {"username": "demo_admin", "password": "Demo123!"}
+        }
+        
+        # Old broken credentials to verify they still fail
+        self.old_credentials = {
+            "provider": {"username": "old_provider", "password": "OldPass123!"},
+            "doctor": {"username": "old_doctor", "password": "OldPass123!"},
+            "admin": {"username": "old_admin", "password": "OldPass123!"}
+        }
 
     def run_test(self, name, method, endpoint, expected_status, data=None, token=None):
         """Run a single API test"""
