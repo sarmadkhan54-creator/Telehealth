@@ -390,19 +390,159 @@ async def get_appointments(current_user: User = Depends(get_current_user)):
 
 @api_router.put("/appointments/{appointment_id}", response_model=Appointment)
 async def update_appointment(appointment_id: str, update_data: AppointmentUpdate, current_user: User = Depends(get_current_user)):
-    if current_user.role not in ["doctor", "admin"]:
-        raise HTTPException(status_code=403, detail="Only doctors can update appointments")
-    
     appointment = await db.appointments.find_one({"id": appointment_id})
     if not appointment:
         raise HTTPException(status_code=404, detail="Appointment not found")
     
+    # Role-based permissions
+    if current_user.role == "doctor":
+        # Doctors can update appointments (accept, add notes, etc.)
+        pass
+    elif current_user.role == "provider":
+        # Providers can only update their own appointments (cancel, etc.)
+        if appointment["provider_id"] != current_user.id:
+            raise HTTPException(status_code=403, detail="You can only update your own appointments")
+    elif current_user.role == "admin":
+        # Admins can update any appointment
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
     update_dict = update_data.dict(exclude_unset=True)
     if update_dict:
+        update_dict["updated_at"] = datetime.now(timezone.utc)
         await db.appointments.update_one({"id": appointment_id}, {"$set": update_dict})
     
     updated_appointment = await db.appointments.find_one({"id": appointment_id})
     return Appointment(**updated_appointment)
+
+@api_router.post("/appointments/{appointment_id}/notes")
+async def add_appointment_note(appointment_id: str, note_data: AppointmentNote, current_user: User = Depends(get_current_user)):
+    """Add a note to an appointment"""
+    appointment = await db.appointments.find_one({"id": appointment_id})
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    
+    # Only doctors and providers involved in the appointment can add notes
+    if current_user.role == "doctor":
+        if appointment.get("doctor_id") != current_user.id:
+            raise HTTPException(status_code=403, detail="You can only add notes to your appointments")
+    elif current_user.role == "provider":
+        if appointment["provider_id"] != current_user.id:
+            raise HTTPException(status_code=403, detail="You can only add notes to your appointments")
+    else:
+        raise HTTPException(status_code=403, detail="Only doctors and providers can add notes")
+    
+    # Create note document
+    note_doc = {
+        "id": str(uuid.uuid4()),
+        "appointment_id": appointment_id,
+        "sender_id": current_user.id,
+        "sender_name": current_user.full_name,
+        "sender_role": current_user.role,
+        "note": note_data.note,
+        "timestamp": datetime.now(timezone.utc)
+    }
+    
+    await db.appointment_notes.insert_one(note_doc)
+    
+    # Update appointment with latest note
+    if current_user.role == "doctor":
+        await db.appointments.update_one(
+            {"id": appointment_id}, 
+            {"$set": {"doctor_notes": note_data.note, "updated_at": datetime.now(timezone.utc)}}
+        )
+    
+    return {"message": "Note added successfully", "note_id": note_doc["id"]}
+
+@api_router.get("/appointments/{appointment_id}/notes")
+async def get_appointment_notes(appointment_id: str, current_user: User = Depends(get_current_user)):
+    """Get all notes for an appointment"""
+    appointment = await db.appointments.find_one({"id": appointment_id})
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    
+    # Check permissions
+    if current_user.role == "doctor":
+        # Doctors can see notes for appointments they're involved in
+        if appointment.get("doctor_id") != current_user.id and appointment.get("status") == "pending":
+            # Allow doctors to see notes for pending appointments they might accept
+            pass
+    elif current_user.role == "provider":
+        if appointment["provider_id"] != current_user.id:
+            raise HTTPException(status_code=403, detail="You can only view notes for your appointments")
+    elif current_user.role == "admin":
+        # Admins can see all notes
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    notes = await db.appointment_notes.find({"appointment_id": appointment_id}).to_list(1000)
+    return sorted(notes, key=lambda x: x["timestamp"])
+
+@api_router.delete("/appointments/{appointment_id}")
+async def delete_appointment(appointment_id: str, current_user: User = Depends(get_current_user)):
+    """Delete an appointment"""
+    appointment = await db.appointments.find_one({"id": appointment_id})
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    
+    # Role-based permissions
+    if current_user.role == "admin":
+        # Admins can delete any appointment
+        pass
+    elif current_user.role == "provider":
+        # Providers can only delete their own appointments if they're pending or not yet started
+        if appointment["provider_id"] != current_user.id:
+            raise HTTPException(status_code=403, detail="You can only delete your own appointments")
+        if appointment["status"] not in ["pending", "accepted"]:
+            raise HTTPException(status_code=400, detail="Cannot delete completed appointments")
+    else:
+        raise HTTPException(status_code=403, detail="Only admins and providers can delete appointments")
+    
+    # Delete appointment and related data
+    await db.appointments.delete_one({"id": appointment_id})
+    await db.appointment_notes.delete_many({"appointment_id": appointment_id})
+    await db.patients.delete_one({"id": appointment["patient_id"]})
+    
+    return {"message": "Appointment deleted successfully"}
+
+@api_router.get("/appointments/{appointment_id}")
+async def get_appointment_details(appointment_id: str, current_user: User = Depends(get_current_user)):
+    """Get detailed appointment information"""
+    appointment = await db.appointments.find_one({"id": appointment_id})
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    
+    # Check permissions
+    if current_user.role == "doctor":
+        # Doctors can view any appointment details
+        pass
+    elif current_user.role == "provider":
+        if appointment["provider_id"] != current_user.id:
+            raise HTTPException(status_code=403, detail="You can only view your own appointments")
+    elif current_user.role == "admin":
+        # Admins can view any appointment
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Enrich with related data
+    patient = await db.patients.find_one({"id": appointment["patient_id"]})
+    provider = await db.users.find_one({"id": appointment["provider_id"]})
+    doctor = None
+    if appointment.get("doctor_id"):
+        doctor = await db.users.find_one({"id": appointment["doctor_id"]})
+    
+    notes = await db.appointment_notes.find({"appointment_id": appointment_id}).to_list(1000)
+    
+    return {
+        **appointment,
+        "patient": patient,
+        "provider": {k: v for k, v in provider.items() if k not in ["hashed_password", "_id"]} if provider else None,
+        "doctor": {k: v for k, v in doctor.items() if k not in ["hashed_password", "_id"]} if doctor else None,
+        "notes": sorted(notes, key=lambda x: x["timestamp"]) if notes else []
+    }
 
 # Video call endpoints
 @api_router.post("/video-call/start/{appointment_id}")
