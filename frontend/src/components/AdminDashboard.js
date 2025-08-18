@@ -761,15 +761,24 @@ const AdminDashboard = ({ user, onLogout }) => {
                 <h3 className="text-xl font-semibold text-gray-900">Export Reports</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <button className="btn-secondary flex items-center justify-center space-x-2">
+                <button 
+                  onClick={exportMonthlyReport}
+                  className="btn-secondary flex items-center justify-center space-x-2"
+                >
                   <Download className="w-4 h-4" />
                   <span>Monthly Report</span>
                 </button>
-                <button className="btn-secondary flex items-center justify-center space-x-2">
+                <button 
+                  onClick={exportUsers}
+                  className="btn-secondary flex items-center justify-center space-x-2"
+                >
                   <Download className="w-4 h-4" />
                   <span>User Report</span>
                 </button>
-                <button className="btn-secondary flex items-center justify-center space-x-2">
+                <button 
+                  onClick={exportAppointments}
+                  className="btn-secondary flex items-center justify-center space-x-2"
+                >
                   <Download className="w-4 h-4" />
                   <span>Call Logs</span>
                 </button>
