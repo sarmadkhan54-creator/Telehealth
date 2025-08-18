@@ -884,12 +884,12 @@ class MedConnectAPITester:
         return success
 
 def main():
-    print("🏥 MedConnect Telehealth API Testing - ADMIN ACCESS CONTROL VERIFICATION")
+    print("🏥 MedConnect Telehealth API Testing - COMPREHENSIVE APPOINTMENT MANAGEMENT")
     print("=" * 80)
     
     tester = MedConnectAPITester()
     
-    # Test sequence - focusing on admin-only access control
+    # Test sequence - comprehensive appointment management testing
     tests = [
         ("Health Check", tester.test_health_check),
         ("Login All Roles", tester.test_login_all_roles),
@@ -899,16 +899,28 @@ def main():
         ("Self-Deletion Prevention", tester.test_self_deletion_prevention),
         ("Admin-Only Update User Status", tester.test_admin_only_update_user_status),
         ("Self-Deactivation Prevention", tester.test_self_deactivation_prevention),
+        ("Create Appointment", tester.test_create_appointment),
+        ("Role-Based Appointment Access", tester.test_role_based_appointment_access),
+        ("Appointment Details Access", tester.test_appointment_details),
+        ("Doctor Notes System", tester.test_doctor_notes_system),
+        ("Appointment Cancellation", tester.test_appointment_cancellation),
+        ("Appointment Deletion Permissions", tester.test_appointment_deletion),
+        ("Emergency Appointment", tester.test_emergency_appointment),
+        ("Video Call Functionality", tester.test_video_call_functionality),
     ]
     
     print(f"\n🚀 Running {len(tests)} test suites...")
     
+    failed_tests = []
     for test_name, test_func in tests:
         print(f"\n{'='*20} {test_name} {'='*20}")
         try:
-            test_func()
+            result = test_func()
+            if not result:
+                failed_tests.append(test_name)
         except Exception as e:
             print(f"❌ Test suite '{test_name}' failed with error: {str(e)}")
+            failed_tests.append(test_name)
     
     # Print final results
     print(f"\n{'='*80}")
@@ -917,8 +929,13 @@ def main():
     print(f"   Tests Passed: {tester.tests_passed}")
     print(f"   Success Rate: {(tester.tests_passed/tester.tests_run*100):.1f}%" if tester.tests_run > 0 else "No tests run")
     
-    # Special focus on admin access control
-    print(f"\n🔐 ADMIN ACCESS CONTROL SUMMARY:")
+    if failed_tests:
+        print(f"\n❌ Failed Test Suites ({len(failed_tests)}):")
+        for test in failed_tests:
+            print(f"   - {test}")
+    
+    # Special focus on appointment management features
+    print(f"\n📅 APPOINTMENT MANAGEMENT SUMMARY:")
     if len(tester.tokens) == 3:
         print(f"   ✅ All 3 user types can login successfully")
         print(f"   ✅ Provider: {tester.demo_credentials['provider']['username']}")
@@ -927,11 +944,16 @@ def main():
     else:
         print(f"   ⚠️  Only {len(tester.tokens)}/3 users can login")
     
+    if tester.appointment_id:
+        print(f"   ✅ Test appointment created: {tester.appointment_id}")
+    else:
+        print(f"   ❌ No test appointment was created")
+    
     if tester.tests_passed >= tester.tests_run * 0.8:  # 80% pass rate
-        print("🎉 Admin access control is working correctly!")
+        print("🎉 Appointment management system is working correctly!")
         return 0
     else:
-        print("⚠️  Some critical security tests failed - check logs above")
+        print("⚠️  Some critical tests failed - check logs above")
         return 1
 
 if __name__ == "__main__":
