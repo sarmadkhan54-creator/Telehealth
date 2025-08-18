@@ -30,9 +30,15 @@ const AdminDashboard = ({ user, onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [showAddUserForm, setShowAddUserForm] = useState(false);
 
+  // Admin access control - only allow admin users
   useEffect(() => {
+    if (user.role !== 'admin') {
+      alert('Access Denied: Only administrators can access this dashboard');
+      onLogout();
+      return;
+    }
     fetchData();
-  }, []);
+  }, [user.role, onLogout]);
 
   const fetchData = async () => {
     try {
