@@ -60,6 +60,16 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'pending': return 'status-pending';
+      case 'accepted': return 'status-accepted';
+      case 'completed': return 'status-completed';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      default: return 'status-pending';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
       {/* Navigation Header */}
