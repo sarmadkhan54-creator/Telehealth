@@ -1,4 +1,4 @@
-# 🏥 MedConnect Telehealth App - Demo Credentials
+# 🌟 Greenstar Telehealth Platform - Demo Credentials
 
 ## 🚀 **Application URL**
 **Frontend:** https://medconnect-app.preview.emergentagent.com
