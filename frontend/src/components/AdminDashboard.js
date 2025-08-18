@@ -396,6 +396,65 @@ const AdminDashboard = ({ user, onLogout }) => {
     exportToCSV(combinedData, filename);
   };
 
+  // User management functions (Admin only)
+  const handleEditUser = (userId) => {
+    if (user.role !== 'admin') {
+      alert('Access Denied: Only administrators can edit users');
+      return;
+    }
+    // TODO: Implement edit user functionality
+    alert('Edit user functionality - Coming soon!');
+  };
+
+  const handleDeleteUser = async (userId, userName) => {
+    if (user.role !== 'admin') {
+      alert('Access Denied: Only administrators can delete users');
+      return;
+    }
+
+    if (userId === user.id) {
+      alert('Error: You cannot delete your own admin account');
+      return;
+    }
+
+    const confirmed = window.confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`);
+    if (!confirmed) return;
+
+    try {
+      await axios.delete(`${API}/users/${userId}`);
+      alert('User deleted successfully');
+      fetchData(); // Refresh the users list
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert(error.response?.data?.detail || 'Failed to delete user');
+    }
+  };
+
+  const handleToggleUserStatus = async (userId, currentStatus, userName) => {
+    if (user.role !== 'admin') {
+      alert('Access Denied: Only administrators can modify user status');
+      return;
+    }
+
+    if (userId === user.id) {
+      alert('Error: You cannot deactivate your own admin account');
+      return;
+    }
+
+    const action = currentStatus ? 'deactivate' : 'activate';
+    const confirmed = window.confirm(`Are you sure you want to ${action} user "${userName}"?`);
+    if (!confirmed) return;
+
+    try {
+      await axios.put(`${API}/users/${userId}/status`, { is_active: !currentStatus });
+      alert(`User ${action}d successfully`);
+      fetchData(); // Refresh the users list
+    } catch (error) {
+      console.error('Error updating user status:', error);
+      alert(error.response?.data?.detail || 'Failed to update user status');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
