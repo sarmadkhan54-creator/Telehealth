@@ -281,6 +281,9 @@ async def get_appointments(current_user: User = Depends(get_current_user)):
     # Enrich with patient and user details
     enriched_appointments = []
     for appointment in appointments:
+        # Remove MongoDB _id field from appointment
+        appointment = {k: v for k, v in appointment.items() if k != "_id"}
+        
         patient = await db.patients.find_one({"id": appointment["patient_id"]})
         provider = await db.users.find_one({"id": appointment["provider_id"]})
         doctor = None
@@ -289,7 +292,7 @@ async def get_appointments(current_user: User = Depends(get_current_user)):
         
         enriched_appointment = {
             **appointment,
-            "patient": patient,
+            "patient": {k: v for k, v in patient.items() if k != "_id"} if patient else None,
             "provider": {k: v for k, v in provider.items() if k not in ["hashed_password", "_id"]} if provider else None,
             "doctor": {k: v for k, v in doctor.items() if k not in ["hashed_password", "_id"]} if doctor else None
         }
