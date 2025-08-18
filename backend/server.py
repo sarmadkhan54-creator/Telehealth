@@ -229,6 +229,55 @@ async def get_users_by_role(user_role: str, current_user: User = Depends(get_cur
     users = await db.users.find({"role": user_role, "is_active": True}).to_list(1000)
     return [User(**{k: v for k, v in user.items() if k != "hashed_password"}) for user in users]
 
+@api_router.delete("/users/{user_id}")
+async def delete_user(user_id: str, current_user: User = Depends(get_current_user)):
+    # Only admins can delete users
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Prevent self-deletion
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    
+    # Check if user exists
+    user_to_delete = await db.users.find_one({"id": user_id})
+    if not user_to_delete:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Delete the user
+    result = await db.users.delete_one({"id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": f"User {user_to_delete['full_name']} deleted successfully"}
+
+@api_router.put("/users/{user_id}/status")
+async def update_user_status(user_id: str, status_update: dict, current_user: User = Depends(get_current_user)):
+    # Only admins can update user status
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Prevent self-deactivation
+    if user_id == current_user.id and not status_update.get("is_active", True):
+        raise HTTPException(status_code=400, detail="Cannot deactivate your own account")
+    
+    # Check if user exists
+    user_to_update = await db.users.find_one({"id": user_id})
+    if not user_to_update:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Update user status
+    result = await db.users.update_one(
+        {"id": user_id}, 
+        {"$set": {"is_active": status_update.get("is_active", True)}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="User not found or no changes made")
+    
+    action = "activated" if status_update.get("is_active", True) else "deactivated"
+    return {"message": f"User {user_to_update['full_name']} {action} successfully"}
+
 # Appointment endpoints
 @api_router.post("/appointments", response_model=Appointment)
 async def create_appointment(appointment_data: AppointmentCreate, current_user: User = Depends(get_current_user)):
