@@ -331,6 +331,223 @@ const Dashboard = ({ user, onLogout }) => {
           )}
         </div>
       </div>
+
+      {/* Provider Appointment Details Modal */}
+      {showAppointmentModal && selectedAppointment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="glass-card max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-gray-900">Appointment Details</h3>
+              <button
+                onClick={() => setShowAppointmentModal(false)}
+                className="text-gray-500 hover:text-gray-700 text-xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Patient Information */}
+              <div className="glass-card">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Patient Information</h4>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm text-gray-600">Name</p>
+                    <p className="font-medium">{selectedAppointment.patient?.name}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Age</p>
+                      <p className="font-medium">{selectedAppointment.patient?.age} years</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Gender</p>
+                      <p className="font-medium">{selectedAppointment.patient?.gender}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Consultation Reason</p>
+                    <p className="font-medium">{selectedAppointment.patient?.consultation_reason}</p>
+                  </div>
+                </div>
+
+                {/* Patient Vitals */}
+                {selectedAppointment.patient?.vitals && Object.keys(selectedAppointment.patient.vitals).some(key => selectedAppointment.patient.vitals[key]) && (
+                  <div className="mt-6">
+                    <h5 className="text-md font-semibold text-gray-900 mb-3">Vitals</h5>
+                    <div className="grid grid-cols-2 gap-3">
+                      {selectedAppointment.patient.vitals.blood_pressure && (
+                        <div className="bg-red-50 p-3 rounded-lg">
+                          <p className="text-sm text-red-600">Blood Pressure</p>
+                          <p className="font-medium">{selectedAppointment.patient.vitals.blood_pressure}</p>
+                        </div>
+                      )}
+                      {selectedAppointment.patient.vitals.heart_rate && (
+                        <div className="bg-pink-50 p-3 rounded-lg">
+                          <p className="text-sm text-pink-600">Heart Rate</p>
+                          <p className="font-medium">{selectedAppointment.patient.vitals.heart_rate} bpm</p>
+                        </div>
+                      )}
+                      {selectedAppointment.patient.vitals.temperature && (
+                        <div className="bg-orange-50 p-3 rounded-lg">
+                          <p className="text-sm text-orange-600">Temperature</p>
+                          <p className="font-medium">{selectedAppointment.patient.vitals.temperature}°C</p>
+                        </div>
+                      )}
+                      {selectedAppointment.patient.vitals.oxygen_saturation && (
+                        <div className="bg-blue-50 p-3 rounded-lg">
+                          <p className="text-sm text-blue-600">O2 Saturation</p>
+                          <p className="font-medium">{selectedAppointment.patient.vitals.oxygen_saturation}%</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Doctor & Appointment Info */}
+              <div className="space-y-4">
+                {selectedAppointment.doctor ? (
+                  <div className="glass-card">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Assigned Doctor</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-sm text-gray-600">Name</p>
+                        <p className="font-medium">Dr. {selectedAppointment.doctor?.full_name}</p>
+                      </div>
+                      {selectedAppointment.doctor?.specialty && (
+                        <div>
+                          <p className="text-sm text-gray-600">Specialty</p>
+                          <p className="font-medium">{selectedAppointment.doctor.specialty}</p>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-sm text-gray-600">Phone</p>
+                        <p className="font-medium">{selectedAppointment.doctor?.phone}</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="glass-card">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Doctor Assignment</h4>
+                    <p className="text-gray-600">No doctor assigned yet. Waiting for a doctor to accept this appointment.</p>
+                  </div>
+                )}
+
+                <div className="glass-card">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Appointment Status</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        selectedAppointment.appointment_type === 'emergency' 
+                          ? 'bg-red-100 text-red-800' 
+                          : 'bg-green-100 text-green-800'
+                      }`}>
+                        {selectedAppointment.appointment_type === 'emergency' ? 'EMERGENCY' : 'NON-EMERGENCY'}
+                      </span>
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        selectedAppointment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        selectedAppointment.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                        selectedAppointment.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {selectedAppointment.status.toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Created</p>
+                      <p className="font-medium">{formatDate(selectedAppointment.created_at)}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Notes Section */}
+            <div className="mt-6">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Communication with Doctor</h4>
+              
+              {/* Existing Notes */}
+              <div className="space-y-3 mb-4 max-h-40 overflow-y-auto">
+                {appointmentNotes.length > 0 ? (
+                  appointmentNotes.map((note, index) => (
+                    <div key={index} className={`p-3 rounded-lg ${
+                      note.sender_role === 'doctor' ? 'bg-blue-50 mr-8' : 'bg-green-50 ml-8'
+                    }`}>
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="font-medium text-sm">
+                          {note.sender_role === 'doctor' ? 'Dr.' : 'Provider'} {note.sender_name}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {new Date(note.timestamp).toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="text-sm">{note.note}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-center py-4">No communication yet</p>
+                )}
+              </div>
+
+              {/* Add New Note */}
+              {selectedAppointment.doctor && (
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Send Message to Doctor
+                  </label>
+                  <div className="flex space-x-3">
+                    <textarea
+                      value={noteText}
+                      onChange={(e) => setNoteText(e.target.value)}
+                      className="flex-1 form-input"
+                      rows={3}
+                      placeholder="Type your message to the doctor..."
+                    />
+                    <button
+                      onClick={sendNoteToDoctor}
+                      disabled={!noteText.trim()}
+                      className="btn-primary flex items-center space-x-2 self-start disabled:opacity-50"
+                    >
+                      <Send className="w-4 h-4" />
+                      <span>Send</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-4 mt-6 pt-6 border-t">
+              {selectedAppointment.status === 'accepted' && (
+                <button
+                  onClick={() => {
+                    console.log('Starting video call for appointment:', selectedAppointment.id);
+                    setShowAppointmentModal(false);
+                  }}
+                  className="btn-primary flex items-center space-x-2"
+                >
+                  <Phone className="w-4 h-4" />
+                  <span>Join Video Call</span>
+                </button>
+              )}
+              
+              {(selectedAppointment.status === 'pending' || selectedAppointment.status === 'accepted') && (
+                <button
+                  onClick={() => {
+                    handleCancelAppointment(selectedAppointment.id, selectedAppointment.patient?.name);
+                    setShowAppointmentModal(false);
+                  }}
+                  className="btn-secondary flex items-center space-x-2 text-orange-600 hover:text-orange-800"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Cancel Appointment</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
