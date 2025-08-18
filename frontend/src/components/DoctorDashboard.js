@@ -493,6 +493,37 @@ const DoctorDashboard = ({ user, onLogout }) => {
                           </button>
                         </>
                       )}
+                      
+                      {/* Enhanced options for non-emergency appointments */}
+                      {appointment.appointment_type === 'non_emergency' && (
+                        <>
+                          <button
+                            onClick={() => viewAppointmentDetails(appointment)}
+                            className="btn-secondary flex items-center space-x-2"
+                          >
+                            <Eye className="w-4 h-4" />
+                            <span>View Details</span>
+                          </button>
+                          <button
+                            onClick={() => callProvider(appointment)}
+                            className="btn-secondary flex items-center space-x-2"
+                          >
+                            <PhoneCall className="w-4 h-4" />
+                            <span>Call Provider</span>
+                          </button>
+                        </>
+                      )}
+                      
+                      {/* View details for all appointments */}
+                      {appointment.appointment_type === 'emergency' && (
+                        <button
+                          onClick={() => viewAppointmentDetails(appointment)}
+                          className="btn-secondary flex items-center space-x-2"
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span>View Details</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
