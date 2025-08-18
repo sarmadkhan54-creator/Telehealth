@@ -30,12 +30,33 @@ const Dashboard = ({ user, onLogout }) => {
     return new Date(dateString).toLocaleString();
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'pending': return 'status-pending';
-      case 'accepted': return 'status-accepted';
-      case 'completed': return 'status-completed';
-      default: return 'status-pending';
+  const handleCancelAppointment = async (appointmentId, patientName) => {
+    const confirmed = window.confirm(`Are you sure you want to cancel the appointment for ${patientName}?`);
+    if (!confirmed) return;
+
+    try {
+      await axios.put(`${API}/appointments/${appointmentId}`, {
+        status: 'cancelled'
+      });
+      alert('Appointment cancelled successfully');
+      fetchAppointments();
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+      alert('Error cancelling appointment');
+    }
+  };
+
+  const handleDeleteAppointment = async (appointmentId, patientName) => {
+    const confirmed = window.confirm(`Are you sure you want to delete the appointment for ${patientName}? This action cannot be undone.`);
+    if (!confirmed) return;
+
+    try {
+      await axios.delete(`${API}/appointments/${appointmentId}`);
+      alert('Appointment deleted successfully');
+      fetchAppointments();
+    } catch (error) {
+      console.error('Error deleting appointment:', error);
+      alert('Error deleting appointment');
     }
   };
 
