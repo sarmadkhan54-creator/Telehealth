@@ -96,8 +96,11 @@ function App() {
                     <div className="min-h-screen flex items-center justify-center">
                       <div className="text-center">
                         <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                          Invalid user role
+                          Access Denied
                         </h2>
+                        <p className="text-gray-600 mb-4">
+                          Your account role ({user.role}) does not have access to any dashboard.
+                        </p>
                         <button
                           onClick={handleLogout}
                           className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
