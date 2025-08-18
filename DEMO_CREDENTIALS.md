@@ -34,7 +34,7 @@
 
 ---
 
-## 🎯 **How to Test the Application**
+## 🎯 **How to Test Greenstar Platform**
 
 ### **Step 1: Login as Provider**
 1. Go to https://medconnect-app.preview.emergentagent.com
