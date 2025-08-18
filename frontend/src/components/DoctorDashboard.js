@@ -116,16 +116,18 @@ const DoctorDashboard = ({ user, onLogout }) => {
   const myAppointments = appointments.filter(apt => apt.doctor_id === user.id);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-100">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
       {/* Navigation Header */}
       <nav className="nav-header">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
-              <User className="w-5 h-5 text-white" />
-            </div>
+            <img 
+              src="https://customer-assets.emergentagent.com/job_medconnect-app/artifacts/syacsqjj_Greenstar-Logo.png" 
+              alt="Greenstar Healthcare" 
+              className="h-10 w-auto object-contain"
+            />
             <div>
-              <h1 className="nav-brand">MedConnect</h1>
+              <h1 className="nav-brand text-green-700">Greenstar Telehealth</h1>
               <p className="text-sm text-gray-600">Doctor Dashboard</p>
             </div>
           </div>
@@ -187,7 +189,7 @@ const DoctorDashboard = ({ user, onLogout }) => {
 
           <div className="glass-card">
             <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-              <Calendar className="w-6 h-6 mr-2 text-blue-600" />
+              <Calendar className="w-6 h-6 mr-2 text-green-600" />
               Today's Activity
             </h3>
             <div className="space-y-2">

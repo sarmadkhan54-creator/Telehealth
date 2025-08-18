@@ -40,16 +40,18 @@ const Dashboard = ({ user, onLogout }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
       {/* Navigation Header */}
       <nav className="nav-header">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <User className="w-5 h-5 text-white" />
-            </div>
+            <img 
+              src="https://customer-assets.emergentagent.com/job_medconnect-app/artifacts/syacsqjj_Greenstar-Logo.png" 
+              alt="Greenstar Healthcare" 
+              className="h-10 w-auto object-contain"
+            />
             <div>
-              <h1 className="nav-brand">MedConnect</h1>
+              <h1 className="nav-brand text-green-700">Greenstar Telehealth</h1>
               <p className="text-sm text-gray-600">Provider Dashboard</p>
             </div>
           </div>
@@ -75,7 +77,7 @@ const Dashboard = ({ user, onLogout }) => {
         <div className="dashboard-grid mb-8">
           <div className="glass-card">
             <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-              <Plus className="w-6 h-6 mr-2 text-blue-600" />
+              <Plus className="w-6 h-6 mr-2 text-green-600" />
               New Appointment
             </h3>
             <p className="text-gray-600 mb-6">
@@ -128,7 +130,7 @@ const Dashboard = ({ user, onLogout }) => {
         {/* Appointments List */}
         <div className="glass-card">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-            <Phone className="w-7 h-7 mr-3 text-indigo-600" />
+            <Phone className="w-7 h-7 mr-3 text-green-600" />
             My Appointments
           </h2>
 
@@ -190,13 +192,13 @@ const Dashboard = ({ user, onLogout }) => {
                       </div>
 
                       {appointment.doctor && (
-                        <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                        <div className="mt-3 p-3 bg-green-50 rounded-lg">
                           <p className="text-sm text-gray-600">Assigned Doctor</p>
-                          <p className="font-medium text-blue-900">
+                          <p className="font-medium text-green-900">
                             Dr. {appointment.doctor.full_name}
                           </p>
                           {appointment.doctor.specialty && (
-                            <p className="text-sm text-blue-700">
+                            <p className="text-sm text-green-700">
                               {appointment.doctor.specialty}
                             </p>
                           )}

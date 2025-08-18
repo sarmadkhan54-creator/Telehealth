@@ -42,11 +42,16 @@ const LoginPage = ({ onLogin }) => {
       <div className="max-w-md w-full space-y-8">
         <div className="glass-card">
           <div className="text-center mb-8">
-            <div className="mx-auto flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-4">
-              <Shield className="w-8 h-8 text-white" />
+            {/* Greenstar Logo */}
+            <div className="mx-auto mb-6 flex justify-center">
+              <img 
+                src="https://customer-assets.emergentagent.com/job_medconnect-app/artifacts/syacsqjj_Greenstar-Logo.png" 
+                alt="Greenstar Healthcare" 
+                className="h-20 w-auto object-contain"
+              />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">MedConnect</h2>
-            <p className="text-gray-600">Telehealth Platform</p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">Greenstar Telehealth</h2>
+            <p className="text-gray-600 font-medium">health • prosperity • future</p>
           </div>
 
           {error && (
@@ -122,7 +127,7 @@ const LoginPage = ({ onLogin }) => {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Only pre-registered users can access this platform
+              Only pre-registered healthcare professionals can access this platform
             </p>
           </div>
         </div>
