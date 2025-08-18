@@ -126,7 +126,13 @@ class AppointmentUpdate(BaseModel):
     status: Optional[str] = None
     doctor_id: Optional[str] = None
     consultation_notes: Optional[str] = None
+    doctor_notes: Optional[str] = None  # Notes from doctor to provider
     scheduled_time: Optional[datetime] = None
+
+class AppointmentNote(BaseModel):
+    note: str
+    sender_role: str  # doctor or provider
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class Token(BaseModel):
     access_token: str
