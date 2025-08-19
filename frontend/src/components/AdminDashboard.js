@@ -1217,6 +1217,9 @@ const AdminDashboard = ({ user, onLogout }) => {
 
       {/* Add User Modal */}
       {showAddUserForm && <AddUserForm />}
+
+      {/* Edit Appointment Modal */}
+      {showEditAppointmentModal && <EditAppointmentModal />}
     </div>
   );
 };
