@@ -162,15 +162,18 @@ frontend:
   
   - task: "Join Call Button Doctor Dashboard"
     implemented: true
-    working: false
+    working: true
     file: "/app/frontend/src/components/DoctorDashboard.js"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: true
     status_history:
       - working: false
         agent: "main"
         comment: "Start video call buttons exist but need proper implementation"
+      - working: true
+        agent: "main"
+        comment: "Updated startVideoCall function to properly start video calls and navigate to video call page"
   
   - task: "Edit Appointment Admin Dashboard"
     implemented: false
