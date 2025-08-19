@@ -414,6 +414,44 @@ async def update_appointment(appointment_id: str, update_data: AppointmentUpdate
         await db.appointments.update_one({"id": appointment_id}, {"$set": update_dict})
     
     updated_appointment = await db.appointments.find_one({"id": appointment_id})
+    
+    # Send notifications for important updates
+    if update_dict:
+        # Get appointment details for notifications
+        patient = appointment.get("patient", {})
+        
+        # If status changed to accepted by doctor, notify provider
+        if update_dict.get("status") == "accepted" and current_user.role == "doctor":
+            provider_id = appointment.get("provider_id")
+            if provider_id:
+                notification = {
+                    "type": "appointment_accepted",
+                    "appointment_id": appointment_id,
+                    "patient_name": patient.get("name", "Unknown"),
+                    "doctor_name": current_user.full_name,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+                await manager.send_personal_message(notification, provider_id)
+        
+        # If any update is made, notify relevant parties
+        general_notification = {
+            "type": "appointment_updated",
+            "appointment_id": appointment_id,
+            "patient_name": patient.get("name", "Unknown"),
+            "updated_by": current_user.full_name,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Notify provider if they're not the one making the update
+        provider_id = appointment.get("provider_id")
+        if provider_id and provider_id != current_user.id:
+            await manager.send_personal_message(general_notification, provider_id)
+        
+        # Notify doctor if they're assigned and not the one making the update  
+        doctor_id = appointment.get("doctor_id")
+        if doctor_id and doctor_id != current_user.id:
+            await manager.send_personal_message(general_notification, doctor_id)
+    
     return Appointment(**updated_appointment)
 
 @api_router.post("/appointments/{appointment_id}/notes")
