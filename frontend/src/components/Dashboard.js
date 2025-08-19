@@ -49,7 +49,7 @@ const Dashboard = ({ user, onLogout }) => {
       
       // Handle video call invitations with sound popup
       if (notification.type === 'video_call_invitation') {
-        // Play notification sound
+        // Play ringing sound
         playRingingSound();
         
         // Show video call invitation popup
@@ -64,6 +64,7 @@ const Dashboard = ({ user, onLogout }) => {
         
         // Auto-hide popup after 30 seconds
         setTimeout(() => {
+          stopRingingSound();
           setShowVideoCallInvitation(false);
           setVideoCallInvitation(null);
         }, 30000);
