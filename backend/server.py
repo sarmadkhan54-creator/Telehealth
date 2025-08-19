@@ -145,7 +145,7 @@ class VideoCallSession(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     appointment_id: str
     provider_id: str
-    doctor_id: str
+    doctor_id: Optional[str] = None
     session_token: str
     started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     ended_at: Optional[datetime] = None
