@@ -17,7 +17,63 @@ const Dashboard = ({ user, onLogout }) => {
 
   useEffect(() => {
     fetchAppointments();
+    setupWebSocket();
+    
+    // Set up auto-refresh interval as fallback
+    const refreshInterval = setInterval(fetchAppointments, 30000); // Refresh every 30 seconds
+    
+    return () => {
+      clearInterval(refreshInterval);
+    };
   }, []);
+
+  const setupWebSocket = () => {
+    const wsUrl = `${BACKEND_URL.replace('https:', 'wss:').replace('http:', 'ws:')}/ws/${user.id}`;
+    const ws = new WebSocket(wsUrl);
+    
+    ws.onmessage = (event) => {
+      const notification = JSON.parse(event.data);
+      
+      // Auto-refresh appointments when receiving notifications
+      if (notification.type === 'emergency_appointment' || 
+          notification.type === 'appointment_accepted' || 
+          notification.type === 'appointment_updated' ||
+          notification.type === 'video_call_invitation') {
+        fetchAppointments(); // Refresh appointments list
+      }
+      
+      // Show browser notification for important updates
+      if (Notification.permission === 'granted') {
+        if (notification.type === 'appointment_accepted') {
+          new Notification('Appointment Accepted', {
+            body: `Doctor accepted your appointment for ${notification.patient_name}`,
+            icon: '/favicon.ico'
+          });
+        } else if (notification.type === 'video_call_invitation') {
+          new Notification('Video Call Invitation', {
+            body: `${notification.caller} is inviting you to a video call`,
+            icon: '/favicon.ico'
+          });
+        }
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    ws.onclose = () => {
+      // Try to reconnect after 5 seconds
+      setTimeout(setupWebSocket, 5000);
+    };
+
+    // Request notification permission
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    return () => ws.close();
+  };
 
   const fetchAppointments = async () => {
     try {
