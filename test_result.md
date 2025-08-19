@@ -123,7 +123,7 @@ backend:
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
@@ -131,6 +131,9 @@ backend:
       - working: true
         agent: "main"
         comment: "Added GET /video-call/join/{session_token} endpoint with proper authorization checks"
+      - working: true
+        agent: "testing"
+        comment: "TESTED: Video call join endpoint working correctly. Fixed MongoDB ObjectId serialization issue and made doctor_id optional in VideoCallSession model. All authorization checks working: providers and doctors can join their calls, admins correctly denied access, invalid tokens rejected."
   
   - task: "Appointment Edit Endpoint"
     implemented: true
