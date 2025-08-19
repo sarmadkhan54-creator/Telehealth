@@ -52,6 +52,10 @@ const VideoCall = ({ user }) => {
 
       // Initialize WebRTC peer connection
       setupPeerConnection();
+      
+      // Setup signaling WebSocket for real peer connection
+      setupSignaling();
+      
       setCallStatus('connected');
     } catch (error) {
       console.error('Error initializing video call:', error);
@@ -62,11 +66,107 @@ const VideoCall = ({ user }) => {
         console.warn('Camera/microphone not available - continuing with video call interface');
         setCallStatus('connected'); // Still show as connected for demo purposes
         setupPeerConnection(); // Set up peer connection without local stream
+        setupSignaling(); // Still setup signaling for remote connection
       } else {
         alert('Error initializing video call. Please try again.');
         navigate('/');
       }
     }
+  };
+
+  const setupSignaling = () => {
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+    const wsUrl = `${BACKEND_URL.replace('https:', 'wss:').replace('http:', 'ws:')}/ws/video-call/${sessionToken}`;
+    
+    const socket = new WebSocket(wsUrl);
+    setSignalingSocket(socket);
+    
+    socket.onopen = () => {
+      console.log('Signaling WebSocket connected');
+      // Join the video call session
+      socket.send(JSON.stringify({
+        type: 'join',
+        sessionToken: sessionToken,
+        userId: user.id,
+        userName: user.full_name
+      }));
+    };
+    
+    socket.onmessage = async (event) => {
+      const message = JSON.parse(event.data);
+      
+      switch (message.type) {
+        case 'user-joined':
+          setRemoteUser({ name: message.userName });
+          // If we have a local stream, create an offer
+          if (localStreamRef.current && peerConnectionRef.current) {
+            try {
+              const offer = await peerConnectionRef.current.createOffer();
+              await peerConnectionRef.current.setLocalDescription(offer);
+              socket.send(JSON.stringify({
+                type: 'offer',
+                offer: offer,
+                target: message.userId
+              }));
+            } catch (error) {
+              console.error('Error creating offer:', error);
+            }
+          }
+          break;
+          
+        case 'offer':
+          if (peerConnectionRef.current) {
+            try {
+              await peerConnectionRef.current.setRemoteDescription(message.offer);
+              const answer = await peerConnectionRef.current.createAnswer();
+              await peerConnectionRef.current.setLocalDescription(answer);
+              socket.send(JSON.stringify({
+                type: 'answer',
+                answer: answer,
+                target: message.from
+              }));
+            } catch (error) {
+              console.error('Error handling offer:', error);
+            }
+          }
+          break;
+          
+        case 'answer':
+          if (peerConnectionRef.current) {
+            try {
+              await peerConnectionRef.current.setRemoteDescription(message.answer);
+            } catch (error) {
+              console.error('Error handling answer:', error);
+            }
+          }
+          break;
+          
+        case 'ice-candidate':
+          if (peerConnectionRef.current && message.candidate) {
+            try {
+              await peerConnectionRef.current.addIceCandidate(message.candidate);
+            } catch (error) {
+              console.error('Error adding ICE candidate:', error);
+            }
+          }
+          break;
+          
+        case 'user-left':
+          setRemoteUser(null);
+          if (remoteVideoRef.current) {
+            remoteVideoRef.current.srcObject = null;
+          }
+          break;
+      }
+    };
+    
+    socket.onclose = () => {
+      console.log('Signaling WebSocket disconnected');
+    };
+    
+    socket.onerror = (error) => {
+      console.error('Signaling WebSocket error:', error);
+    };
   };
 
   const setupPeerConnection = () => {
