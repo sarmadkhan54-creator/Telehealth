@@ -22,6 +22,7 @@ const VideoCall = ({ user }) => {
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [callStatus, setCallStatus] = useState('connecting'); // connecting, connected, ended
   const [remoteUser, setRemoteUser] = useState(null);
+  const [signalingSocket, setSignalingSocket] = useState(null);
   
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
