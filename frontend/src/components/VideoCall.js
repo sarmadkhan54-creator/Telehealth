@@ -200,7 +200,8 @@ const VideoCall = ({ user }) => {
     const config = {
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' }
       ]
     };
 
@@ -210,8 +211,9 @@ const VideoCall = ({ user }) => {
 
     // Add local stream to peer connection if available
     if (localStreamRef.current) {
-      console.log('📹 Adding local stream to peer connection');
-      localStreamRef.current.getTracks().forEach(track => {
+      console.log('📹 Adding local stream tracks to peer connection');
+      localStreamRef.current.getTracks().forEach((track, index) => {
+        console.log(`   Adding ${track.kind} track ${index + 1}:`, track.label);
         peerConnection.addTrack(track, localStreamRef.current);
       });
     }
@@ -219,11 +221,21 @@ const VideoCall = ({ user }) => {
     // Handle remote stream
     peerConnection.ontrack = (event) => {
       console.log('🎥 Remote stream received!');
+      console.log('   Track kind:', event.track.kind);
+      console.log('   Track label:', event.track.label);
+      console.log('   Number of streams:', event.streams.length);
+      
       const [remoteStream] = event.streams;
       remoteStreamRef.current = remoteStream;
+      
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = remoteStream;
         console.log('✅ Remote video stream set to video element');
+        
+        // Log the tracks in the remote stream
+        remoteStream.getTracks().forEach((track, index) => {
+          console.log(`   Remote ${track.kind} track ${index + 1}:`, track.label);
+        });
       }
     };
 
@@ -236,6 +248,8 @@ const VideoCall = ({ user }) => {
           candidate: event.candidate,
           sessionToken: sessionToken
         }));
+      } else if (!event.candidate) {
+        console.log('🧊 ICE gathering complete');
       }
     };
 
@@ -255,6 +269,15 @@ const VideoCall = ({ user }) => {
     // Handle ICE connection state changes
     peerConnection.oniceconnectionstatechange = () => {
       console.log('🧊 ICE connection state:', peerConnection.iceConnectionState);
+      if (peerConnection.iceConnectionState === 'connected' || 
+          peerConnection.iceConnectionState === 'completed') {
+        console.log('✅ ICE connection established - media should flow now!');
+      }
+    };
+
+    // Handle ICE gathering state changes
+    peerConnection.onicegatheringstatechange = () => {
+      console.log('🧊 ICE gathering state:', peerConnection.iceGatheringState);
     };
 
     console.log('✅ WebRTC peer connection setup complete');
