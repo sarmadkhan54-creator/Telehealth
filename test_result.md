@@ -116,6 +116,9 @@ backend:
       - working: true
         agent: "main"
         comment: "Backend has video call start endpoint at /video-call/start/{appointment_id}"
+      - working: true
+        agent: "testing"
+        comment: "TESTED: Video call start endpoint working correctly for both doctors and providers. Fixed VideoCallSession model to make doctor_id optional for provider-initiated calls. Session tokens generated properly."
   
   - task: "Video Call Join Endpoint"
     implemented: true
