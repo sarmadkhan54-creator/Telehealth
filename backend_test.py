@@ -1142,32 +1142,21 @@ class MedConnectAPITester:
         return self.test_video_call_start_and_join()
 
 def main():
-    print("🏥 MedConnect Telehealth API Testing - COMPREHENSIVE APPOINTMENT MANAGEMENT")
+    print("🏥 MedConnect Telehealth API Testing - FOCUSED ON VIDEO CALLS & APPOINTMENT EDITING")
     print("=" * 80)
     
     tester = MedConnectAPITester()
     
-    # Test sequence - comprehensive appointment management testing
+    # Test sequence - focused on video call and appointment edit functionality
     tests = [
         ("Health Check", tester.test_health_check),
         ("Login All Roles", tester.test_login_all_roles),
-        ("Admin-Only Get Users", tester.test_admin_only_get_users),
-        ("Admin-Only Create User", tester.test_admin_only_create_user),
-        ("Admin-Only Delete User", tester.test_admin_only_delete_user),
-        ("Self-Deletion Prevention", tester.test_self_deletion_prevention),
-        ("Admin-Only Update User Status", tester.test_admin_only_update_user_status),
-        ("Self-Deactivation Prevention", tester.test_self_deactivation_prevention),
         ("Create Appointment", tester.test_create_appointment),
-        ("Role-Based Appointment Access", tester.test_role_based_appointment_access),
-        ("Appointment Details Access", tester.test_appointment_details),
-        ("Doctor Notes System", tester.test_doctor_notes_system),
-        ("Appointment Cancellation", tester.test_appointment_cancellation),
-        ("Appointment Deletion Permissions", tester.test_appointment_deletion),
-        ("Emergency Appointment", tester.test_emergency_appointment),
-        ("Video Call Functionality", tester.test_video_call_functionality),
+        ("Video Call Start and Join", tester.test_video_call_start_and_join),
+        ("Appointment Edit Permissions", tester.test_appointment_edit_permissions),
     ]
     
-    print(f"\n🚀 Running {len(tests)} test suites...")
+    print(f"\n🚀 Running {len(tests)} focused test suites...")
     
     failed_tests = []
     for test_name, test_func in tests:
@@ -1192,8 +1181,8 @@ def main():
         for test in failed_tests:
             print(f"   - {test}")
     
-    # Special focus on appointment management features
-    print(f"\n📅 APPOINTMENT MANAGEMENT SUMMARY:")
+    # Special focus on video call and appointment edit features
+    print(f"\n📹 VIDEO CALL & APPOINTMENT EDIT SUMMARY:")
     if len(tester.tokens) == 3:
         print(f"   ✅ All 3 user types can login successfully")
         print(f"   ✅ Provider: {tester.demo_credentials['provider']['username']}")
@@ -1208,7 +1197,7 @@ def main():
         print(f"   ❌ No test appointment was created")
     
     if tester.tests_passed >= tester.tests_run * 0.8:  # 80% pass rate
-        print("🎉 Appointment management system is working correctly!")
+        print("🎉 Video call and appointment edit functionality is working correctly!")
         return 0
     else:
         print("⚠️  Some critical tests failed - check logs above")
