@@ -135,14 +135,18 @@ const VideoCall = ({ user }) => {
             try {
               await peerConnectionRef.current.setRemoteDescription(message.offer);
               console.log('✅ Remote description set');
-              const answer = await peerConnectionRef.current.createAnswer();
+              // Create answer with audio and video constraints
+              const answer = await peerConnectionRef.current.createAnswer({
+                offerToReceiveAudio: true,
+                offerToReceiveVideo: true
+              });
               await peerConnectionRef.current.setLocalDescription(answer);
+              console.log('📤 Sending answer with audio/video to remote user');
               socket.send(JSON.stringify({
                 type: 'answer',
                 answer: answer,
                 target: message.from
               }));
-              console.log('📤 Answer sent to remote user');
             } catch (error) {
               console.error('❌ Error handling offer:', error);
             }
