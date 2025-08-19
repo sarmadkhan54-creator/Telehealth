@@ -6,7 +6,7 @@ async def test_simple_ws():
     print("🧪 Testing simple WebSocket server...")
     
     try:
-        async with websockets.connect("ws://localhost:8002/test-ws") as websocket:
+        async with websockets.connect("ws://localhost:8001/test-ws") as websocket:
             print("   ✅ Connected to test WebSocket server!")
             
             # Receive initial message
