@@ -291,10 +291,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Auto-Refresh Provider Dashboard"
-    - "Auto-Refresh Doctor Dashboard"
-    - "Video Call WebRTC Peer Connection"
-    - "Real-Time WebSocket Notifications"
+    - "Video Call Session Same Token"
+    - "Video Call WebSocket Signaling"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
