@@ -14,11 +14,11 @@ class MedConnectAPITester:
         self.appointment_id = None
         self.created_user_id = None  # Track created user for cleanup
         
-        # Demo credentials to test admin access control
+        # Test credentials as specified in review request
         self.demo_credentials = {
-            "provider": {"username": "demo_provider", "password": "Demo123!"},
-            "doctor": {"username": "demo_doctor", "password": "Demo123!"},
-            "admin": {"username": "demo_admin", "password": "Demo123!"}
+            "provider": {"username": "provider", "password": "provider123"},
+            "doctor": {"username": "doctor", "password": "doctor123"},
+            "admin": {"username": "admin", "password": "admin123"}
         }
 
     def run_test(self, name, method, endpoint, expected_status, data=None, token=None):
