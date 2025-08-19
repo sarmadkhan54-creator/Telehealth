@@ -1,35 +1,46 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { 
-  Mic, 
-  MicOff, 
-  Video, 
-  VideoOff, 
-  Phone, 
-  PhoneOff, 
-  Monitor, 
+import {
+  Mic,
+  MicOff,
+  Video,
+  VideoOff,
+  Phone,
+  PhoneOff,
+  Monitor,
   MonitorOff,
-  MessageCircle,
-  Settings
+  MessageSquare,
+  Settings,
+  User
 } from 'lucide-react';
 
 const VideoCall = ({ user }) => {
   const { sessionToken } = useParams();
   const navigate = useNavigate();
-  
-  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+
+  // State
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
-  const [callStatus, setCallStatus] = useState('connecting'); // connecting, connected, ended
+  const [callStatus, setCallStatus] = useState('initializing');
   const [remoteUser, setRemoteUser] = useState(null);
-  const [signalingSocket, setSignalingSocket] = useState(null);
-  
+  const [connectionQuality, setConnectionQuality] = useState('checking');
+
+  // Refs
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const localStreamRef = useRef(null);
-  const remoteStreamRef = useRef(null);
   const peerConnectionRef = useRef(null);
+  const signalingSocketRef = useRef(null);
+
+  // Simple WebRTC Configuration
+  const rtcConfig = {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' }
+    ]
+  };
 
   useEffect(() => {
     initializeVideoCall();
