@@ -812,7 +812,7 @@ async def join_video_call(session_token: str, current_user: User = Depends(get_c
     }
 
 # WebSocket endpoint for real-time notifications
-@app.websocket("/ws/{user_id}")
+@app.websocket("/api/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: str):
     await manager.connect(websocket, user_id)
     try:
@@ -823,7 +823,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
         manager.disconnect(user_id)
 
 # WebSocket endpoint for video call signaling
-@app.websocket("/ws/video-call/{session_token}")
+@app.websocket("/api/ws/video-call/{session_token}")
 async def video_call_websocket(websocket: WebSocket, session_token: str):
     user_id = None
     try:
