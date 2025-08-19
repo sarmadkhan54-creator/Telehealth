@@ -128,11 +128,17 @@ const DoctorDashboard = ({ user, onLogout }) => {
 
   const startVideoCall = async (appointmentId) => {
     try {
-      const response = await axios.post(`${API}/video-call/start/${appointmentId}`);
-      const { session_token } = response.data;
+      // Get existing video call session for this appointment (or create if none exists)
+      const response = await axios.get(`${API}/video-call/session/${appointmentId}`);
+      const { session_token, status } = response.data;
+      
+      console.log(`${status === 'existing' ? 'Joining existing' : 'Creating new'} video call session: ${session_token}`);
+      
+      // Navigate to video call page
       navigate(`/video-call/${session_token}`);
     } catch (error) {
       console.error('Error starting video call:', error);
+      alert('Error starting video call. Please try again.');
     }
   };
 
