@@ -748,47 +748,64 @@ const Dashboard = ({ user, onLogout }) => {
         </div>
       )}
 
-      {/* Video Call Invitation Popup */}
+      {/* Enhanced Video Call Invitation Popup - Like Real Phone Call */}
       {showVideoCallInvitation && videoCallInvitation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="glass-card max-w-md w-full mx-4 animate-bounce">
-            <div className="text-center p-6">
-              <div className="mb-4">
-                <Phone className="w-16 h-16 text-green-500 mx-auto animate-pulse" />
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+          <div className="glass-card max-w-md w-full mx-4">
+            <div className="text-center p-8">
+              {/* Phone Animation */}
+              <div className="mb-6">
+                <div className={`w-20 h-20 mx-auto rounded-full bg-green-500 flex items-center justify-center ${isRinging ? 'animate-pulse' : ''}`}>
+                  <Phone className="w-10 h-10 text-white animate-bounce" />
+                </div>
               </div>
               
+              {/* Call Status */}
               <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                Incoming Video Call
+                {isRinging ? 'Incoming Call...' : 'Video Call Invitation'}
               </h3>
               
-              <p className="text-gray-600 mb-2">
-                <strong>{videoCallInvitation.callerName}</strong> is inviting you to a video call
-              </p>
+              {/* Caller Info */}
+              <div className="mb-2">
+                <p className="text-xl font-semibold text-gray-800">
+                  Dr. {videoCallInvitation.callerName}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {videoCallInvitation.appointmentType === 'emergency' ? '🚨 Emergency' : '📅 Regular'} Consultation
+                </p>
+              </div>
               
-              <p className="text-sm text-gray-500 mb-6">
-                Appointment video consultation
-              </p>
+              {/* Ringing Indicator */}
+              {isRinging && (
+                <div className="mb-4">
+                  <p className="text-sm text-gray-500 animate-pulse">
+                    📞 Ringing...
+                  </p>
+                </div>
+              )}
               
-              <div className="flex space-x-4">
+              {/* Call Action Buttons */}
+              <div className="flex space-x-4 mt-6">
                 <button
                   onClick={handleAcceptVideoCall}
-                  className="flex-1 bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors"
+                  className="flex-1 bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-full font-semibold flex items-center justify-center space-x-2 transition-all transform hover:scale-105 shadow-lg"
                 >
-                  <Phone className="w-5 h-5" />
+                  <Phone className="w-6 h-6" />
                   <span>Accept</span>
                 </button>
                 
                 <button
                   onClick={handleDeclineVideoCall}
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors"
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-full font-semibold flex items-center justify-center space-x-2 transition-all transform hover:scale-105 shadow-lg"
                 >
-                  <X className="w-5 h-5" />
+                  <PhoneOff className="w-6 h-6" />
                   <span>Decline</span>
                 </button>
               </div>
               
+              {/* Auto-dismiss Timer */}
               <p className="text-xs text-gray-400 mt-4">
-                This popup will auto-dismiss in 30 seconds
+                Call will auto-dismiss in 30 seconds
               </p>
             </div>
           </div>
