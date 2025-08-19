@@ -50,7 +50,7 @@ const Dashboard = ({ user, onLogout }) => {
       // Handle video call invitations with sound popup
       if (notification.type === 'video_call_invitation') {
         // Play notification sound
-        playNotificationSound();
+        playRingingSound();
         
         // Show video call invitation popup
         setVideoCallInvitation({
