@@ -283,10 +283,7 @@ const Dashboard = ({ user, onLogout }) => {
                     <div className="ml-4 flex flex-col space-y-2">
                       {appointment.status === 'accepted' && (
                         <button
-                          onClick={() => {
-                            // Handle video call initiation
-                            console.log('Starting video call for appointment:', appointment.id);
-                          }}
+                          onClick={() => handleJoinCall(appointment.id)}
                           className="btn-primary flex items-center space-x-2"
                         >
                           <Phone className="w-4 h-4" />
