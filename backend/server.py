@@ -800,6 +800,18 @@ async def video_call_websocket(websocket: WebSocket, session_token: str):
 async def root():
     return {"message": "MedConnect Telehealth API is running"}
 
+# Test WebSocket endpoint
+@app.websocket("/test-ws")
+async def test_websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    await websocket.send_text("Test WebSocket connected!")
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await websocket.send_text(f"Echo: {data}")
+    except WebSocketDisconnect:
+        pass
+
 # Include the router in the main app
 app.include_router(api_router)
 
