@@ -220,136 +220,6 @@ const VideoCall = ({ user }) => {
     };
   };
 
-  const simulateRemoteConnection = async () => {
-    try {
-      // Simulate remote user video for demo
-      const canvas = document.createElement('canvas');
-      canvas.width = 640;
-      canvas.height = 480;
-      const ctx = canvas.getContext('2d');
-      
-      // Create a simple animated background for demo
-      const animate = () => {
-        ctx.fillStyle = '#4f46e5';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = 'white';
-        ctx.font = '30px Inter';
-        ctx.textAlign = 'center';
-        ctx.fillText('Remote User Video', canvas.width / 2, canvas.height / 2 - 30);
-        ctx.fillText('(Demo Mode)', canvas.width / 2, canvas.height / 2 + 10);
-        ctx.fillText(new Date().toLocaleTimeString(), canvas.width / 2, canvas.height / 2 + 50);
-        requestAnimationFrame(animate);
-      };
-      animate();
-
-      const stream = canvas.captureStream(30);
-      remoteStreamRef.current = stream;
-      
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = stream;
-      }
-      
-      setRemoteUser({ name: 'Demo Remote User' });
-    } catch (error) {
-      console.error('Error simulating remote connection:', error);
-    }
-  };
-
-  const toggleVideo = () => {
-    if (localStreamRef.current) {
-      const videoTrack = localStreamRef.current.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = !videoTrack.enabled;
-        setIsVideoEnabled(videoTrack.enabled);
-      }
-    }
-  };
-
-  const toggleAudio = () => {
-    if (localStreamRef.current) {
-      const audioTrack = localStreamRef.current.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !audioTrack.enabled;
-        setIsAudioEnabled(audioTrack.enabled);
-      }
-    }
-  };
-
-  const toggleScreenShare = async () => {
-    try {
-      if (!isScreenSharing) {
-        // Start screen sharing
-        const screenStream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-          audio: true
-        });
-
-        // Replace video track in peer connection
-        if (peerConnectionRef.current && localStreamRef.current) {
-          const sender = peerConnectionRef.current.getSenders().find(s => 
-            s.track && s.track.kind === 'video'
-          );
-          if (sender) {
-            await sender.replaceTrack(screenStream.getVideoTracks()[0]);
-          }
-        }
-
-        // Update local video display
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = screenStream;
-        }
-
-        setIsScreenSharing(true);
-
-        // Handle screen share end
-        screenStream.getVideoTracks()[0].addEventListener('ended', () => {
-          stopScreenShare();
-        });
-      } else {
-        stopScreenShare();
-      }
-    } catch (error) {
-      console.error('Error toggling screen share:', error);
-    }
-  };
-
-  const stopScreenShare = async () => {
-    try {
-      // Get camera stream back
-      const cameraStream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true
-      });
-
-      // Replace track back to camera
-      if (peerConnectionRef.current) {
-        const sender = peerConnectionRef.current.getSenders().find(s => 
-          s.track && s.track.kind === 'video'
-        );
-        if (sender) {
-          await sender.replaceTrack(cameraStream.getVideoTracks()[0]);
-        }
-      }
-
-      // Update local stream reference
-      localStreamRef.current = cameraStream;
-
-      // Update local video display
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = cameraStream;
-      }
-
-      setIsScreenSharing(false);
-    } catch (error) {
-      console.error('Error stopping screen share:', error);
-    }
-  };
-
-  const endCall = () => {
-    cleanupCall();
-    navigate('/');
-  };
-
   const cleanupCall = () => {
     // Stop all tracks
     if (localStreamRef.current) {
@@ -362,6 +232,11 @@ const VideoCall = ({ user }) => {
     // Close peer connection
     if (peerConnectionRef.current) {
       peerConnectionRef.current.close();
+    }
+
+    // Close signaling socket
+    if (signalingSocket) {
+      signalingSocket.close();
     }
 
     setCallStatus('ended');
