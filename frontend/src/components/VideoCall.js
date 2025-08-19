@@ -100,9 +100,9 @@ const VideoCall = ({ user }) => {
       socket.onopen = () => {
         console.log('✅ Signaling WebSocket connected');
         
-        // Mark signaling as ready and send queued ICE candidates
-        if (peerConnectionRef.current && peerConnectionRef.current.setSignalingReady) {
-          peerConnectionRef.current.setSignalingReady();
+        // Enable ICE processing now that signaling is ready
+        if (peerConnectionRef.current && peerConnectionRef.current.enableIceProcessing) {
+          peerConnectionRef.current.enableIceProcessing();
         }
         
         // Join the video call session
