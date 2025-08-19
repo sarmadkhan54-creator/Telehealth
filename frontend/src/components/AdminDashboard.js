@@ -32,7 +32,6 @@ const AdminDashboard = ({ user, onLogout }) => {
   const [showEditAppointmentModal, setShowEditAppointmentModal] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState(null);
 
-  // Admin access control - only allow admin users
   useEffect(() => {
     if (user.role !== 'admin') {
       alert('Access Denied: Only administrators can access this dashboard');
@@ -40,7 +39,59 @@ const AdminDashboard = ({ user, onLogout }) => {
       return;
     }
     fetchData();
+    setupWebSocket();
+    
+    // Set up auto-refresh interval as fallback
+    const refreshInterval = setInterval(fetchData, 60000); // Refresh every 60 seconds
+    
+    return () => {
+      clearInterval(refreshInterval);
+    };
   }, [user.role, onLogout]);
+
+  const setupWebSocket = () => {
+    const wsUrl = `${BACKEND_URL.replace('https:', 'wss:').replace('http:', 'ws:')}/ws/${user.id}`;
+    const ws = new WebSocket(wsUrl);
+    
+    ws.onmessage = (event) => {
+      const notification = JSON.parse(event.data);
+      
+      // Auto-refresh data when receiving notifications
+      if (notification.type === 'emergency_appointment' || 
+          notification.type === 'appointment_accepted' || 
+          notification.type === 'appointment_updated' ||
+          notification.type === 'user_created' ||
+          notification.type === 'user_updated') {
+        fetchData(); // Refresh all data
+      }
+      
+      // Show browser notification for admin updates
+      if (Notification.permission === 'granted') {
+        if (notification.type === 'emergency_appointment') {
+          new Notification('Emergency Appointment', {
+            body: `Emergency appointment created by ${notification.provider_name}`,
+            icon: '/favicon.ico'
+          });
+        }
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    ws.onclose = () => {
+      // Try to reconnect after 5 seconds
+      setTimeout(setupWebSocket, 5000);
+    };
+
+    // Request notification permission
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    return () => ws.close();
+  };
 
   const fetchData = async () => {
     try {
