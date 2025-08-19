@@ -210,46 +210,87 @@ const VideoCall = ({ user }) => {
     };
   };
 
-  const setupPeerConnection = () => {
+  const setupPeerConnection = async (mediaStream) => {
     console.log('🔗 Setting up WebRTC peer connection...');
     
     const config = {
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-      ]
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' }
+      ],
+      iceCandidatePoolSize: 10
     };
 
     const peerConnection = new RTCPeerConnection(config);
     peerConnectionRef.current = peerConnection;
+
+    // Add media tracks IMMEDIATELY if available
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(track => {
+        console.log(`✅ Adding ${track.kind} track to peer connection`);
+        peerConnection.addTrack(track, mediaStream);
+      });
+      console.log('✅ All media tracks added to peer connection');
+    }
 
     // Handle remote stream
     peerConnection.ontrack = (event) => {
       console.log('🎥 Received remote track:', event.track.kind);
       const [remoteStream] = event.streams;
       
-      if (remoteVideoRef.current && remoteStream) {
+      if (remoteStream && remoteVideoRef.current) {
+        console.log('✅ Setting remote stream to video element');
         remoteVideoRef.current.srcObject = remoteStream;
         remoteStreamRef.current = remoteStream;
-        console.log('✅ Remote stream connected to video element');
-        
-        // Update UI to show remote user
         setRemoteUser({ name: 'Connected User' });
+        
+        // Auto-play remote video
+        remoteVideoRef.current.play().catch(e => {
+          console.log('Auto-play prevented, user interaction required');
+        });
       }
     };
 
-    // Handle ICE candidates
+    // Queue ICE candidates until signaling is ready
+    const candidateQueue = [];
+    let signalingReady = false;
+    
     peerConnection.onicecandidate = (event) => {
-      if (event.candidate && signalingSocket && signalingSocket.readyState === WebSocket.OPEN) {
-        console.log('🧊 Sending ICE candidate');
-        signalingSocket.send(JSON.stringify({
-          type: 'ice-candidate',
-          candidate: event.candidate
-        }));
+      if (event.candidate) {
+        console.log('🧊 ICE candidate generated');
+        
+        if (signalingReady && signalingSocket && signalingSocket.readyState === WebSocket.OPEN) {
+          console.log('📤 Sending ICE candidate immediately');
+          signalingSocket.send(JSON.stringify({
+            type: 'ice-candidate',
+            candidate: event.candidate
+          }));
+        } else {
+          console.log('📦 Queuing ICE candidate for later');
+          candidateQueue.push(event.candidate);
+        }
       }
     };
 
-    // Handle connection state changes
+    // Store candidate queue for later access
+    peerConnection.candidateQueue = candidateQueue;
+    peerConnection.setSignalingReady = () => {
+      signalingReady = true;
+      // Send queued candidates
+      while (candidateQueue.length > 0) {
+        const candidate = candidateQueue.shift();
+        if (signalingSocket && signalingSocket.readyState === WebSocket.OPEN) {
+          console.log('📤 Sending queued ICE candidate');
+          signalingSocket.send(JSON.stringify({
+            type: 'ice-candidate',
+            candidate: candidate
+          }));
+        }
+      }
+    };
+
+    // Enhanced connection state monitoring
     peerConnection.onconnectionstatechange = () => {
       console.log('🔄 WebRTC connection state:', peerConnection.connectionState);
       
@@ -257,6 +298,10 @@ const VideoCall = ({ user }) => {
         case 'connected':
           console.log('✅ WebRTC peer connection established!');
           setCallStatus('connected');
+          break;
+        case 'connecting':
+          console.log('🔄 WebRTC connecting...');
+          setCallStatus('connecting');
           break;
         case 'disconnected':
         case 'failed':
@@ -269,17 +314,26 @@ const VideoCall = ({ user }) => {
       }
     };
 
-    // Handle ICE connection state changes
+    // Enhanced ICE connection monitoring
     peerConnection.oniceconnectionstatechange = () => {
       console.log('🧊 ICE connection state:', peerConnection.iceConnectionState);
       
-      if (peerConnection.iceConnectionState === 'connected' || 
-          peerConnection.iceConnectionState === 'completed') {
-        console.log('✅ ICE connection successful - media can flow!');
+      switch (peerConnection.iceConnectionState) {
+        case 'connected':
+        case 'completed':
+          console.log('✅ ICE connection successful - media flowing!');
+          break;
+        case 'disconnected':
+          console.log('⚠️ ICE connection disconnected');
+          break;
+        case 'failed':
+          console.log('❌ ICE connection failed');
+          break;
       }
     };
 
-    console.log('✅ WebRTC peer connection configured');
+    console.log('✅ WebRTC peer connection configured and ready');
+    return peerConnection;
   };
 
   const toggleVideo = () => {
