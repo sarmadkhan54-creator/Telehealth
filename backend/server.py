@@ -706,6 +706,73 @@ async def start_video_call(appointment_id: str, current_user: User = Depends(get
     
     return {"session_token": session_token, "appointment_id": appointment_id}
 
+@api_router.get("/video-call/session/{appointment_id}")
+async def get_video_call_session(appointment_id: str, current_user: User = Depends(get_current_user)):
+    """Get existing video call session for an appointment, or create one if none exists"""
+    appointment = await db.appointments.find_one({"id": appointment_id})
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    
+    # Check if user is authorized to access this appointment
+    if current_user.role == "doctor":
+        # Doctors can access any appointment they're assigned to or if no doctor is assigned yet
+        if appointment.get("doctor_id") and appointment.get("doctor_id") != current_user.id:
+            raise HTTPException(status_code=403, detail="You are not assigned to this appointment")
+    elif current_user.role == "provider":
+        # Providers can only access their own appointments
+        if appointment["provider_id"] != current_user.id:
+            raise HTTPException(status_code=403, detail="You can only access your own appointments")
+    else:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Look for existing video session for this appointment
+    existing_session = await db.video_sessions.find_one(
+        {"appointment_id": appointment_id, "ended_at": None},
+        sort=[("started_at", -1)]  # Get the most recent active session
+    )
+    
+    if existing_session:
+        # Return existing session
+        return {
+            "session_token": existing_session["session_token"], 
+            "appointment_id": appointment_id,
+            "status": "existing"
+        }
+    else:
+        # No existing session, create a new one
+        session_token = str(uuid.uuid4())
+        
+        video_session = VideoCallSession(
+            appointment_id=appointment_id,
+            provider_id=appointment["provider_id"],
+            doctor_id=current_user.id if current_user.role == "doctor" else appointment.get("doctor_id"),
+            session_token=session_token
+        )
+        
+        await db.video_sessions.insert_one(video_session.dict())
+        
+        # Notify the other participant
+        if current_user.role == "doctor":
+            target_user_id = appointment["provider_id"]
+        else:
+            target_user_id = appointment.get("doctor_id")
+        
+        if target_user_id:
+            notification = {
+                "type": "video_call_invitation",
+                "session_token": session_token,
+                "appointment_id": appointment_id,
+                "caller": current_user.full_name,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            await manager.send_personal_message(notification, target_user_id)
+        
+        return {
+            "session_token": session_token, 
+            "appointment_id": appointment_id,
+            "status": "created"
+        }
+
 @api_router.get("/video-call/join/{session_token}")
 async def join_video_call(session_token: str, current_user: User = Depends(get_current_user)):
     # Find the video session
