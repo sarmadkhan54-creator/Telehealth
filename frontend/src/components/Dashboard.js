@@ -101,30 +101,49 @@ const Dashboard = ({ user, onLogout }) => {
 
   const playNotificationSound = () => {
     try {
-      // Create audio context for notification sound
+      // Create a more pleasant notification sound
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
       
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
+      // Create a simple bell-like sound with multiple harmonics
+      const createTone = (frequency, startTime, duration, volume = 0.1) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.value = frequency;
+        
+        gainNode.gain.setValueAtTime(0, startTime);
+        gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+        
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration);
+      };
       
-      // Create a pleasant notification sound (two-tone)
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-      oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.2);
-      oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.4);
+      // Create a pleasant chord (C major)
+      const now = audioContext.currentTime;
+      createTone(523.25, now, 0.4, 0.08); // C5
+      createTone(659.25, now, 0.4, 0.06); // E5
+      createTone(783.99, now, 0.4, 0.04); // G5
       
-      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.1);
-      gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.6);
+      // Add a second softer chord after a brief pause
+      createTone(523.25, now + 0.5, 0.3, 0.05); // C5
+      createTone(659.25, now + 0.5, 0.3, 0.03); // E5
       
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.6);
-      
-      console.log('🔔 Played video call invitation sound');
+      console.log('🔔 Played pleasant video call notification');
     } catch (error) {
       console.error('Error playing notification sound:', error);
+      
+      // Fallback to system beep if Web Audio fails
+      try {
+        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp6qNVFApGn+DyvGYfCSSLzfDVgjMGHW7A7+OZURE');
+        audio.play();
+      } catch (fallbackError) {
+        console.log('Unable to play any sound');
+      }
     }
   };
 
