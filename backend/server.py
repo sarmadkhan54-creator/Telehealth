@@ -425,7 +425,10 @@ async def add_appointment_note(appointment_id: str, note_data: AppointmentNote, 
     
     # Only doctors and providers involved in the appointment can add notes
     if current_user.role == "doctor":
-        if appointment.get("doctor_id") != current_user.id:
+        # Doctors can add notes to:
+        # 1. Appointments they are assigned to (doctor_id matches)
+        # 2. Pending appointments (doctor_id is None) - they can communicate before accepting
+        if appointment.get("doctor_id") and appointment.get("doctor_id") != current_user.id:
             raise HTTPException(status_code=403, detail="You can only add notes to your appointments")
     elif current_user.role == "provider":
         if appointment["provider_id"] != current_user.id:
