@@ -54,21 +54,52 @@ const VideoCall = ({ user }) => {
   const initializeCall = async () => {
     try {
       console.log('🚀 Initializing video call...');
+      setCallStatus('initializing');
       
-      // Step 1: Get user media
-      await getUserMedia();
+      // Add connection timeout
+      const connectionTimeout = setTimeout(() => {
+        console.error('❌ Connection timeout after 15 seconds');
+        setCallStatus('failed');
+        alert('Connection timeout. Please try again.');
+        navigate('/');
+      }, 15000);
+      
+      // Step 1: Get user media (with timeout)
+      await Promise.race([
+        getUserMedia(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Media timeout')), 5000)
+        )
+      ]);
       
       // Step 2: Setup WebRTC peer connection
       setupPeerConnection();
       
-      // Step 3: Connect to signaling server
-      await connectSignaling();
+      // Step 3: Connect to signaling server (with timeout)
+      await Promise.race([
+        connectSignaling(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Signaling timeout')), 8000)
+        )
+      ]);
       
+      clearTimeout(connectionTimeout);
       setCallStatus('connecting');
+      
+      // Auto-connect timeout - if not connected in 10 seconds, show warning
+      setTimeout(() => {
+        if (callStatus === 'connecting') {
+          console.warn('⚠️ Connection taking longer than expected');
+          setConnectionQuality('poor');
+        }
+      }, 10000);
       
     } catch (error) {
       console.error('❌ Failed to initialize call:', error);
       setCallStatus('failed');
+      alert(`Connection failed: ${error.message}. Please try again.`);
+      cleanup();
+      navigate('/');
     }
   };
 
