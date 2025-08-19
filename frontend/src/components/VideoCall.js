@@ -285,145 +285,58 @@ const VideoCall = ({ user }) => {
     }
   };
 
-  const toggleVideo = () => {
-    if (localStreamRef.current) {
-      const videoTrack = localStreamRef.current.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = !videoTrack.enabled;
-        setIsVideoEnabled(videoTrack.enabled);
-      }
-    }
-  };
-
   const toggleAudio = () => {
     if (localStreamRef.current) {
       const audioTrack = localStreamRef.current.getAudioTracks()[0];
       if (audioTrack) {
         audioTrack.enabled = !audioTrack.enabled;
         setIsAudioEnabled(audioTrack.enabled);
+        console.log('🎤 Audio:', audioTrack.enabled ? 'ON' : 'OFF');
       }
     }
   };
 
-  const toggleScreenShare = async () => {
-    try {
-      if (!isScreenSharing) {
-        // Start screen sharing
-        const screenStream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-          audio: true
-        });
-
-        // Replace video track in peer connection
-        if (peerConnectionRef.current && localStreamRef.current) {
-          const sender = peerConnectionRef.current.getSenders().find(s => 
-            s.track && s.track.kind === 'video'
-          );
-          if (sender) {
-            await sender.replaceTrack(screenStream.getVideoTracks()[0]);
-          }
-        }
-
-        // Update local video display
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = screenStream;
-        }
-
-        setIsScreenSharing(true);
-
-        // Handle screen share end
-        screenStream.getVideoTracks()[0].addEventListener('ended', () => {
-          stopScreenShare();
-        });
-      } else {
-        stopScreenShare();
+  const toggleVideo = () => {
+    if (localStreamRef.current) {
+      const videoTrack = localStreamRef.current.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = !videoTrack.enabled;
+        setIsVideoEnabled(videoTrack.enabled);
+        console.log('📹 Video:', videoTrack.enabled ? 'ON' : 'OFF');
       }
-    } catch (error) {
-      console.error('Error toggling screen share:', error);
-    }
-  };
-
-  const stopScreenShare = async () => {
-    try {
-      // Get camera stream back
-      const cameraStream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true
-      });
-
-      // Replace track back to camera
-      if (peerConnectionRef.current) {
-        const sender = peerConnectionRef.current.getSenders().find(s => 
-          s.track && s.track.kind === 'video'
-        );
-        if (sender) {
-          await sender.replaceTrack(cameraStream.getVideoTracks()[0]);
-        }
-      }
-
-      // Update local stream reference
-      localStreamRef.current = cameraStream;
-
-      // Update local video display
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = cameraStream;
-      }
-
-      setIsScreenSharing(false);
-    } catch (error) {
-      console.error('Error stopping screen share:', error);
     }
   };
 
   const endCall = async () => {
+    console.log('📞 Ending call...');
+    cleanup();
+    
     try {
-      // End the video call session on the backend
       const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
       await axios.post(`${BACKEND_URL}/api/video-call/end/${sessionToken}`);
-      console.log('✅ Video call session ended on backend');
     } catch (error) {
-      console.error('❌ Error ending video call session:', error);
+      console.error('Error ending call:', error);
     }
     
-    cleanupCall();
     navigate('/');
   };
 
-  const cleanupCall = () => {
-    console.log('🧹 Cleaning up video call...');
+  const cleanup = () => {
+    console.log('🧹 Cleaning up...');
     
-    // Stop all local tracks
+    // Stop local stream
     if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => {
-        track.stop();
-        console.log(`Stopped ${track.kind} track`);
-      });
-      localStreamRef.current = null;
-    }
-    
-    if (remoteStreamRef.current) {
-      remoteStreamRef.current.getTracks().forEach(track => track.stop());
-      remoteStreamRef.current = null;
+      localStreamRef.current.getTracks().forEach(track => track.stop());
     }
 
     // Close peer connection
     if (peerConnectionRef.current) {
       peerConnectionRef.current.close();
-      peerConnectionRef.current = null;
-      console.log('WebRTC peer connection closed');
     }
 
     // Close signaling socket
-    if (signalingSocket) {
-      if (signalingSocket.readyState === WebSocket.OPEN) {
-        signalingSocket.send(JSON.stringify({
-          type: 'leave',
-          sessionToken: sessionToken
-        }));
-      }
-      signalingSocket.close();
-      setSignalingSocket(null);
-      console.log('WebSocket signaling connection closed');
+    if (signalingSocketRef.current) {
+      signalingSocketRef.current.close();
     }
 
     // Clear video elements
@@ -433,25 +346,29 @@ const VideoCall = ({ user }) => {
     if (remoteVideoRef.current) {
       remoteVideoRef.current.srcObject = null;
     }
-
-    setCallStatus('ended');
-    setRemoteUser(null);
-    console.log('✅ Video call cleanup complete');
   };
 
-  // Cleanup on component unmount or page refresh
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      cleanupCall();
-    };
+  const getStatusColor = () => {
+    switch (callStatus) {
+      case 'connected': return 'text-green-500';
+      case 'connecting': return 'text-yellow-500';
+      case 'disconnected': return 'text-red-500';
+      case 'failed': return 'text-red-600';
+      default: return 'text-gray-500';
+    }
+  };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      cleanupCall();
-    };
-  }, [sessionToken]);
+  const getStatusText = () => {
+    switch (callStatus) {
+      case 'initializing': return 'Initializing...';
+      case 'connecting': return 'Connecting...';
+      case 'connected': return 'Connected';
+      case 'disconnected': return 'Disconnected';
+      case 'failed': return 'Connection Failed';
+      case 'no-media': return 'No Camera/Mic';
+      default: return 'Unknown';
+    }
+  };
 
   return (
     <div className="video-container">
