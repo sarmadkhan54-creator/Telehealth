@@ -267,9 +267,9 @@ class VideoCallInvestigator:
         
         # Test various scenarios that might cause issues
         test_scenarios = [
-            ("Invalid appointment ID", "video-call/start/invalid-id"),
+            ("Invalid appointment ID", "video-call/start/invalid-id", "provider"),
             ("Missing authorization", "video-call/start/test-id", None),
-            ("Invalid session token", "video-call/join/invalid-token"),
+            ("Invalid session token", "video-call/join/invalid-token", "provider"),
         ]
         
         for scenario_name, endpoint, token_override in test_scenarios:
