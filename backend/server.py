@@ -601,6 +601,36 @@ async def start_video_call(appointment_id: str, current_user: User = Depends(get
     
     return {"session_token": session_token, "appointment_id": appointment_id}
 
+@api_router.get("/video-call/join/{session_token}")
+async def join_video_call(session_token: str, current_user: User = Depends(get_current_user)):
+    # Find the video session
+    video_session = await db.video_sessions.find_one({"session_token": session_token})
+    if not video_session:
+        raise HTTPException(status_code=404, detail="Video session not found")
+    
+    # Get the associated appointment
+    appointment = await db.appointments.find_one({"id": video_session["appointment_id"]})
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Associated appointment not found")
+    
+    # Check if user is authorized to join this call
+    if current_user.role == "doctor":
+        if video_session["doctor_id"] != current_user.id:
+            raise HTTPException(status_code=403, detail="You are not authorized to join this call")
+    elif current_user.role == "provider":
+        if video_session["provider_id"] != current_user.id:
+            raise HTTPException(status_code=403, detail="You are not authorized to join this call")
+    else:
+        raise HTTPException(status_code=403, detail="Only doctors and providers can join video calls")
+    
+    # Return session and appointment details
+    return {
+        "session_token": session_token,
+        "appointment_id": video_session["appointment_id"],
+        "appointment": appointment,
+        "video_session": video_session
+    }
+
 # WebSocket endpoint for real-time notifications
 @app.websocket("/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: str):
