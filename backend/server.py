@@ -755,6 +755,46 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
     except WebSocketDisconnect:
         manager.disconnect(user_id)
 
+# WebSocket endpoint for video call signaling
+@app.websocket("/ws/video-call/{session_token}")
+async def video_call_websocket(websocket: WebSocket, session_token: str):
+    try:
+        # First, wait for the join message to get user info
+        data = await websocket.receive_text()
+        message = json.loads(data)
+        
+        if message.get('type') == 'join':
+            user_id = message.get('userId')
+            user_name = message.get('userName', 'Unknown User')
+            
+            # Join the video call session
+            await video_call_manager.join_session(session_token, user_id, websocket, user_name)
+            
+            # Handle subsequent messages
+            while True:
+                try:
+                    data = await websocket.receive_text()
+                    message = json.loads(data)
+                    
+                    # Relay signaling messages (offer, answer, ice-candidate)
+                    if message.get('type') in ['offer', 'answer', 'ice-candidate']:
+                        await video_call_manager.relay_message(session_token, user_id, message)
+                        
+                except WebSocketDisconnect:
+                    break
+                except Exception as e:
+                    print(f"Error in video call WebSocket: {e}")
+                    break
+        
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        print(f"Error in video call WebSocket setup: {e}")
+    finally:
+        # Clean up when user disconnects
+        if 'user_id' in locals():
+            video_call_manager.leave_session(session_token, user_id)
+
 # Basic health check
 @api_router.get("/")
 async def root():
