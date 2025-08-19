@@ -147,15 +147,18 @@ backend:
 frontend:
   - task: "Join Call Button Provider Dashboard"
     implemented: true
-    working: false
+    working: true
     file: "/app/frontend/src/components/Dashboard.js"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: true
     status_history:
       - working: false
         agent: "main"
         comment: "Join call buttons exist but only console.log - no actual functionality"
+      - working: true
+        agent: "main"
+        comment: "Added handleJoinCall function that starts video call and navigates to video call page"
   
   - task: "Join Call Button Doctor Dashboard"
     implemented: true
