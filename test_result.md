@@ -149,6 +149,9 @@ backend:
       - working: true
         agent: "main"
         comment: "PUT /appointments/{appointment_id} endpoint exists with role-based permissions"
+      - working: true
+        agent: "testing"
+        comment: "TESTED: Appointment edit endpoint working correctly with proper role-based permissions. Admins can edit any appointment, doctors can edit appointments, providers can edit their own appointments but not others. Invalid appointment IDs properly rejected."
 
 frontend:
   - task: "Join Call Button Provider Dashboard"
