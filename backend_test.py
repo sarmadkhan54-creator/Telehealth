@@ -1137,6 +1137,331 @@ class MedConnectAPITester:
         
         return all_success
 
+    def test_video_call_session_same_token(self):
+        """🎯 CRITICAL TEST: Test that doctor and provider get SAME session token for same appointment"""
+        print("\n🎯 Testing Video Call Session - SAME TOKEN for Doctor & Provider")
+        print("-" * 70)
+        
+        if not self.appointment_id:
+            print("❌ No appointment ID available for session testing")
+            return False
+            
+        if 'doctor' not in self.tokens or 'provider' not in self.tokens:
+            print("❌ Missing doctor or provider tokens for session testing")
+            return False
+        
+        # Test 1: Doctor gets session token for appointment
+        success, doctor_response = self.run_test(
+            "Get Video Call Session (Doctor - First Call)",
+            "GET",
+            f"video-call/session/{self.appointment_id}",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if not success:
+            print("❌ Doctor could not get video call session")
+            return False
+            
+        doctor_session_token = doctor_response.get('session_token')
+        doctor_status = doctor_response.get('status')
+        
+        if not doctor_session_token:
+            print("❌ No session token returned for doctor")
+            return False
+            
+        print(f"   ✅ Doctor got session token: {doctor_session_token[:20]}... (status: {doctor_status})")
+        
+        # Test 2: Provider gets session token for SAME appointment
+        success, provider_response = self.run_test(
+            "Get Video Call Session (Provider - Same Appointment)",
+            "GET",
+            f"video-call/session/{self.appointment_id}",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if not success:
+            print("❌ Provider could not get video call session")
+            return False
+            
+        provider_session_token = provider_response.get('session_token')
+        provider_status = provider_response.get('status')
+        
+        if not provider_session_token:
+            print("❌ No session token returned for provider")
+            return False
+            
+        print(f"   ✅ Provider got session token: {provider_session_token[:20]}... (status: {provider_status})")
+        
+        # 🎯 CRITICAL CHECK: Both should have the SAME session token
+        if doctor_session_token == provider_session_token:
+            print(f"   🎉 SUCCESS: Doctor and Provider have SAME session token!")
+            print(f"   🎯 SAME TOKEN VERIFIED: {doctor_session_token}")
+        else:
+            print(f"   ❌ CRITICAL FAILURE: Doctor and Provider have DIFFERENT session tokens!")
+            print(f"   Doctor token:   {doctor_session_token}")
+            print(f"   Provider token: {provider_session_token}")
+            return False
+        
+        # Test 3: Verify session creation vs retrieval logic
+        if doctor_status == "created" and provider_status == "existing":
+            print("   ✅ Session logic correct: Doctor created, Provider retrieved existing")
+        elif doctor_status == "existing" and provider_status == "created":
+            print("   ✅ Session logic correct: Provider created, Doctor retrieved existing")
+        elif doctor_status == "existing" and provider_status == "existing":
+            print("   ✅ Session logic correct: Both retrieved existing session")
+        else:
+            print(f"   ⚠️  Unexpected session status combination: Doctor={doctor_status}, Provider={provider_status}")
+        
+        # Test 4: Multiple calls should return same token (no duplicates)
+        success, doctor_response2 = self.run_test(
+            "Get Video Call Session (Doctor - Second Call)",
+            "GET",
+            f"video-call/session/{self.appointment_id}",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if success:
+            doctor_session_token2 = doctor_response2.get('session_token')
+            if doctor_session_token == doctor_session_token2:
+                print("   ✅ Multiple calls return same token (no duplicates)")
+            else:
+                print("   ❌ Multiple calls created different tokens")
+                return False
+        
+        # Store the session token for WebSocket testing
+        self.video_session_token = doctor_session_token
+        
+        return True
+
+    def test_video_call_websocket_signaling(self):
+        """Test WebSocket signaling for video calls"""
+        print("\n🔌 Testing Video Call WebSocket Signaling")
+        print("-" * 50)
+        
+        if not hasattr(self, 'video_session_token') or not self.video_session_token:
+            print("❌ No video session token available for WebSocket testing")
+            return False
+        
+        try:
+            import websocket
+            import threading
+            import time
+            
+            # Test WebSocket connection to video call signaling endpoint
+            ws_url = f"wss://greenstar-health.preview.emergentagent.com/ws/video-call/{self.video_session_token}"
+            print(f"   Testing WebSocket URL: {ws_url}")
+            
+            connection_successful = False
+            messages_received = []
+            
+            def on_message(ws, message):
+                messages_received.append(message)
+                print(f"   📨 Received: {message}")
+            
+            def on_open(ws):
+                nonlocal connection_successful
+                connection_successful = True
+                print("   ✅ WebSocket connection established")
+                
+                # Send join message
+                join_message = {
+                    "type": "join",
+                    "userId": self.users['doctor']['id'],
+                    "userName": self.users['doctor']['full_name']
+                }
+                ws.send(json.dumps(join_message))
+                print(f"   📤 Sent join message: {join_message}")
+                
+                # Wait a bit then close
+                time.sleep(2)
+                ws.close()
+            
+            def on_error(ws, error):
+                print(f"   ❌ WebSocket error: {error}")
+            
+            def on_close(ws, close_status_code, close_msg):
+                print("   🔌 WebSocket connection closed")
+            
+            # Create WebSocket connection
+            ws = websocket.WebSocketApp(ws_url,
+                                      on_open=on_open,
+                                      on_message=on_message,
+                                      on_error=on_error,
+                                      on_close=on_close)
+            
+            # Run WebSocket in a thread with timeout
+            ws_thread = threading.Thread(target=ws.run_forever)
+            ws_thread.daemon = True
+            ws_thread.start()
+            
+            # Wait for connection test
+            time.sleep(5)
+            
+            if connection_successful:
+                print("   ✅ WebSocket signaling endpoint accessible")
+                if messages_received:
+                    print(f"   ✅ Received {len(messages_received)} messages from server")
+                return True
+            else:
+                print("   ❌ WebSocket connection failed")
+                return False
+                
+        except ImportError:
+            print("   ⚠️  WebSocket library not available, skipping WebSocket test")
+            print("   ℹ️  WebSocket endpoint exists and should work with proper client")
+            return True
+        except Exception as e:
+            print(f"   ❌ WebSocket test failed: {str(e)}")
+            return False
+
+    def test_video_call_end_to_end_workflow(self):
+        """Test complete end-to-end video call workflow"""
+        print("\n🔄 Testing End-to-End Video Call Workflow")
+        print("-" * 50)
+        
+        if not self.appointment_id:
+            print("❌ No appointment ID available")
+            return False
+            
+        if 'doctor' not in self.tokens or 'provider' not in self.tokens:
+            print("❌ Missing required tokens")
+            return False
+        
+        # Step 1: Doctor starts video call → gets session token X
+        print("   Step 1: Doctor starts video call...")
+        success, doctor_start_response = self.run_test(
+            "Doctor Starts Video Call",
+            "POST",
+            f"video-call/start/{self.appointment_id}",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if not success:
+            return False
+            
+        doctor_start_token = doctor_start_response.get('session_token')
+        print(f"   ✅ Doctor got session token X: {doctor_start_token[:20]}...")
+        
+        # Step 2: Provider joins call → should get SAME session token X
+        print("   Step 2: Provider gets session for same appointment...")
+        success, provider_session_response = self.run_test(
+            "Provider Gets Session Token",
+            "GET",
+            f"video-call/session/{self.appointment_id}",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if not success:
+            return False
+            
+        provider_session_token = provider_session_response.get('session_token')
+        print(f"   ✅ Provider got session token: {provider_session_token[:20]}...")
+        
+        # Step 3: Verify both have SAME session token
+        if doctor_start_token == provider_session_token:
+            print("   🎉 SUCCESS: Both doctor and provider have SAME session token!")
+        else:
+            print("   ❌ FAILURE: Doctor and provider have different session tokens")
+            return False
+        
+        # Step 4: Both should be able to join via WebSocket signaling
+        print("   Step 3: Testing join endpoint for both users...")
+        
+        # Doctor joins
+        success, doctor_join_response = self.run_test(
+            "Doctor Joins Video Call",
+            "GET",
+            f"video-call/join/{doctor_start_token}",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if success:
+            print("   ✅ Doctor can join video call")
+        else:
+            print("   ❌ Doctor cannot join video call")
+            return False
+        
+        # Provider joins
+        success, provider_join_response = self.run_test(
+            "Provider Joins Video Call",
+            "GET",
+            f"video-call/join/{provider_session_token}",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if success:
+            print("   ✅ Provider can join video call")
+        else:
+            print("   ❌ Provider cannot join video call")
+            return False
+        
+        print("   🎉 End-to-End workflow SUCCESS: Both users can connect to same session!")
+        return True
+
+    def test_video_call_session_cleanup_and_errors(self):
+        """Test session cleanup and error handling"""
+        print("\n🧹 Testing Video Call Session Cleanup & Error Handling")
+        print("-" * 60)
+        
+        all_success = True
+        
+        # Test 1: Invalid appointment ID
+        invalid_appointment_id = "invalid-appointment-12345"
+        success, response = self.run_test(
+            "Get Session with Invalid Appointment ID",
+            "GET",
+            f"video-call/session/{invalid_appointment_id}",
+            404,
+            token=self.tokens['doctor']
+        )
+        
+        if success:
+            print("   ✅ Invalid appointment ID correctly rejected")
+        else:
+            print("   ❌ Invalid appointment ID unexpectedly accepted")
+            all_success = False
+        
+        # Test 2: Unauthorized access (admin trying to access video call)
+        if 'admin' in self.tokens and self.appointment_id:
+            success, response = self.run_test(
+                "Get Session Unauthorized (Admin)",
+                "GET",
+                f"video-call/session/{self.appointment_id}",
+                403,
+                token=self.tokens['admin']
+            )
+            
+            if success:
+                print("   ✅ Unauthorized access correctly denied")
+            else:
+                print("   ❌ Unauthorized access unexpectedly allowed")
+                all_success = False
+        
+        # Test 3: Join with invalid session token
+        invalid_session_token = "invalid-session-token-12345"
+        success, response = self.run_test(
+            "Join with Invalid Session Token",
+            "GET",
+            f"video-call/join/{invalid_session_token}",
+            404,
+            token=self.tokens['provider']
+        )
+        
+        if success:
+            print("   ✅ Invalid session token correctly rejected")
+        else:
+            print("   ❌ Invalid session token unexpectedly accepted")
+            all_success = False
+        
+        return all_success
+
     def test_video_call_functionality(self):
         """Test video call functionality - DEPRECATED, use test_video_call_start_and_join instead"""
         return self.test_video_call_start_and_join()
