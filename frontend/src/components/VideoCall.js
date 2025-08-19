@@ -353,31 +353,97 @@ const VideoCall = ({ user }) => {
   };
 
   const cleanup = () => {
-    console.log('🧹 Cleaning up...');
+    console.log('🧹 Cleaning up call...');
     
-    // Stop local stream
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => track.stop());
-    }
+    try {
+      // Stop ALL local media tracks immediately
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach(track => {
+          console.log(`🔴 Stopping ${track.kind} track: ${track.label}`);
+          track.stop();
+        });
+        localStreamRef.current = null;
+      }
 
-    // Close peer connection
-    if (peerConnectionRef.current) {
-      peerConnectionRef.current.close();
-    }
+      // Clear local video element
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = null;
+        console.log('📹 Local video cleared');
+      }
 
-    // Close signaling socket
-    if (signalingSocketRef.current) {
-      signalingSocketRef.current.close();
-    }
+      // Clear remote video element
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = null;
+        console.log('📹 Remote video cleared');
+      }
 
-    // Clear video elements
-    if (localVideoRef.current) {
-      localVideoRef.current.srcObject = null;
-    }
-    if (remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = null;
+      // Close peer connection
+      if (peerConnectionRef.current) {
+        // Remove all tracks from peer connection first
+        peerConnectionRef.current.getSenders().forEach(sender => {
+          if (sender.track) {
+            sender.track.stop();
+          }
+        });
+        
+        peerConnectionRef.current.close();
+        peerConnectionRef.current = null;
+        console.log('🔌 Peer connection closed');
+      }
+
+      // Close signaling socket
+      if (signalingSocketRef.current) {
+        if (signalingSocketRef.current.readyState === WebSocket.OPEN) {
+          signalingSocketRef.current.send(JSON.stringify({
+            type: 'leave',
+            sessionToken: sessionToken,
+            userId: user.id
+          }));
+        }
+        signalingSocketRef.current.close();
+        signalingSocketRef.current = null;
+        console.log('📡 Signaling socket closed');
+      }
+
+      // Reset state
+      setCallStatus('ended');
+      setRemoteUser(null);
+      setConnectionQuality('disconnected');
+      
+      console.log('✅ Cleanup completed - camera and microphone released');
+      
+    } catch (error) {
+      console.error('❌ Error during cleanup:', error);
     }
   };
+
+  // Enhanced cleanup on component unmount and page events
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      cleanup();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden && callStatus === 'connected') {
+        console.log('⚠️ Tab hidden during call - maintaining connection');
+      }
+    };
+
+    const handleWindowClose = () => {
+      cleanup();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('unload', handleWindowClose);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('unload', handleWindowClose);
+      cleanup();
+    };
+  }, [callStatus]);
 
   const getStatusColor = () => {
     switch (callStatus) {
