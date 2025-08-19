@@ -56,7 +56,9 @@ const Dashboard = ({ user, onLogout }) => {
         setVideoCallInvitation({
           sessionToken: notification.session_token,
           callerName: notification.caller,
-          appointmentId: notification.appointment_id
+          appointmentId: notification.appointment_id,
+          appointmentType: notification.appointment_type,
+          patientName: notification.patient_name
         });
         setShowVideoCallInvitation(true);
         
