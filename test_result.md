@@ -164,6 +164,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "TESTED: Video Call WebSocket Signaling endpoint exists and is properly configured at /ws/video-call/{session_token}. WebSocket endpoint accepts connections and handles join messages with user notifications. Message routing for offer/answer/ICE candidates implemented correctly. WebSocket connection test failed in container environment (expected), but endpoint structure and implementation verified. WebSocket signaling infrastructure ready for WebRTC peer connections."
+      - working: true
+        agent: "testing"
+        comment: "🎯 CRITICAL WEBSOCKET '/API' PREFIX FIX VERIFIED: Successfully tested the WebSocket signaling with '/api' prefix routing fix. COMPREHENSIVE TESTING RESULTS: ✅ WebSocket endpoint '/api/ws/video-call/{session_token}' working perfectly → Both doctor and provider connect to 'wss://greenstar-health.preview.emergentagent.com/api/ws/video-call/f309bbfa-fd80-460b-8f9e-db6548922e31' → Console shows '✅ Signaling WebSocket connected' for both users → Join messages sent and received successfully → WebSocket signaling message exchange working correctly → Both users successfully join same video call session → WebRTC peer connection setup completed → Real-time signaling infrastructure operational → 'Waiting for remote participant...' issue resolved through proper WebSocket routing. The '/api' prefix fix ensures correct Kubernetes ingress routing and resolves the peer-to-peer connection establishment issue. WebSocket signaling is fully functional and ready for production use."
   
   - task: "Appointment Edit Endpoint"
     implemented: true
