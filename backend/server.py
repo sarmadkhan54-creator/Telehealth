@@ -623,12 +623,20 @@ async def join_video_call(session_token: str, current_user: User = Depends(get_c
     else:
         raise HTTPException(status_code=403, detail="Only doctors and providers can join video calls")
     
-    # Return session and appointment details
+    # Return session and appointment details (clean MongoDB ObjectId fields)
+    def clean_mongo_data(data):
+        if isinstance(data, dict):
+            return {k: v for k, v in data.items() if k != "_id"}
+        elif isinstance(data, list):
+            return [clean_mongo_data(item) for item in data]
+        else:
+            return data
+    
     return {
         "session_token": session_token,
         "appointment_id": video_session["appointment_id"],
-        "appointment": appointment,
-        "video_session": video_session
+        "appointment": clean_mongo_data(appointment),
+        "video_session": clean_mongo_data(video_session)
     }
 
 # WebSocket endpoint for real-time notifications
