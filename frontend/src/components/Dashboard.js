@@ -102,6 +102,20 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
+  const handleJoinCall = async (appointmentId) => {
+    try {
+      // Start the video call to get session token
+      const response = await axios.post(`${API}/video-call/start/${appointmentId}`);
+      const { session_token } = response.data;
+      
+      // Navigate to video call page
+      navigate(`/video-call/${session_token}`);
+    } catch (error) {
+      console.error('Error starting video call:', error);
+      alert('Error starting video call. Please try again.');
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'pending': return 'status-pending';
