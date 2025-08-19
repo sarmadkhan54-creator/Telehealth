@@ -384,26 +384,68 @@ const VideoCall = ({ user }) => {
   };
 
   const cleanupCall = () => {
-    // Stop all tracks
+    console.log('🧹 Cleaning up video call...');
+    
+    // Stop all local tracks
     if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => track.stop());
+      localStreamRef.current.getTracks().forEach(track => {
+        track.stop();
+        console.log(`Stopped ${track.kind} track`);
+      });
+      localStreamRef.current = null;
     }
+    
     if (remoteStreamRef.current) {
       remoteStreamRef.current.getTracks().forEach(track => track.stop());
+      remoteStreamRef.current = null;
     }
 
     // Close peer connection
     if (peerConnectionRef.current) {
       peerConnectionRef.current.close();
+      peerConnectionRef.current = null;
+      console.log('WebRTC peer connection closed');
     }
 
     // Close signaling socket
     if (signalingSocket) {
+      if (signalingSocket.readyState === WebSocket.OPEN) {
+        signalingSocket.send(JSON.stringify({
+          type: 'leave',
+          sessionToken: sessionToken
+        }));
+      }
       signalingSocket.close();
+      setSignalingSocket(null);
+      console.log('WebSocket signaling connection closed');
+    }
+
+    // Clear video elements
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = null;
+    }
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = null;
     }
 
     setCallStatus('ended');
+    setRemoteUser(null);
+    console.log('✅ Video call cleanup complete');
   };
+
+  // Cleanup on component unmount or page refresh
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      cleanupCall();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      cleanupCall();
+    };
+  }, [sessionToken]);
 
   return (
     <div className="video-container">
