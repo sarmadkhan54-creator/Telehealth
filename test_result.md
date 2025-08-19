@@ -211,8 +211,7 @@ test_plan:
     - "Join Call Button Provider Dashboard"
     - "Join Call Button Doctor Dashboard"
     - "Edit Appointment Admin Dashboard"
-  stuck_tasks:
-    - "All join call and edit functionality tasks"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
