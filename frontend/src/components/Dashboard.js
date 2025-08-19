@@ -45,6 +45,26 @@ const Dashboard = ({ user, onLogout }) => {
         fetchAppointments(); // Refresh appointments list
       }
       
+      // Handle video call invitations with sound popup
+      if (notification.type === 'video_call_invitation') {
+        // Play notification sound
+        playNotificationSound();
+        
+        // Show video call invitation popup
+        setVideoCallInvitation({
+          sessionToken: notification.session_token,
+          callerName: notification.caller,
+          appointmentId: notification.appointment_id
+        });
+        setShowVideoCallInvitation(true);
+        
+        // Auto-hide popup after 30 seconds
+        setTimeout(() => {
+          setShowVideoCallInvitation(false);
+          setVideoCallInvitation(null);
+        }, 30000);
+      }
+      
       // Show browser notification for important updates
       if (Notification.permission === 'granted') {
         if (notification.type === 'appointment_accepted') {
@@ -55,7 +75,8 @@ const Dashboard = ({ user, onLogout }) => {
         } else if (notification.type === 'video_call_invitation') {
           new Notification('Video Call Invitation', {
             body: `${notification.caller} is inviting you to a video call`,
-            icon: '/favicon.ico'
+            icon: '/favicon.ico',
+            requireInteraction: true
           });
         }
       }
