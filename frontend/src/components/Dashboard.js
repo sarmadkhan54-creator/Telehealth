@@ -52,13 +52,21 @@ const Dashboard = ({ user, onLogout }) => {
         // Play ringing sound
         playRingingSound();
         
-        // Show video call invitation popup
+        // Show video call invitation popup with enhanced details
         setVideoCallInvitation({
           sessionToken: notification.session_token,
           callerName: notification.caller,
+          callerRole: notification.caller_role,
           appointmentId: notification.appointment_id,
           appointmentType: notification.appointment_type,
-          patientName: notification.patient_name
+          appointmentTime: notification.appointment_time,
+          patient: notification.patient || {
+            name: notification.patient_name || "Unknown Patient",
+            age: "Unknown",
+            gender: "Unknown", 
+            consultation_reason: "General consultation",
+            vitals: {}
+          }
         });
         setShowVideoCallInvitation(true);
         
