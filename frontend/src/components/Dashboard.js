@@ -759,65 +759,160 @@ const Dashboard = ({ user, onLogout }) => {
         </div>
       )}
 
-      {/* Enhanced Video Call Invitation Popup - Like Real Phone Call */}
+      {/* Enhanced Video Call Invitation with Appointment Details */}
       {showVideoCallInvitation && videoCallInvitation && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-          <div className="glass-card max-w-md w-full mx-4">
-            <div className="text-center p-8">
-              {/* Phone Animation */}
-              <div className="mb-6">
-                <div className={`w-20 h-20 mx-auto rounded-full bg-green-500 flex items-center justify-center ${isRinging ? 'animate-pulse' : ''}`}>
-                  <Phone className="w-10 h-10 text-white animate-bounce" />
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+          <div className="glass-card max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-8">
+              
+              {/* Call Header */}
+              <div className="text-center mb-6">
+                <div className={`w-24 h-24 mx-auto rounded-full bg-gradient-to-r ${
+                  videoCallInvitation.appointmentType === 'emergency' 
+                    ? 'from-red-500 to-red-600' 
+                    : 'from-green-500 to-green-600'
+                } flex items-center justify-center ${isRinging ? 'animate-pulse' : ''} shadow-lg`}>
+                  <Phone className="w-12 h-12 text-white animate-bounce" />
+                </div>
+                
+                <h2 className="text-3xl font-bold text-gray-900 mt-4">
+                  {isRinging ? 'Incoming Call...' : 'Video Call Invitation'}
+                </h2>
+                
+                {isRinging && (
+                  <p className="text-sm text-gray-500 animate-pulse mt-2">
+                    📞 Ring Ring... Ring Ring...
+                  </p>
+                )}
+              </div>
+
+              {/* Appointment Type Badge */}
+              <div className="text-center mb-6">
+                <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${
+                  videoCallInvitation.appointmentType === 'emergency'
+                    ? 'bg-red-100 text-red-800 border border-red-200'
+                    : 'bg-blue-100 text-blue-800 border border-blue-200'
+                }`}>
+                  {videoCallInvitation.appointmentType === 'emergency' ? '🚨 EMERGENCY' : '📅 REGULAR'} CONSULTATION
+                </span>
+              </div>
+
+              {/* Caller Information */}
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <h3 className="font-semibold text-gray-900 mb-2">📞 Caller</h3>
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                    <User className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-lg text-gray-900">
+                      {videoCallInvitation.callerRole === 'doctor' ? 'Dr. ' : ''}{videoCallInvitation.callerName}
+                    </p>
+                    <p className="text-sm text-gray-600 capitalize">
+                      {videoCallInvitation.callerRole || 'Healthcare Provider'}
+                    </p>
+                  </div>
                 </div>
               </div>
-              
-              {/* Call Status */}
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                {isRinging ? 'Incoming Call...' : 'Video Call Invitation'}
-              </h3>
-              
-              {/* Caller Info */}
-              <div className="mb-2">
-                <p className="text-xl font-semibold text-gray-800">
-                  Dr. {videoCallInvitation.callerName}
-                </p>
-                <p className="text-sm text-gray-600">
-                  {videoCallInvitation.appointmentType === 'emergency' ? '🚨 Emergency' : '📅 Regular'} Consultation
-                </p>
-              </div>
-              
-              {/* Ringing Indicator */}
-              {isRinging && (
-                <div className="mb-4">
-                  <p className="text-sm text-gray-500 animate-pulse">
-                    📞 Ringing...
+
+              {/* Patient Information */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 mb-6">
+                <h3 className="font-semibold text-gray-900 mb-3">👤 Patient Information</h3>
+                
+                <div className="grid grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Name</label>
+                    <p className="text-sm font-semibold text-gray-900">{videoCallInvitation.patient.name}</p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Age</label>
+                    <p className="text-sm font-semibold text-gray-900">{videoCallInvitation.patient.age} years</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Gender</label>
+                    <p className="text-sm font-semibold text-gray-900 capitalize">{videoCallInvitation.patient.gender}</p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Type</label>
+                    <p className="text-sm font-semibold text-gray-900 capitalize">
+                      {videoCallInvitation.appointmentType.replace('_', ' ')}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Consultation Reason</label>
+                  <p className="text-sm text-gray-900 bg-white rounded p-2 mt-1">
+                    {videoCallInvitation.patient.consultation_reason}
                   </p>
                 </div>
-              )}
-              
+
+                {/* Patient Vitals (if available) */}
+                {videoCallInvitation.patient.vitals && Object.keys(videoCallInvitation.patient.vitals).length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Recent Vitals</label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      {videoCallInvitation.patient.vitals.blood_pressure && (
+                        <div className="bg-white rounded p-2">
+                          <span className="text-xs text-gray-500">BP:</span>
+                          <span className="text-sm font-medium ml-1">{videoCallInvitation.patient.vitals.blood_pressure}</span>
+                        </div>
+                      )}
+                      {videoCallInvitation.patient.vitals.heart_rate && (
+                        <div className="bg-white rounded p-2">
+                          <span className="text-xs text-gray-500">HR:</span>
+                          <span className="text-sm font-medium ml-1">{videoCallInvitation.patient.vitals.heart_rate} bpm</span>
+                        </div>
+                      )}
+                      {videoCallInvitation.patient.vitals.temperature && (
+                        <div className="bg-white rounded p-2">
+                          <span className="text-xs text-gray-500">Temp:</span>
+                          <span className="text-sm font-medium ml-1">{videoCallInvitation.patient.vitals.temperature}°C</span>
+                        </div>
+                      )}
+                      {videoCallInvitation.patient.vitals.oxygen_saturation && (
+                        <div className="bg-white rounded p-2">
+                          <span className="text-xs text-gray-500">O2:</span>
+                          <span className="text-sm font-medium ml-1">{videoCallInvitation.patient.vitals.oxygen_saturation}%</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Call Action Buttons */}
-              <div className="flex space-x-4 mt-6">
+              <div className="flex space-x-4">
                 <button
                   onClick={handleAcceptVideoCall}
-                  className="flex-1 bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-full font-semibold flex items-center justify-center space-x-2 transition-all transform hover:scale-105 shadow-lg"
+                  className={`flex-1 ${
+                    videoCallInvitation.appointmentType === 'emergency' 
+                      ? 'bg-red-500 hover:bg-red-600' 
+                      : 'bg-green-500 hover:bg-green-600'
+                  } text-white px-8 py-4 rounded-xl font-semibold flex items-center justify-center space-x-3 transition-all transform hover:scale-105 shadow-lg`}
                 >
                   <Phone className="w-6 h-6" />
-                  <span>Accept</span>
+                  <span>Answer Call</span>
                 </button>
                 
                 <button
                   onClick={handleDeclineVideoCall}
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-full font-semibold flex items-center justify-center space-x-2 transition-all transform hover:scale-105 shadow-lg"
+                  className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-8 py-4 rounded-xl font-semibold flex items-center justify-center space-x-3 transition-all transform hover:scale-105 shadow-lg"
                 >
                   <PhoneOff className="w-6 h-6" />
                   <span>Decline</span>
                 </button>
               </div>
               
-              {/* Auto-dismiss Timer */}
-              <p className="text-xs text-gray-400 mt-4">
-                Call will auto-dismiss in 30 seconds
-              </p>
+              {/* Timer */}
+              <div className="text-center mt-4">
+                <p className="text-xs text-gray-400">
+                  {videoCallInvitation.appointmentType === 'emergency' ? 'Emergency call' : 'Call'} will auto-dismiss in 30 seconds
+                </p>
+              </div>
             </div>
           </div>
         </div>
