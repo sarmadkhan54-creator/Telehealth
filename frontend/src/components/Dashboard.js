@@ -101,7 +101,7 @@ const Dashboard = ({ user, onLogout }) => {
     return () => ws.close();
   };
 
-  const playNotificationSound = () => {
+  const playRingingSound = () => {
     try {
       // Create a simple notification sound using HTML5 Audio with data URI
       // This is a pleasant two-tone notification sound
