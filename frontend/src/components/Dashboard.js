@@ -103,31 +103,77 @@ const Dashboard = ({ user, onLogout }) => {
 
   const playRingingSound = () => {
     try {
-      // Create a simple notification sound using HTML5 Audio with data URI
-      // This is a pleasant two-tone notification sound
-      const audioData = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp6qNVFApGn+DyvGYfCSSLzfDVgjMGHW7A7+OZURG';
+      // Create a continuous ringing sound like a real phone
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       
-      const audio = new Audio(audioData);
-      audio.volume = 0.3; // 30% volume - not too loud
-      
-      // Play the sound
-      audio.play().then(() => {
-        console.log('🔔 Video call notification sound played successfully');
-      }).catch(error => {
-        console.log('Sound play failed (likely due to browser autoplay policy):', error.message);
-        
-        // Fallback: Try to play a system beep
-        try {
-          const beep = new Audio('data:audio/wav;base64,UklGRvgCAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YdQCAAC4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4');
-          beep.volume = 0.1;
-          beep.play();
-          console.log('🔔 Fallback beep sound played');
-        } catch (beepError) {
-          console.log('All notification sounds failed - silent notification only');
+      let isRingingActive = true;
+      const ringingInterval = setInterval(() => {
+        if (!isRingingActive) {
+          clearInterval(ringingInterval);
+          return;
         }
-      });
+        
+        // Create ring tone (two quick tones)
+        const createRingTone = (frequency, startTime, duration) => {
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          oscillator.type = 'sine';
+          oscillator.frequency.value = frequency;
+          
+          gainNode.gain.setValueAtTime(0, startTime);
+          gainNode.gain.linearRampToValueAtTime(0.15, startTime + 0.05);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+          
+          oscillator.start(startTime);
+          oscillator.stop(startTime + duration);
+        };
+        
+        // Create ring sequence (ring-ring pattern)
+        const now = audioContext.currentTime;
+        createRingTone(800, now, 0.3);      // First ring
+        createRingTone(800, now + 0.4, 0.3); // Second ring
+        
+      }, 2000); // Ring every 2 seconds
+      
+      // Stop ringing function
+      const stopRinging = () => {
+        isRingingActive = false;
+        clearInterval(ringingInterval);
+        setIsRinging(false);
+      };
+      
+      // Store the stop function
+      setRingingAudio({ stop: stopRinging });
+      setIsRinging(true);
+      
+      console.log('📞 Started phone ringing sound');
+      return stopRinging;
+      
     } catch (error) {
-      console.error('Error creating notification sound:', error);
+      console.error('Error creating ringing sound:', error);
+      
+      // Fallback to HTML5 Audio with looping
+      try {
+        const ringToneData = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp6qNVFApGn+DyvGYfCSSLzfDVgjMGHW7A7+OZURE';
+        const audio = new Audio(ringToneData);
+        audio.loop = true;
+        audio.volume = 0.4;
+        
+        audio.play().then(() => {
+          console.log('📞 Fallback ringing sound playing');
+          setRingingAudio(audio);
+          setIsRinging(true);
+        }).catch(fallbackError => {
+          console.log('All ringing sounds failed');
+        });
+        
+      } catch (fallbackError) {
+        console.log('Unable to play ringing sound');
+      }
     }
   };
 
