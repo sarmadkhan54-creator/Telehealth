@@ -371,152 +371,118 @@ const VideoCall = ({ user }) => {
   };
 
   return (
-    <div className="video-container">
-      {/* Call Status Indicator */}
-      <div className="absolute top-4 left-4 z-10">
-        <div className="glass-card p-3">
-          <div className="flex items-center space-x-2">
-            <div className={`w-3 h-3 rounded-full ${
-              callStatus === 'connected' ? 'bg-green-500' : 
-              callStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' : 
-              'bg-red-500'
-            }`}></div>
-            <span className="text-white font-medium capitalize">
-              {callStatus}
-            </span>
-            {callStatus === 'connected' && (
-              <span className="text-gray-300 text-sm ml-2">
-                Session: {sessionToken?.slice(-8)}
-              </span>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm p-4">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Video Call</h1>
+            <p className="text-sm text-gray-600">Session: {sessionToken.slice(0, 8)}...</p>
+          </div>
+          
+          <div className="text-right">
+            <div className={`font-semibold ${getStatusColor()}`}>
+              {getStatusText()}
+            </div>
+            {remoteUser && (
+              <div className="text-sm text-gray-600">
+                {remoteUser.name || 'Remote User'}
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* User Info */}
-      <div className="absolute top-4 right-4 z-10">
-        <div className="glass-card p-3">
-          <div className="text-right">
-            <p className="text-white font-medium">{user.full_name}</p>
-            <p className="text-gray-300 text-sm">
-              {user.role === 'doctor' ? 'Doctor' : 'Provider'}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Remote Video (Main) */}
-      <div className="relative w-full h-full">
-        {remoteUser ? (
-          <video
-            ref={remoteVideoRef}
-            autoPlay
-            playsInline
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="flex items-center justify-center w-full h-full bg-gray-800">
-            <div className="text-center">
-              <div className="w-24 h-24 bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Video className="w-12 h-12 text-gray-400" />
+      {/* Video Area */}
+      <div className="flex-1 p-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)]">
+            
+            {/* Remote Video */}
+            <div className="relative bg-gray-900 rounded-xl overflow-hidden">
+              <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                className="w-full h-full object-cover"
+              />
+              
+              {!remoteUser && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
+                  <div className="text-center text-white">
+                    <User className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg">Waiting for remote participant...</p>
+                  </div>
+                </div>
+              )}
+              
+              <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                {remoteUser?.name || 'Remote User'}
               </div>
-              <p className="text-white text-xl mb-2">Waiting for remote participant...</p>
-              <p className="text-gray-300">They will appear here once connected</p>
             </div>
-          </div>
-        )}
 
-        {/* Local Video (Picture in Picture) */}
-        <div className="absolute bottom-20 right-4 w-64 h-48 bg-gray-900 rounded-lg overflow-hidden border-2 border-white/20">
-          <video
-            ref={localVideoRef}
-            autoPlay
-            playsInline
-            muted
-            className="w-full h-full object-cover"
-          />
-          {!isVideoEnabled && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
-              <VideoOff className="w-8 h-8 text-gray-400" />
+            {/* Local Video */}
+            <div className="relative bg-gray-900 rounded-xl overflow-hidden">
+              <video
+                ref={localVideoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+              />
+              
+              <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                You ({user.full_name})
+              </div>
+              
+              {!isVideoEnabled && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
+                  <VideoOff className="w-16 h-16 text-gray-400" />
+                </div>
+              )}
             </div>
-          )}
-          <div className="absolute bottom-2 left-2">
-            <span className="text-white text-sm font-medium">You</span>
           </div>
         </div>
       </div>
 
-      {/* Call Controls */}
-      <div className="video-controls">
-        <div className="flex items-center space-x-4">
+      {/* Controls */}
+      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2">
+        <div className="flex items-center space-x-4 bg-white shadow-xl rounded-full p-4">
+          
           {/* Audio Toggle */}
           <button
             onClick={toggleAudio}
-            className={`control-btn ${isAudioEnabled ? 'mute' : 'bg-red-500'}`}
-            title={isAudioEnabled ? 'Mute' : 'Unmute'}
+            className={`p-4 rounded-full transition-colors ${
+              isAudioEnabled 
+                ? 'bg-gray-100 hover:bg-gray-200 text-gray-700' 
+                : 'bg-red-500 hover:bg-red-600 text-white'
+            }`}
+            title={isAudioEnabled ? 'Mute Microphone' : 'Unmute Microphone'}
           >
-            {isAudioEnabled ? <Mic /> : <MicOff />}
+            {isAudioEnabled ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
           </button>
 
           {/* Video Toggle */}
           <button
             onClick={toggleVideo}
-            className={`control-btn ${isVideoEnabled ? 'mute' : 'bg-red-500'}`}
-            title={isVideoEnabled ? 'Turn off camera' : 'Turn on camera'}
+            className={`p-4 rounded-full transition-colors ${
+              isVideoEnabled 
+                ? 'bg-gray-100 hover:bg-gray-200 text-gray-700' 
+                : 'bg-red-500 hover:bg-red-600 text-white'
+            }`}
+            title={isVideoEnabled ? 'Turn Off Camera' : 'Turn On Camera'}
           >
-            {isVideoEnabled ? <Video /> : <VideoOff />}
-          </button>
-
-          {/* Screen Share */}
-          <button
-            onClick={toggleScreenShare}
-            className={`control-btn ${isScreenSharing ? 'bg-blue-500' : 'mute'}`}
-            title={isScreenSharing ? 'Stop sharing' : 'Share screen'}
-          >
-            {isScreenSharing ? <MonitorOff /> : <Monitor />}
-          </button>
-
-          {/* Chat (Future feature) */}
-          <button
-            className="control-btn mute"
-            title="Chat (Coming soon)"
-            disabled
-          >
-            <MessageCircle />
-          </button>
-
-          {/* Settings (Future feature) */}
-          <button
-            className="control-btn mute"
-            title="Settings (Coming soon)"
-            disabled
-          >
-            <Settings />
+            {isVideoEnabled ? <Video className="w-6 h-6" /> : <VideoOff className="w-6 h-6" />}
           </button>
 
           {/* End Call */}
           <button
             onClick={endCall}
-            className="control-btn end-call"
-            title="End call"
+            className="p-4 rounded-full bg-red-500 hover:bg-red-600 text-white transition-colors"
+            title="End Call"
           >
-            <PhoneOff />
+            <PhoneOff className="w-6 h-6" />
           </button>
-        </div>
-      </div>
-
-      {/* Connection Quality Indicator */}
-      <div className="absolute bottom-4 left-4 z-10">
-        <div className="glass-card p-2">
-          <div className="flex items-center space-x-2">
-            <div className="flex space-x-1">
-              <div className="w-1 h-4 bg-green-500 rounded"></div>
-              <div className="w-1 h-3 bg-green-500 rounded"></div>
-              <div className="w-1 h-2 bg-green-500 rounded"></div>
-              <div className="w-1 h-3 bg-green-500 rounded"></div>
-            </div>
-            <span className="text-white text-sm">Good connection</span>
-          </div>
         </div>
       </div>
     </div>
