@@ -101,3 +101,100 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "join call is not working i told you to check each funtion also make the edit funtion functional"
+
+backend:
+  - task: "Video Call Start Endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Backend has video call start endpoint at /video-call/start/{appointment_id}"
+  
+  - task: "Video Call Join Endpoint"
+    implemented: false
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Missing join video call endpoint - only start endpoint exists"
+  
+  - task: "Appointment Edit Endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "PUT /appointments/{appointment_id} endpoint exists with role-based permissions"
+
+frontend:
+  - task: "Join Call Button Provider Dashboard"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/Dashboard.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Join call buttons exist but only console.log - no actual functionality"
+  
+  - task: "Join Call Button Doctor Dashboard"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/DoctorDashboard.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Start video call buttons exist but need proper implementation"
+  
+  - task: "Edit Appointment Admin Dashboard"
+    implemented: false
+    working: false
+    file: "/app/frontend/src/components/AdminDashboard.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Edit buttons show 'Coming soon!' alert - not implemented"
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Video Call Join Endpoint"
+    - "Join Call Button Provider Dashboard"
+    - "Join Call Button Doctor Dashboard"
+    - "Edit Appointment Admin Dashboard"
+  stuck_tasks:
+    - "All join call and edit functionality tasks"
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Initial assessment completed. Found that video call start endpoint exists but join functionality is missing. Edit appointment endpoint exists but frontend implementation missing."
