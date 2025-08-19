@@ -615,7 +615,7 @@ async def join_video_call(session_token: str, current_user: User = Depends(get_c
     
     # Check if user is authorized to join this call
     if current_user.role == "doctor":
-        if video_session["doctor_id"] != current_user.id:
+        if video_session.get("doctor_id") and video_session["doctor_id"] != current_user.id:
             raise HTTPException(status_code=403, detail="You are not authorized to join this call")
     elif current_user.role == "provider":
         if video_session["provider_id"] != current_user.id:
