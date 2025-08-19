@@ -533,7 +533,7 @@ const Dashboard = ({ user, onLogout }) => {
               {selectedAppointment.status === 'accepted' && (
                 <button
                   onClick={() => {
-                    console.log('Starting video call for appointment:', selectedAppointment.id);
+                    handleJoinCall(selectedAppointment.id);
                     setShowAppointmentModal(false);
                   }}
                   className="btn-primary flex items-center space-x-2"
