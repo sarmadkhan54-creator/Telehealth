@@ -279,8 +279,8 @@ class VideoCallInvestigator:
                 if token_override is None:
                     # No authorization header
                     pass
-                else:
-                    headers['Authorization'] = f'Bearer {self.tokens.get("provider", "invalid")}'
+                elif token_override in self.tokens:
+                    headers['Authorization'] = f'Bearer {self.tokens[token_override]}'
                 
                 if "start" in endpoint:
                     response = requests.post(f"{self.api_url}/{endpoint}", headers=headers, timeout=10)
