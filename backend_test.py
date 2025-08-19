@@ -860,28 +860,286 @@ class MedConnectAPITester:
         
         return success
 
-    def test_video_call_functionality(self):
-        """Test video call functionality"""
-        print("\n📹 Testing Video Call Functionality")
+    def test_video_call_start_and_join(self):
+        """Test video call start and join functionality with proper authorization"""
+        print("\n📹 Testing Video Call Start and Join Endpoints")
         print("-" * 50)
         
-        if 'doctor' not in self.tokens or not self.appointment_id:
-            print("❌ No doctor token or appointment ID available")
+        if not self.appointment_id:
+            print("❌ No appointment ID available for video call testing")
             return False
             
+        if 'doctor' not in self.tokens or 'provider' not in self.tokens:
+            print("❌ Missing doctor or provider tokens for video call testing")
+            return False
+        
+        # Test 1: Doctor starts video call
         success, response = self.run_test(
-            "Start Video Call",
+            "Start Video Call (Doctor)",
             "POST",
             f"video-call/start/{self.appointment_id}",
             200,
             token=self.tokens['doctor']
         )
         
-        if success:
-            session_token = response.get('session_token')
-            print(f"   ✅ Video call session token generated: {session_token[:20]}...")
+        if not success:
+            print("❌ Doctor could not start video call")
+            return False
+            
+        session_token = response.get('session_token')
+        if not session_token:
+            print("❌ No session token returned from start video call")
+            return False
+            
+        print(f"   ✅ Video call started, session token: {session_token[:20]}...")
         
-        return success
+        # Test 2: Provider joins video call with valid session token
+        success, response = self.run_test(
+            "Join Video Call (Provider - Authorized)",
+            "GET",
+            f"video-call/join/{session_token}",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if not success:
+            print("❌ Provider could not join video call with valid session token")
+            return False
+            
+        print("   ✅ Provider successfully joined video call")
+        
+        # Test 3: Doctor joins their own video call
+        success, response = self.run_test(
+            "Join Video Call (Doctor - Own Call)",
+            "GET",
+            f"video-call/join/{session_token}",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if not success:
+            print("❌ Doctor could not join their own video call")
+            return False
+            
+        print("   ✅ Doctor successfully joined their own video call")
+        
+        # Test 4: Admin tries to join video call (should fail - not authorized)
+        if 'admin' in self.tokens:
+            success, response = self.run_test(
+                "Join Video Call (Admin - Should Fail)",
+                "GET",
+                f"video-call/join/{session_token}",
+                403,
+                token=self.tokens['admin']
+            )
+            
+            if success:
+                print("   ✅ Admin correctly denied access to video call")
+            else:
+                print("   ❌ Admin unexpectedly allowed to join video call")
+                return False
+        
+        # Test 5: Try to join with invalid session token
+        invalid_token = "invalid-session-token-12345"
+        success, response = self.run_test(
+            "Join Video Call (Invalid Token)",
+            "GET",
+            f"video-call/join/{invalid_token}",
+            404,
+            token=self.tokens['provider']
+        )
+        
+        if success:
+            print("   ✅ Invalid session token correctly rejected")
+        else:
+            print("   ❌ Invalid session token unexpectedly accepted")
+            return False
+        
+        # Test 6: Provider starts video call
+        success, response = self.run_test(
+            "Start Video Call (Provider)",
+            "POST",
+            f"video-call/start/{self.appointment_id}",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if success:
+            provider_session_token = response.get('session_token')
+            print(f"   ✅ Provider can also start video calls, token: {provider_session_token[:20]}...")
+        else:
+            print("   ❌ Provider could not start video call")
+            return False
+        
+        return True
+
+    def test_appointment_edit_permissions(self):
+        """Test appointment edit endpoint with role-based permissions"""
+        print("\n✏️ Testing Appointment Edit Endpoint Permissions")
+        print("-" * 50)
+        
+        if not self.appointment_id:
+            print("❌ No appointment ID available for edit testing")
+            return False
+        
+        all_success = True
+        
+        # Test 1: Admin can edit any appointment
+        if 'admin' in self.tokens:
+            edit_data = {
+                "status": "accepted",
+                "consultation_notes": "Updated by admin - appointment approved"
+            }
+            
+            success, response = self.run_test(
+                "Edit Appointment (Admin - Should Work)",
+                "PUT",
+                f"appointments/{self.appointment_id}",
+                200,
+                data=edit_data,
+                token=self.tokens['admin']
+            )
+            
+            if success:
+                print("   ✅ Admin can edit appointments")
+            else:
+                print("   ❌ Admin cannot edit appointments")
+                all_success = False
+        
+        # Test 2: Doctor can edit appointments (accept, add notes, etc.)
+        if 'doctor' in self.tokens:
+            edit_data = {
+                "status": "accepted",
+                "doctor_id": self.users['doctor']['id'],
+                "doctor_notes": "Patient case reviewed by doctor"
+            }
+            
+            success, response = self.run_test(
+                "Edit Appointment (Doctor - Should Work)",
+                "PUT",
+                f"appointments/{self.appointment_id}",
+                200,
+                data=edit_data,
+                token=self.tokens['doctor']
+            )
+            
+            if success:
+                print("   ✅ Doctor can edit appointments")
+            else:
+                print("   ❌ Doctor cannot edit appointments")
+                all_success = False
+        
+        # Test 3: Provider can edit their own appointments
+        if 'provider' in self.tokens:
+            edit_data = {
+                "consultation_notes": "Updated consultation notes by provider"
+            }
+            
+            success, response = self.run_test(
+                "Edit Own Appointment (Provider - Should Work)",
+                "PUT",
+                f"appointments/{self.appointment_id}",
+                200,
+                data=edit_data,
+                token=self.tokens['provider']
+            )
+            
+            if success:
+                print("   ✅ Provider can edit their own appointments")
+            else:
+                print("   ❌ Provider cannot edit their own appointments")
+                all_success = False
+        
+        # Test 4: Create another appointment with different provider to test access control
+        # First, create a test provider user
+        if 'admin' in self.tokens:
+            test_provider_data = {
+                "username": f"test_provider_{datetime.now().strftime('%H%M%S')}",
+                "email": f"test_provider_{datetime.now().strftime('%H%M%S')}@example.com",
+                "password": "TestPass123!",
+                "phone": "+1234567890",
+                "full_name": "Test Provider for Access Control",
+                "role": "provider",
+                "district": "Test District"
+            }
+            
+            success, response = self.run_test(
+                "Create Test Provider for Access Control",
+                "POST",
+                "admin/create-user",
+                200,
+                data=test_provider_data,
+                token=self.tokens['admin']
+            )
+            
+            if success:
+                test_provider_id = response.get('id')
+                
+                # Login as the test provider
+                login_success, login_response = self.run_test(
+                    "Login Test Provider",
+                    "POST",
+                    "login",
+                    200,
+                    data={"username": test_provider_data["username"], "password": test_provider_data["password"]}
+                )
+                
+                if login_success:
+                    test_provider_token = login_response['access_token']
+                    
+                    # Test provider trying to edit another provider's appointment (should fail)
+                    edit_data = {
+                        "consultation_notes": "Unauthorized edit attempt"
+                    }
+                    
+                    success, response = self.run_test(
+                        "Edit Other's Appointment (Provider - Should Fail)",
+                        "PUT",
+                        f"appointments/{self.appointment_id}",
+                        403,
+                        data=edit_data,
+                        token=test_provider_token
+                    )
+                    
+                    if success:
+                        print("   ✅ Provider correctly denied access to other's appointments")
+                    else:
+                        print("   ❌ Provider unexpectedly allowed to edit other's appointments")
+                        all_success = False
+                
+                # Cleanup - delete test provider
+                self.run_test(
+                    "Cleanup Test Provider",
+                    "DELETE",
+                    f"users/{test_provider_id}",
+                    200,
+                    token=self.tokens['admin']
+                )
+        
+        # Test 5: Test editing with invalid appointment ID
+        invalid_appointment_id = "invalid-appointment-id-12345"
+        edit_data = {"status": "accepted"}
+        
+        success, response = self.run_test(
+            "Edit Invalid Appointment (Should Fail)",
+            "PUT",
+            f"appointments/{invalid_appointment_id}",
+            404,
+            data=edit_data,
+            token=self.tokens['admin']
+        )
+        
+        if success:
+            print("   ✅ Invalid appointment ID correctly rejected")
+        else:
+            print("   ❌ Invalid appointment ID unexpectedly accepted")
+            all_success = False
+        
+        return all_success
+
+    def test_video_call_functionality(self):
+        """Test video call functionality - DEPRECATED, use test_video_call_start_and_join instead"""
+        return self.test_video_call_start_and_join()
 
 def main():
     print("🏥 MedConnect Telehealth API Testing - COMPREHENSIVE APPOINTMENT MANAGEMENT")
