@@ -16,6 +16,8 @@ const Dashboard = ({ user, onLogout }) => {
   const [notifications, setNotifications] = useState([]);
   const [showVideoCallInvitation, setShowVideoCallInvitation] = useState(false);
   const [videoCallInvitation, setVideoCallInvitation] = useState(null);
+  const [isRinging, setIsRinging] = useState(false);
+  const [ringingAudio, setRingingAudio] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
