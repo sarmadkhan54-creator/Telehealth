@@ -458,13 +458,21 @@ const AdminDashboard = ({ user, onLogout }) => {
   };
 
   // Appointment management functions (Admin only)
-  const handleEditAppointment = (appointmentId) => {
+  const handleEditAppointment = async (appointmentId) => {
     if (user.role !== 'admin') {
       alert('Access Denied: Only administrators can edit appointments');
       return;
     }
-    // TODO: Implement edit appointment functionality
-    alert('Edit appointment functionality - Coming soon!');
+    
+    try {
+      // Fetch the appointment details
+      const response = await axios.get(`${API}/appointments/${appointmentId}`);
+      setEditingAppointment(response.data);
+      setShowEditAppointmentModal(true);
+    } catch (error) {
+      console.error('Error fetching appointment details:', error);
+      alert('Error loading appointment details');
+    }
   };
 
   const handleDeleteAppointment = async (appointmentId, patientName) => {
