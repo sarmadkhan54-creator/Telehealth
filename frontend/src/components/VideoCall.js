@@ -39,15 +39,33 @@ const VideoCall = ({ user }) => {
 
   const initializeVideoCall = async () => {
     try {
-      // Get user media
+      // Get user media with both audio and video
+      console.log('🎤📹 Requesting user media (audio + video)...');
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true
+        video: { 
+          width: { min: 640, ideal: 1280, max: 1920 },
+          height: { min: 480, ideal: 720, max: 1080 }
+        },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
+
+      console.log('✅ User media obtained');
+      console.log('   Video tracks:', stream.getVideoTracks().length);
+      console.log('   Audio tracks:', stream.getAudioTracks().length);
+      
+      // Log track details
+      stream.getTracks().forEach((track, index) => {
+        console.log(`   ${track.kind} track ${index + 1}:`, track.label, `(enabled: ${track.enabled})`);
       });
 
       localStreamRef.current = stream;
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
+        console.log('✅ Local video stream set to video element');
       }
 
       // Initialize WebRTC peer connection
@@ -58,12 +76,34 @@ const VideoCall = ({ user }) => {
       
       setCallStatus('connected');
     } catch (error) {
-      console.error('Error initializing video call:', error);
+      console.error('❌ Error initializing video call:', error);
       
       // Don't redirect on camera/microphone errors - show video call interface anyway
       // This allows testing in environments without camera access
       if (error.name === 'NotFoundError' || error.name === 'NotAllowedError' || error.name === 'NotReadableError') {
-        console.warn('Camera/microphone not available - continuing with video call interface');
+        console.warn('⚠️ Camera/microphone not available - continuing with video call interface');
+        console.warn('   Error details:', error.message);
+        
+        // Create a dummy audio stream for testing
+        try {
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          const destination = audioContext.createMediaStreamDestination();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(destination);
+          gainNode.gain.setValueAtTime(0.01, audioContext.currentTime); // Very low volume
+          oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A note
+          oscillator.start();
+          
+          console.log('✅ Created dummy audio stream for testing');
+          localStreamRef.current = destination.stream;
+          
+        } catch (audioError) {
+          console.warn('⚠️ Could not create dummy audio stream:', audioError);
+        }
+        
         setCallStatus('connected'); // Still show as connected for demo purposes
         setupPeerConnection(); // Set up peer connection without local stream
         setupSignaling(); // Still setup signaling for remote connection
