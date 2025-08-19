@@ -577,7 +577,7 @@ async def start_video_call(appointment_id: str, current_user: User = Depends(get
     video_session = VideoCallSession(
         appointment_id=appointment_id,
         provider_id=appointment["provider_id"],
-        doctor_id=current_user.id if current_user.role == "doctor" else appointment.get("doctor_id", ""),
+        doctor_id=current_user.id if current_user.role == "doctor" else appointment.get("doctor_id"),
         session_token=session_token
     )
     
