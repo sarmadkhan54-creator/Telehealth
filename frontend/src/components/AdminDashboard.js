@@ -268,6 +268,282 @@ const AdminDashboard = ({ user, onLogout }) => {
     );
   };
 
+  const EditAppointmentModal = () => {
+    const [formData, setFormData] = useState({
+      status: editingAppointment?.status || '',
+      appointment_type: editingAppointment?.appointment_type || '',
+      patient: {
+        name: editingAppointment?.patient?.name || '',
+        age: editingAppointment?.patient?.age || '',
+        gender: editingAppointment?.patient?.gender || '',
+        consultation_reason: editingAppointment?.patient?.consultation_reason || '',
+        vitals: {
+          blood_pressure: editingAppointment?.patient?.vitals?.blood_pressure || '',
+          heart_rate: editingAppointment?.patient?.vitals?.heart_rate || '',
+          temperature: editingAppointment?.patient?.vitals?.temperature || '',
+          oxygen_saturation: editingAppointment?.patient?.vitals?.oxygen_saturation || ''
+        }
+      }
+    });
+
+    useEffect(() => {
+      if (editingAppointment) {
+        setFormData({
+          status: editingAppointment.status,
+          appointment_type: editingAppointment.appointment_type,
+          patient: {
+            name: editingAppointment.patient?.name || '',
+            age: editingAppointment.patient?.age || '',
+            gender: editingAppointment.patient?.gender || '',
+            consultation_reason: editingAppointment.patient?.consultation_reason || '',
+            vitals: {
+              blood_pressure: editingAppointment.patient?.vitals?.blood_pressure || '',
+              heart_rate: editingAppointment.patient?.vitals?.heart_rate || '',
+              temperature: editingAppointment.patient?.vitals?.temperature || '',
+              oxygen_saturation: editingAppointment.patient?.vitals?.oxygen_saturation || ''
+            }
+          }
+        });
+      }
+    }, [editingAppointment]);
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      try {
+        await axios.put(`${API}/appointments/${editingAppointment.id}`, formData);
+        setShowEditAppointmentModal(false);
+        setEditingAppointment(null);
+        fetchData();
+        alert('Appointment updated successfully!');
+      } catch (error) {
+        console.error('Error updating appointment:', error);
+        alert(error.response?.data?.detail || 'Error updating appointment');
+      }
+    };
+
+    const handleChange = (e) => {
+      const { name, value } = e.target;
+      if (name.startsWith('patient.')) {
+        const field = name.split('.')[1];
+        if (field.startsWith('vitals.')) {
+          const vital = field.split('.')[1];
+          setFormData(prev => ({
+            ...prev,
+            patient: {
+              ...prev.patient,
+              vitals: {
+                ...prev.patient.vitals,
+                [vital]: value
+              }
+            }
+          }));
+        } else {
+          setFormData(prev => ({
+            ...prev,
+            patient: {
+              ...prev.patient,
+              [field]: value
+            }
+          }));
+        }
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          [name]: value
+        }));
+      }
+    };
+
+    if (!editingAppointment) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="glass-card max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-2xl font-bold text-gray-900">Edit Appointment</h3>
+            <button
+              onClick={() => {
+                setShowEditAppointmentModal(false);
+                setEditingAppointment(null);
+              }}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              ×
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Appointment Status & Type */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="form-group">
+                <label className="form-label">Status *</label>
+                <select
+                  name="status"
+                  required
+                  className="form-input"
+                  value={formData.status}
+                  onChange={handleChange}
+                >
+                  <option value="pending">Pending</option>
+                  <option value="accepted">Accepted</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Type *</label>
+                <select
+                  name="appointment_type"
+                  required
+                  className="form-input"
+                  value={formData.appointment_type}
+                  onChange={handleChange}
+                >
+                  <option value="emergency">Emergency</option>
+                  <option value="non_emergency">Non-Emergency</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Patient Information */}
+            <div className="glass-card">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Patient Information</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="form-group">
+                  <label className="form-label">Patient Name *</label>
+                  <input
+                    type="text"
+                    name="patient.name"
+                    required
+                    className="form-input"
+                    value={formData.patient.name}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Age *</label>
+                  <input
+                    type="number"
+                    name="patient.age"
+                    required
+                    min="1"
+                    max="150"
+                    className="form-input"
+                    value={formData.patient.age}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Gender *</label>
+                  <select
+                    name="patient.gender"
+                    required
+                    className="form-input"
+                    value={formData.patient.gender}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                <div className="form-group md:col-span-1">
+                  <label className="form-label">Consultation Reason *</label>
+                  <textarea
+                    name="patient.consultation_reason"
+                    required
+                    rows={3}
+                    className="form-input"
+                    value={formData.patient.consultation_reason}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Patient Vitals */}
+            <div className="glass-card">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Patient Vitals (Optional)</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="form-group">
+                  <label className="form-label">Blood Pressure</label>
+                  <input
+                    type="text"
+                    name="patient.vitals.blood_pressure"
+                    className="form-input"
+                    placeholder="e.g., 120/80"
+                    value={formData.patient.vitals.blood_pressure}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Heart Rate</label>
+                  <input
+                    type="number"
+                    name="patient.vitals.heart_rate"
+                    className="form-input"
+                    placeholder="BPM"
+                    value={formData.patient.vitals.heart_rate}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Temperature</label>
+                  <input
+                    type="number"
+                    name="patient.vitals.temperature"
+                    className="form-input"
+                    step="0.1"
+                    placeholder="°C"
+                    value={formData.patient.vitals.temperature}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Oxygen Saturation</label>
+                  <input
+                    type="number"
+                    name="patient.vitals.oxygen_saturation"
+                    className="form-input"
+                    min="0"
+                    max="100"
+                    placeholder="%"
+                    value={formData.patient.vitals.oxygen_saturation}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-4 pt-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowEditAppointmentModal(false);
+                  setEditingAppointment(null);
+                }}
+                className="btn-secondary"
+              >
+                Cancel
+              </button>
+              <button type="submit" className="btn-primary">
+                Update Appointment
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString();
   };
