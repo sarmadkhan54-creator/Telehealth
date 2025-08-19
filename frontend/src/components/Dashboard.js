@@ -176,6 +176,19 @@ const Dashboard = ({ user, onLogout }) => {
       }
     }
   };
+  const stopRingingSound = () => {
+    if (ringingAudio) {
+      if (ringingAudio.stop) {
+        ringingAudio.stop(); // Web Audio API
+      } else if (ringingAudio.pause) {
+        ringingAudio.pause(); // HTML5 Audio
+        ringingAudio.currentTime = 0;
+      }
+      setRingingAudio(null);
+    }
+    setIsRinging(false);
+    console.log('📞 Stopped ringing sound');
+  };
 
   const handleAcceptVideoCall = () => {
     if (videoCallInvitation) {
