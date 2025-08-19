@@ -208,90 +208,75 @@ const VideoCall = ({ user }) => {
   };
 
   const setupPeerConnection = () => {
+    console.log('🔗 Setting up WebRTC peer connection...');
+    
     const config = {
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' }
+        { urls: 'stun:stun1.l.google.com:19302' }
       ]
     };
 
-    console.log('🔗 Setting up WebRTC peer connection...');
     const peerConnection = new RTCPeerConnection(config);
     peerConnectionRef.current = peerConnection;
 
-    // Add local stream to peer connection if available
-    if (localStreamRef.current) {
-      console.log('📹 Adding local stream tracks to peer connection');
-      localStreamRef.current.getTracks().forEach((track, index) => {
-        console.log(`   Adding ${track.kind} track ${index + 1}:`, track.label);
-        peerConnection.addTrack(track, localStreamRef.current);
-      });
-    }
-
     // Handle remote stream
     peerConnection.ontrack = (event) => {
-      console.log('🎥 Remote stream received!');
-      console.log('   Track kind:', event.track.kind);
-      console.log('   Track label:', event.track.label);
-      console.log('   Number of streams:', event.streams.length);
-      
+      console.log('🎥 Received remote track:', event.track.kind);
       const [remoteStream] = event.streams;
-      remoteStreamRef.current = remoteStream;
       
-      if (remoteVideoRef.current) {
+      if (remoteVideoRef.current && remoteStream) {
         remoteVideoRef.current.srcObject = remoteStream;
-        console.log('✅ Remote video stream set to video element');
+        remoteStreamRef.current = remoteStream;
+        console.log('✅ Remote stream connected to video element');
         
-        // Log the tracks in the remote stream
-        remoteStream.getTracks().forEach((track, index) => {
-          console.log(`   Remote ${track.kind} track ${index + 1}:`, track.label);
-        });
+        // Update UI to show remote user
+        setRemoteUser({ name: 'Connected User' });
       }
     };
 
     // Handle ICE candidates
     peerConnection.onicecandidate = (event) => {
-      if (event.candidate && signalingSocket) {
+      if (event.candidate && signalingSocket && signalingSocket.readyState === WebSocket.OPEN) {
         console.log('🧊 Sending ICE candidate');
         signalingSocket.send(JSON.stringify({
           type: 'ice-candidate',
-          candidate: event.candidate,
-          sessionToken: sessionToken
+          candidate: event.candidate
         }));
-      } else if (!event.candidate) {
-        console.log('🧊 ICE gathering complete');
       }
     };
 
     // Handle connection state changes
     peerConnection.onconnectionstatechange = () => {
-      console.log('🔄 Connection state changed:', peerConnection.connectionState);
-      if (peerConnection.connectionState === 'connected') {
-        console.log('✅ WebRTC peer connection established!');
-        setCallStatus('connected');
-      } else if (peerConnection.connectionState === 'disconnected' || 
-                 peerConnection.connectionState === 'failed') {
-        console.log('❌ WebRTC peer connection lost');
-        setCallStatus('connecting');
+      console.log('🔄 WebRTC connection state:', peerConnection.connectionState);
+      
+      switch (peerConnection.connectionState) {
+        case 'connected':
+          console.log('✅ WebRTC peer connection established!');
+          setCallStatus('connected');
+          break;
+        case 'disconnected':
+        case 'failed':
+          console.log('❌ WebRTC connection lost');
+          setCallStatus('connecting');
+          break;
+        case 'closed':
+          console.log('🔒 WebRTC connection closed');
+          break;
       }
     };
 
     // Handle ICE connection state changes
     peerConnection.oniceconnectionstatechange = () => {
       console.log('🧊 ICE connection state:', peerConnection.iceConnectionState);
+      
       if (peerConnection.iceConnectionState === 'connected' || 
           peerConnection.iceConnectionState === 'completed') {
-        console.log('✅ ICE connection established - media should flow now!');
+        console.log('✅ ICE connection successful - media can flow!');
       }
     };
 
-    // Handle ICE gathering state changes
-    peerConnection.onicegatheringstatechange = () => {
-      console.log('🧊 ICE gathering state:', peerConnection.iceGatheringState);
-    };
-
-    console.log('✅ WebRTC peer connection setup complete');
+    console.log('✅ WebRTC peer connection configured');
   };
 
   const toggleVideo = () => {
