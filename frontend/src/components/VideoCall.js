@@ -40,78 +40,48 @@ const VideoCall = ({ user }) => {
 
   const initializeVideoCall = async () => {
     try {
-      // Get user media with both audio and video
-      console.log('🎤📹 Requesting user media (audio + video)...');
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          width: { min: 640, ideal: 1280, max: 1920 },
-          height: { min: 480, ideal: 720, max: 1080 }
-        },
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        }
-      });
-
-      console.log('✅ User media obtained');
-      console.log('   Video tracks:', stream.getVideoTracks().length);
-      console.log('   Audio tracks:', stream.getAudioTracks().length);
+      console.log('🎤📹 Starting video call initialization...');
       
-      // Log track details
-      stream.getTracks().forEach((track, index) => {
-        console.log(`   ${track.kind} track ${index + 1}:`, track.label, `(enabled: ${track.enabled})`);
-      });
-
-      localStreamRef.current = stream;
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = stream;
-        console.log('✅ Local video stream set to video element');
-      }
-
-      // Initialize WebRTC peer connection
+      // Initialize peer connection first
       setupPeerConnection();
       
-      // Setup signaling WebSocket for real peer connection
+      // Setup signaling WebSocket
       setupSignaling();
+      
+      // Try to get user media (but don't fail if not available)
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true
+        });
+
+        console.log('✅ User media obtained');
+        console.log('   Video tracks:', stream.getVideoTracks().length);
+        console.log('   Audio tracks:', stream.getAudioTracks().length);
+
+        localStreamRef.current = stream;
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+        }
+
+        // Add tracks to existing peer connection
+        if (peerConnectionRef.current) {
+          stream.getTracks().forEach(track => {
+            console.log(`Adding ${track.kind} track to peer connection`);
+            peerConnectionRef.current.addTrack(track, stream);
+          });
+        }
+
+      } catch (mediaError) {
+        console.warn('⚠️ Media not available:', mediaError.message);
+        console.log('Continuing without local media stream');
+      }
       
       setCallStatus('connected');
     } catch (error) {
       console.error('❌ Error initializing video call:', error);
-      
-      // Don't redirect on camera/microphone errors - show video call interface anyway
-      // This allows testing in environments without camera access
-      if (error.name === 'NotFoundError' || error.name === 'NotAllowedError' || error.name === 'NotReadableError') {
-        console.warn('⚠️ Camera/microphone not available - continuing with video call interface');
-        console.warn('   Error details:', error.message);
-        
-        // Create a dummy audio stream for testing
-        try {
-          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-          const oscillator = audioContext.createOscillator();
-          const gainNode = audioContext.createGain();
-          const destination = audioContext.createMediaStreamDestination();
-          
-          oscillator.connect(gainNode);
-          gainNode.connect(destination);
-          gainNode.gain.setValueAtTime(0.01, audioContext.currentTime); // Very low volume
-          oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A note
-          oscillator.start();
-          
-          console.log('✅ Created dummy audio stream for testing');
-          localStreamRef.current = destination.stream;
-          
-        } catch (audioError) {
-          console.warn('⚠️ Could not create dummy audio stream:', audioError);
-        }
-        
-        setCallStatus('connected'); // Still show as connected for demo purposes
-        setupPeerConnection(); // Set up peer connection without local stream
-        setupSignaling(); // Still setup signaling for remote connection
-      } else {
-        alert('Error initializing video call. Please try again.');
-        navigate('/');
-      }
+      alert('Error initializing video call. Please try again.');
+      navigate('/');
     }
   };
 
