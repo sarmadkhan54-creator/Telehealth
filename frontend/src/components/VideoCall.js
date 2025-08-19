@@ -170,18 +170,17 @@ const VideoCall = ({ user }) => {
   };
 
   const setupPeerConnection = () => {
-    // For demo purposes, we'll simulate a peer connection
-    // In a real implementation, you would set up WebRTC signaling
     const config = {
       iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' }
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
       ]
     };
 
     const peerConnection = new RTCPeerConnection(config);
     peerConnectionRef.current = peerConnection;
 
-    // Add local stream to peer connection
+    // Add local stream to peer connection if available
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach(track => {
         peerConnection.addTrack(track, localStreamRef.current);
@@ -190,19 +189,35 @@ const VideoCall = ({ user }) => {
 
     // Handle remote stream
     peerConnection.ontrack = (event) => {
+      console.log('Remote stream received');
       const [remoteStream] = event.streams;
       remoteStreamRef.current = remoteStream;
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = remoteStream;
       }
-      setRemoteUser({ name: 'Connected User' });
     };
 
-    // For demo purposes, simulate a remote connection after 2 seconds
-    setTimeout(() => {
-      // In a real app, this would be handled by signaling server
-      simulateRemoteConnection();
-    }, 2000);
+    // Handle ICE candidates
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate && signalingSocket) {
+        signalingSocket.send(JSON.stringify({
+          type: 'ice-candidate',
+          candidate: event.candidate,
+          sessionToken: sessionToken
+        }));
+      }
+    };
+
+    // Handle connection state changes
+    peerConnection.onconnectionstatechange = () => {
+      console.log('Connection state:', peerConnection.connectionState);
+      if (peerConnection.connectionState === 'connected') {
+        setCallStatus('connected');
+      } else if (peerConnection.connectionState === 'disconnected' || 
+                 peerConnection.connectionState === 'failed') {
+        setCallStatus('connecting');
+      }
+    };
   };
 
   const simulateRemoteConnection = async () => {
