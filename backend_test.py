@@ -1467,16 +1467,20 @@ class MedConnectAPITester:
         return self.test_video_call_start_and_join()
 
 def main():
-    print("🏥 MedConnect Telehealth API Testing - FOCUSED ON VIDEO CALLS & APPOINTMENT EDITING")
+    print("🏥 MedConnect Telehealth API Testing - FOCUSED ON SAME SESSION VIDEO CALLS")
     print("=" * 80)
     
     tester = MedConnectAPITester()
     
-    # Test sequence - focused on video call and appointment edit functionality
+    # Test sequence - focused on SAME SESSION video call functionality
     tests = [
         ("Health Check", tester.test_health_check),
         ("Login All Roles", tester.test_login_all_roles),
         ("Create Appointment", tester.test_create_appointment),
+        ("🎯 Video Call Session Same Token", tester.test_video_call_session_same_token),
+        ("Video Call WebSocket Signaling", tester.test_video_call_websocket_signaling),
+        ("End-to-End Video Call Workflow", tester.test_video_call_end_to_end_workflow),
+        ("Session Cleanup & Error Handling", tester.test_video_call_session_cleanup_and_errors),
         ("Video Call Start and Join", tester.test_video_call_start_and_join),
         ("Appointment Edit Permissions", tester.test_appointment_edit_permissions),
     ]
