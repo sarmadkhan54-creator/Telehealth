@@ -758,8 +758,12 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
 # WebSocket endpoint for video call signaling
 @app.websocket("/ws/video-call/{session_token}")
 async def video_call_websocket(websocket: WebSocket, session_token: str):
+    user_id = None
     try:
-        # First, wait for the join message to get user info
+        # Accept the WebSocket connection first
+        await websocket.accept()
+        
+        # Wait for the join message to get user info
         data = await websocket.receive_text()
         message = json.loads(data)
         
@@ -767,8 +771,30 @@ async def video_call_websocket(websocket: WebSocket, session_token: str):
             user_id = message.get('userId')
             user_name = message.get('userName', 'Unknown User')
             
-            # Join the video call session
-            await video_call_manager.join_session(session_token, user_id, websocket, user_name)
+            # Join the video call session (don't accept again, already accepted above)
+            if session_token not in video_call_manager.active_sessions:
+                video_call_manager.active_sessions[session_token] = {}
+            
+            video_call_manager.active_sessions[session_token][user_id] = websocket
+            
+            # Notify other users in the session
+            for other_user_id, other_ws in video_call_manager.active_sessions[session_token].items():
+                if other_user_id != user_id:
+                    try:
+                        await other_ws.send_text(json.dumps({
+                            "type": "user-joined",
+                            "userId": user_id,
+                            "userName": user_name
+                        }))
+                    except:
+                        pass
+            
+            # Send confirmation to the joining user
+            await websocket.send_text(json.dumps({
+                "type": "joined",
+                "sessionToken": session_token,
+                "userId": user_id
+            }))
             
             # Handle subsequent messages
             while True:
@@ -792,7 +818,7 @@ async def video_call_websocket(websocket: WebSocket, session_token: str):
         print(f"Error in video call WebSocket setup: {e}")
     finally:
         # Clean up when user disconnects
-        if 'user_id' in locals():
+        if user_id:
             video_call_manager.leave_session(session_token, user_id)
 
 # Basic health check
