@@ -42,42 +42,45 @@ const VideoCall = ({ user }) => {
     try {
       console.log('🎤📹 Starting video call initialization...');
       
-      // Initialize peer connection first
-      setupPeerConnection();
-      
-      // Setup signaling WebSocket
-      setupSignaling();
-      
-      // Try to get user media (but don't fail if not available)
+      // STEP 1: Get user media FIRST
+      let mediaStream = null;
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
         });
 
-        console.log('✅ User media obtained');
-        console.log('   Video tracks:', stream.getVideoTracks().length);
-        console.log('   Audio tracks:', stream.getAudioTracks().length);
+        console.log('✅ User media obtained successfully');
+        console.log('   Video tracks:', mediaStream.getVideoTracks().length);
+        console.log('   Audio tracks:', mediaStream.getAudioTracks().length);
 
-        localStreamRef.current = stream;
+        localStreamRef.current = mediaStream;
         if (localVideoRef.current) {
-          localVideoRef.current.srcObject = stream;
-        }
-
-        // Add tracks to existing peer connection
-        if (peerConnectionRef.current) {
-          stream.getTracks().forEach(track => {
-            console.log(`Adding ${track.kind} track to peer connection`);
-            peerConnectionRef.current.addTrack(track, stream);
-          });
+          localVideoRef.current.srcObject = mediaStream;
+          localVideoRef.current.muted = true; // Prevent echo
         }
 
       } catch (mediaError) {
-        console.warn('⚠️ Media not available:', mediaError.message);
-        console.log('Continuing without local media stream');
+        console.warn('⚠️ Could not get user media:', mediaError.message);
+        // Continue without media - still allow joining calls
       }
+
+      // STEP 2: Setup peer connection WITH media stream
+      await setupPeerConnection(mediaStream);
+      
+      // STEP 3: Setup signaling AFTER peer connection is ready
+      await setupSignaling();
       
       setCallStatus('connected');
+      console.log('✅ Video call initialization complete');
+      
     } catch (error) {
       console.error('❌ Error initializing video call:', error);
       alert('Error initializing video call. Please try again.');
