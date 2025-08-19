@@ -118,16 +118,19 @@ backend:
         comment: "Backend has video call start endpoint at /video-call/start/{appointment_id}"
   
   - task: "Video Call Join Endpoint"
-    implemented: false
-    working: false
+    implemented: true
+    working: true
     file: "/app/backend/server.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: true
     status_history:
       - working: false
         agent: "main"
         comment: "Missing join video call endpoint - only start endpoint exists"
+      - working: true
+        agent: "main"
+        comment: "Added GET /video-call/join/{session_token} endpoint with proper authorization checks"
   
   - task: "Appointment Edit Endpoint"
     implemented: true
