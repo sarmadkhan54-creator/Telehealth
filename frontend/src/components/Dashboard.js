@@ -13,6 +13,9 @@ const Dashboard = ({ user, onLogout }) => {
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [appointmentNotes, setAppointmentNotes] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [showVideoCallInvitation, setShowVideoCallInvitation] = useState(false);
+  const [videoCallInvitation, setVideoCallInvitation] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
