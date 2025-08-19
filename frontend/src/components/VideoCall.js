@@ -111,14 +111,18 @@ const VideoCall = ({ user }) => {
           if (localStreamRef.current && peerConnectionRef.current) {
             try {
               console.log('📞 Creating offer for remote user...');
-              const offer = await peerConnectionRef.current.createOffer();
+              // Create offer with audio and video
+              const offer = await peerConnectionRef.current.createOffer({
+                offerToReceiveAudio: true,
+                offerToReceiveVideo: true
+              });
               await peerConnectionRef.current.setLocalDescription(offer);
+              console.log('📤 Sending offer with audio/video to remote user');
               socket.send(JSON.stringify({
                 type: 'offer',
                 offer: offer,
                 target: message.userId
               }));
-              console.log('📤 Offer sent to remote user');
             } catch (error) {
               console.error('❌ Error creating offer:', error);
             }
