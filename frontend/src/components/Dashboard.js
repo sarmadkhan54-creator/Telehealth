@@ -683,6 +683,53 @@ const Dashboard = ({ user, onLogout }) => {
           </div>
         </div>
       )}
+
+      {/* Video Call Invitation Popup */}
+      {showVideoCallInvitation && videoCallInvitation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="glass-card max-w-md w-full mx-4 animate-bounce">
+            <div className="text-center p-6">
+              <div className="mb-4">
+                <Phone className="w-16 h-16 text-green-500 mx-auto animate-pulse" />
+              </div>
+              
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                Incoming Video Call
+              </h3>
+              
+              <p className="text-gray-600 mb-2">
+                <strong>{videoCallInvitation.callerName}</strong> is inviting you to a video call
+              </p>
+              
+              <p className="text-sm text-gray-500 mb-6">
+                Appointment video consultation
+              </p>
+              
+              <div className="flex space-x-4">
+                <button
+                  onClick={handleAcceptVideoCall}
+                  className="flex-1 bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors"
+                >
+                  <Phone className="w-5 h-5" />
+                  <span>Accept</span>
+                </button>
+                
+                <button
+                  onClick={handleDeclineVideoCall}
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                  <span>Decline</span>
+                </button>
+              </div>
+              
+              <p className="text-xs text-gray-400 mt-4">
+                This popup will auto-dismiss in 30 seconds
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
