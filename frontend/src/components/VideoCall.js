@@ -196,11 +196,13 @@ const VideoCall = ({ user }) => {
       ]
     };
 
+    console.log('🔗 Setting up WebRTC peer connection...');
     const peerConnection = new RTCPeerConnection(config);
     peerConnectionRef.current = peerConnection;
 
     // Add local stream to peer connection if available
     if (localStreamRef.current) {
+      console.log('📹 Adding local stream to peer connection');
       localStreamRef.current.getTracks().forEach(track => {
         peerConnection.addTrack(track, localStreamRef.current);
       });
@@ -208,17 +210,19 @@ const VideoCall = ({ user }) => {
 
     // Handle remote stream
     peerConnection.ontrack = (event) => {
-      console.log('Remote stream received');
+      console.log('🎥 Remote stream received!');
       const [remoteStream] = event.streams;
       remoteStreamRef.current = remoteStream;
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = remoteStream;
+        console.log('✅ Remote video stream set to video element');
       }
     };
 
     // Handle ICE candidates
     peerConnection.onicecandidate = (event) => {
       if (event.candidate && signalingSocket) {
+        console.log('🧊 Sending ICE candidate');
         signalingSocket.send(JSON.stringify({
           type: 'ice-candidate',
           candidate: event.candidate,
@@ -229,14 +233,23 @@ const VideoCall = ({ user }) => {
 
     // Handle connection state changes
     peerConnection.onconnectionstatechange = () => {
-      console.log('Connection state:', peerConnection.connectionState);
+      console.log('🔄 Connection state changed:', peerConnection.connectionState);
       if (peerConnection.connectionState === 'connected') {
+        console.log('✅ WebRTC peer connection established!');
         setCallStatus('connected');
       } else if (peerConnection.connectionState === 'disconnected' || 
                  peerConnection.connectionState === 'failed') {
+        console.log('❌ WebRTC peer connection lost');
         setCallStatus('connecting');
       }
     };
+
+    // Handle ICE connection state changes
+    peerConnection.oniceconnectionstatechange = () => {
+      console.log('🧊 ICE connection state:', peerConnection.iceConnectionState);
+    };
+
+    console.log('✅ WebRTC peer connection setup complete');
   };
 
   const toggleVideo = () => {
