@@ -43,11 +43,13 @@ const VideoCall = ({ user }) => {
   };
 
   useEffect(() => {
-    initializeVideoCall();
+    initializeCall();
+    
+    // Cleanup on unmount
     return () => {
-      cleanupCall();
+      cleanup();
     };
-  }, [sessionToken]);
+  }, []);
 
   const initializeVideoCall = async () => {
     try {
