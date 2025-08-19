@@ -191,6 +191,7 @@ const Dashboard = ({ user, onLogout }) => {
   };
 
   const handleAcceptVideoCall = () => {
+    stopRingingSound(); // Stop ringing when call is accepted
     if (videoCallInvitation) {
       navigate(`/video-call/${videoCallInvitation.sessionToken}`);
       setShowVideoCallInvitation(false);
@@ -199,6 +200,7 @@ const Dashboard = ({ user, onLogout }) => {
   };
 
   const handleDeclineVideoCall = () => {
+    stopRingingSound(); // Stop ringing when call is declined
     setShowVideoCallInvitation(false);
     setVideoCallInvitation(null);
   };
