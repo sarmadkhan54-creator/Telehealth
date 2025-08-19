@@ -29,6 +29,8 @@ const AdminDashboard = ({ user, onLogout }) => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddUserForm, setShowAddUserForm] = useState(false);
+  const [showEditAppointmentModal, setShowEditAppointmentModal] = useState(false);
+  const [editingAppointment, setEditingAppointment] = useState(null);
 
   // Admin access control - only allow admin users
   useEffect(() => {
