@@ -78,29 +78,39 @@ const VideoCall = ({ user }) => {
     const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
     const wsUrl = `${BACKEND_URL.replace('https:', 'wss:').replace('http:', 'ws:')}/ws/video-call/${sessionToken}`;
     
+    console.log('🔗 Connecting to video call WebSocket:', wsUrl);
     const socket = new WebSocket(wsUrl);
     setSignalingSocket(socket);
     
     socket.onopen = () => {
-      console.log('Signaling WebSocket connected');
+      console.log('✅ Signaling WebSocket connected');
       // Join the video call session
-      socket.send(JSON.stringify({
+      const joinMessage = {
         type: 'join',
         sessionToken: sessionToken,
         userId: user.id,
         userName: user.full_name
-      }));
+      };
+      console.log('📤 Sending join message:', joinMessage);
+      socket.send(JSON.stringify(joinMessage));
     };
     
     socket.onmessage = async (event) => {
       const message = JSON.parse(event.data);
+      console.log('📥 Received WebSocket message:', message);
       
       switch (message.type) {
+        case 'joined':
+          console.log('✅ Successfully joined video call session');
+          break;
+          
         case 'user-joined':
+          console.log('👤 Remote user joined:', message.userName);
           setRemoteUser({ name: message.userName });
           // If we have a local stream, create an offer
           if (localStreamRef.current && peerConnectionRef.current) {
             try {
+              console.log('📞 Creating offer for remote user...');
               const offer = await peerConnectionRef.current.createOffer();
               await peerConnectionRef.current.setLocalDescription(offer);
               socket.send(JSON.stringify({
@@ -108,16 +118,19 @@ const VideoCall = ({ user }) => {
                 offer: offer,
                 target: message.userId
               }));
+              console.log('📤 Offer sent to remote user');
             } catch (error) {
-              console.error('Error creating offer:', error);
+              console.error('❌ Error creating offer:', error);
             }
           }
           break;
           
         case 'offer':
+          console.log('📞 Received offer from remote user');
           if (peerConnectionRef.current) {
             try {
               await peerConnectionRef.current.setRemoteDescription(message.offer);
+              console.log('✅ Remote description set');
               const answer = await peerConnectionRef.current.createAnswer();
               await peerConnectionRef.current.setLocalDescription(answer);
               socket.send(JSON.stringify({
@@ -125,33 +138,39 @@ const VideoCall = ({ user }) => {
                 answer: answer,
                 target: message.from
               }));
+              console.log('📤 Answer sent to remote user');
             } catch (error) {
-              console.error('Error handling offer:', error);
+              console.error('❌ Error handling offer:', error);
             }
           }
           break;
           
         case 'answer':
+          console.log('📞 Received answer from remote user');
           if (peerConnectionRef.current) {
             try {
               await peerConnectionRef.current.setRemoteDescription(message.answer);
+              console.log('✅ Answer processed successfully');
             } catch (error) {
-              console.error('Error handling answer:', error);
+              console.error('❌ Error handling answer:', error);
             }
           }
           break;
           
         case 'ice-candidate':
+          console.log('🧊 Received ICE candidate');
           if (peerConnectionRef.current && message.candidate) {
             try {
               await peerConnectionRef.current.addIceCandidate(message.candidate);
+              console.log('✅ ICE candidate added successfully');
             } catch (error) {
-              console.error('Error adding ICE candidate:', error);
+              console.error('❌ Error adding ICE candidate:', error);
             }
           }
           break;
           
         case 'user-left':
+          console.log('👋 Remote user left the call');
           setRemoteUser(null);
           if (remoteVideoRef.current) {
             remoteVideoRef.current.srcObject = null;
@@ -161,11 +180,11 @@ const VideoCall = ({ user }) => {
     };
     
     socket.onclose = () => {
-      console.log('Signaling WebSocket disconnected');
+      console.log('🔌 Signaling WebSocket disconnected');
     };
     
     socket.onerror = (error) => {
-      console.error('Signaling WebSocket error:', error);
+      console.error('❌ Signaling WebSocket error:', error);
     };
   };
 
