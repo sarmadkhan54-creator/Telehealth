@@ -267,10 +267,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Video Call Join Endpoint"
-    - "Join Call Button Provider Dashboard"
-    - "Join Call Button Doctor Dashboard"
-    - "Edit Appointment Admin Dashboard"
+    - "Auto-Refresh Provider Dashboard"
+    - "Auto-Refresh Doctor Dashboard"
+    - "Video Call WebRTC Peer Connection"
+    - "Real-Time WebSocket Notifications"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
