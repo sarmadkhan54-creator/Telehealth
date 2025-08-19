@@ -758,13 +758,25 @@ async def get_video_call_session(appointment_id: str, current_user: User = Depen
             target_user_id = appointment.get("doctor_id")
         
         if target_user_id:
+            # Get appointment details for notification
+            appointment_doc = await db.appointments.find_one({"id": appointment_id})
+            patient_info = appointment_doc.get("patient", {}) if appointment_doc else {}
+            
             notification = {
                 "type": "video_call_invitation",
                 "session_token": session_token,
                 "appointment_id": appointment_id,
                 "caller": current_user.full_name,
+                "caller_role": current_user.role,
                 "appointment_type": appointment.get("appointment_type", "non_emergency"),
-                "patient_name": appointment.get("patient", {}).get("name", "Unknown Patient"),
+                "patient": {
+                    "name": patient_info.get("name", "Unknown Patient"),
+                    "age": patient_info.get("age", "Unknown"),
+                    "gender": patient_info.get("gender", "Unknown"),
+                    "consultation_reason": patient_info.get("consultation_reason", "General consultation"),
+                    "vitals": patient_info.get("vitals", {})
+                },
+                "appointment_time": appointment.get("appointment_time", ""),
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
             await manager.send_personal_message(notification, target_user_id)
