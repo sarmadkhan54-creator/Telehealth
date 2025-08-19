@@ -75,7 +75,7 @@ const VideoCall = ({ user }) => {
   };
 
   const setupSignaling = () => {
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
     const wsUrl = `${BACKEND_URL.replace('https:', 'wss:').replace('http:', 'ws:')}/ws/video-call/${sessionToken}`;
     
     const socket = new WebSocket(wsUrl);
