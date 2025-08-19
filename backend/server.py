@@ -57,7 +57,73 @@ class ConnectionManager:
             except:
                 self.disconnect(user_id)
 
+# WebSocket connection manager for video calls
+class VideoCallManager:
+    def __init__(self):
+        self.active_sessions: Dict[str, Dict[str, WebSocket]] = {}  # session_token -> {user_id: websocket}
+    
+    async def join_session(self, session_token: str, user_id: str, websocket: WebSocket, user_name: str):
+        await websocket.accept()
+        
+        if session_token not in self.active_sessions:
+            self.active_sessions[session_token] = {}
+        
+        self.active_sessions[session_token][user_id] = websocket
+        
+        # Notify other users in the session
+        for other_user_id, other_ws in self.active_sessions[session_token].items():
+            if other_user_id != user_id:
+                try:
+                    await other_ws.send_text(json.dumps({
+                        "type": "user-joined",
+                        "userId": user_id,
+                        "userName": user_name
+                    }))
+                except:
+                    pass
+    
+    def leave_session(self, session_token: str, user_id: str):
+        if session_token in self.active_sessions and user_id in self.active_sessions[session_token]:
+            # Notify other users
+            for other_user_id, other_ws in self.active_sessions[session_token].items():
+                if other_user_id != user_id:
+                    try:
+                        asyncio.create_task(other_ws.send_text(json.dumps({
+                            "type": "user-left",
+                            "userId": user_id
+                        })))
+                    except:
+                        pass
+            
+            del self.active_sessions[session_token][user_id]
+            
+            # Remove session if empty
+            if not self.active_sessions[session_token]:
+                del self.active_sessions[session_token]
+    
+    async def relay_message(self, session_token: str, from_user_id: str, message: dict):
+        if session_token in self.active_sessions:
+            target_user_id = message.get('target')
+            
+            # If target specified, send only to target
+            if target_user_id and target_user_id in self.active_sessions[session_token]:
+                try:
+                    message['from'] = from_user_id
+                    await self.active_sessions[session_token][target_user_id].send_text(json.dumps(message))
+                except:
+                    pass
+            else:
+                # Broadcast to all other users in session
+                for user_id, ws in self.active_sessions[session_token].items():
+                    if user_id != from_user_id:
+                        try:
+                            message['from'] = from_user_id
+                            await ws.send_text(json.dumps(message))
+                        except:
+                            pass
+
 manager = ConnectionManager()
+video_call_manager = VideoCallManager()
 
 # Pydantic Models and Constants
 class UserRole:
