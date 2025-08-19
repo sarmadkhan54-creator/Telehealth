@@ -28,7 +28,7 @@ const Dashboard = ({ user, onLogout }) => {
   }, []);
 
   const setupWebSocket = () => {
-    const wsUrl = `${BACKEND_URL.replace('https:', 'wss:').replace('http:', 'ws:')}/ws/${user.id}`;
+    const wsUrl = `${BACKEND_URL.replace('https:', 'wss:').replace('http:', 'ws:')}/api/ws/${user.id}`;
     const ws = new WebSocket(wsUrl);
     
     ws.onmessage = (event) => {
