@@ -5,7 +5,7 @@ from datetime import datetime
 import time
 
 class NotesSystemTester:
-    def __init__(self, base_url="https://19543fde-1955-4452-861c-5fe800d2c222.preview.emergentagent.com"):
+    def __init__(self, base_url="https://greenstar-health.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.tokens = {}
