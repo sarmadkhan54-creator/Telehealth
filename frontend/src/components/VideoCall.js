@@ -413,7 +413,16 @@ const VideoCall = ({ user }) => {
     }
   };
 
-  const endCall = () => {
+  const endCall = async () => {
+    try {
+      // End the video call session on the backend
+      const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+      await axios.post(`${BACKEND_URL}/api/video-call/end/${sessionToken}`);
+      console.log('✅ Video call session ended on backend');
+    } catch (error) {
+      console.error('❌ Error ending video call session:', error);
+    }
+    
     cleanupCall();
     navigate('/');
   };
