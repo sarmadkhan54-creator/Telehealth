@@ -297,7 +297,6 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Video Call Session Same Token"
     - "Video Call WebSocket Signaling"
   stuck_tasks: []
   test_all: false
