@@ -99,6 +99,48 @@ const Dashboard = ({ user, onLogout }) => {
     return () => ws.close();
   };
 
+  const playNotificationSound = () => {
+    try {
+      // Create audio context for notification sound
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Create a pleasant notification sound (two-tone)
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.2);
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.4);
+      
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.1);
+      gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.6);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.6);
+      
+      console.log('🔔 Played video call invitation sound');
+    } catch (error) {
+      console.error('Error playing notification sound:', error);
+    }
+  };
+
+  const handleAcceptVideoCall = () => {
+    if (videoCallInvitation) {
+      navigate(`/video-call/${videoCallInvitation.sessionToken}`);
+      setShowVideoCallInvitation(false);
+      setVideoCallInvitation(null);
+    }
+  };
+
+  const handleDeclineVideoCall = () => {
+    setShowVideoCallInvitation(false);
+    setVideoCallInvitation(null);
+  };
+
   const fetchAppointments = async () => {
     try {
       const response = await axios.get(`${API}/appointments`);
