@@ -88,74 +88,93 @@ const VideoCall = ({ user }) => {
     }
   };
 
-  const setupSignaling = () => {
-    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-    const wsUrl = `${BACKEND_URL.replace('https:', 'wss:').replace('http:', 'ws:')}/api/ws/video-call/${sessionToken}`;
-    
-    console.log('🔗 Connecting to video call WebSocket:', wsUrl);
-    const socket = new WebSocket(wsUrl);
-    setSignalingSocket(socket);
-    
-    socket.onopen = () => {
-      console.log('✅ Signaling WebSocket connected');
-      // Join the video call session
-      const joinMessage = {
-        type: 'join',
-        sessionToken: sessionToken,
-        userId: user.id,
-        userName: user.full_name
-      };
-      console.log('📤 Sending join message:', joinMessage);
-      socket.send(JSON.stringify(joinMessage));
-    };
-    
-    socket.onmessage = async (event) => {
-      const message = JSON.parse(event.data);
-      console.log('📥 Received WebSocket message:', message);
+  const setupSignaling = async () => {
+    return new Promise((resolve, reject) => {
+      const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+      const wsUrl = `${BACKEND_URL.replace('https:', 'wss:').replace('http:', 'ws:')}/api/ws/video-call/${sessionToken}`;
       
-      switch (message.type) {
-        case 'joined':
-          console.log('✅ Successfully joined video call session');
-          break;
-          
-        case 'user-joined':
-          console.log('👤 Remote user joined:', message.userName);
-          setRemoteUser({ name: message.userName });
-          // If we have a local stream, create an offer
-          if (localStreamRef.current && peerConnectionRef.current) {
-            try {
-              console.log('📞 Creating offer for remote user...');
-              // Create offer with audio and video
-              const offer = await peerConnectionRef.current.createOffer({
-                offerToReceiveAudio: true,
-                offerToReceiveVideo: true
-              });
-              await peerConnectionRef.current.setLocalDescription(offer);
-              console.log('📤 Sending offer with audio/video to remote user');
-              socket.send(JSON.stringify({
-                type: 'offer',
-                offer: offer,
-                target: message.userId
-              }));
-            } catch (error) {
-              console.error('❌ Error creating offer:', error);
+      console.log('🔗 Connecting to video call WebSocket:', wsUrl);
+      const socket = new WebSocket(wsUrl);
+      setSignalingSocket(socket);
+      
+      socket.onopen = () => {
+        console.log('✅ Signaling WebSocket connected');
+        
+        // Mark signaling as ready and send queued ICE candidates
+        if (peerConnectionRef.current && peerConnectionRef.current.setSignalingReady) {
+          peerConnectionRef.current.setSignalingReady();
+        }
+        
+        // Join the video call session
+        const joinMessage = {
+          type: 'join',
+          sessionToken: sessionToken,
+          userId: user.id,
+          userName: user.full_name
+        };
+        console.log('📤 Sending join message:', joinMessage);
+        socket.send(JSON.stringify(joinMessage));
+        
+        resolve(socket);
+      };
+      
+      socket.onmessage = async (event) => {
+        const message = JSON.parse(event.data);
+        console.log('📥 Received signaling message:', message.type);
+        
+        if (!peerConnectionRef.current) {
+          console.error('❌ No peer connection available for signaling');
+          return;
+        }
+        
+        switch (message.type) {
+          case 'joined':
+            console.log('✅ Successfully joined video call session');
+            break;
+            
+          case 'user-joined':
+            console.log('👤 Remote user joined:', message.userName);
+            setRemoteUser({ name: message.userName });
+            
+            // Create offer with media tracks
+            if (localStreamRef.current && localStreamRef.current.getTracks().length > 0) {
+              try {
+                console.log('📞 Creating offer with media tracks...');
+                const offer = await peerConnectionRef.current.createOffer({
+                  offerToReceiveAudio: true,
+                  offerToReceiveVideo: true
+                });
+                
+                await peerConnectionRef.current.setLocalDescription(offer);
+                console.log('📤 Sending offer to remote user');
+                
+                socket.send(JSON.stringify({
+                  type: 'offer',
+                  offer: offer,
+                  target: message.userId
+                }));
+              } catch (error) {
+                console.error('❌ Error creating offer:', error);
+              }
+            } else {
+              console.warn('⚠️ No local media tracks available for offer');
             }
-          }
-          break;
-          
-        case 'offer':
-          console.log('📞 Received offer from remote user');
-          if (peerConnectionRef.current) {
+            break;
+            
+          case 'offer':
+            console.log('📞 Received offer from remote user');
             try {
               await peerConnectionRef.current.setRemoteDescription(message.offer);
-              console.log('✅ Remote description set');
-              // Create answer with audio and video constraints
+              console.log('✅ Remote description set from offer');
+              
               const answer = await peerConnectionRef.current.createAnswer({
                 offerToReceiveAudio: true,
                 offerToReceiveVideo: true
               });
+              
               await peerConnectionRef.current.setLocalDescription(answer);
-              console.log('📤 Sending answer with audio/video to remote user');
+              console.log('📤 Sending answer to remote user');
+              
               socket.send(JSON.stringify({
                 type: 'answer',
                 answer: answer,
@@ -164,50 +183,56 @@ const VideoCall = ({ user }) => {
             } catch (error) {
               console.error('❌ Error handling offer:', error);
             }
-          }
-          break;
-          
-        case 'answer':
-          console.log('📞 Received answer from remote user');
-          if (peerConnectionRef.current) {
+            break;
+            
+          case 'answer':
+            console.log('📞 Received answer from remote user');
             try {
               await peerConnectionRef.current.setRemoteDescription(message.answer);
-              console.log('✅ Answer processed successfully');
+              console.log('✅ Remote description set from answer');
             } catch (error) {
               console.error('❌ Error handling answer:', error);
             }
-          }
-          break;
-          
-        case 'ice-candidate':
-          console.log('🧊 Received ICE candidate');
-          if (peerConnectionRef.current && message.candidate) {
-            try {
-              await peerConnectionRef.current.addIceCandidate(message.candidate);
-              console.log('✅ ICE candidate added successfully');
-            } catch (error) {
-              console.error('❌ Error adding ICE candidate:', error);
+            break;
+            
+          case 'ice-candidate':
+            console.log('🧊 Received ICE candidate');
+            if (message.candidate) {
+              try {
+                await peerConnectionRef.current.addIceCandidate(message.candidate);
+                console.log('✅ ICE candidate added successfully');
+              } catch (error) {
+                console.error('❌ Error adding ICE candidate:', error);
+              }
             }
-          }
-          break;
-          
-        case 'user-left':
-          console.log('👋 Remote user left the call');
-          setRemoteUser(null);
-          if (remoteVideoRef.current) {
-            remoteVideoRef.current.srcObject = null;
-          }
-          break;
-      }
-    };
-    
-    socket.onclose = () => {
-      console.log('🔌 Signaling WebSocket disconnected');
-    };
-    
-    socket.onerror = (error) => {
-      console.error('❌ Signaling WebSocket error:', error);
-    };
+            break;
+            
+          case 'user-left':
+            console.log('👋 Remote user left the call');
+            setRemoteUser(null);
+            if (remoteVideoRef.current) {
+              remoteVideoRef.current.srcObject = null;
+            }
+            break;
+        }
+      };
+      
+      socket.onclose = () => {
+        console.log('🔌 Signaling WebSocket disconnected');
+      };
+      
+      socket.onerror = (error) => {
+        console.error('❌ Signaling WebSocket error:', error);
+        reject(error);
+      };
+      
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        if (socket.readyState !== WebSocket.OPEN) {
+          reject(new Error('WebSocket connection timeout'));
+        }
+      }, 10000);
+    });
   };
 
   const setupPeerConnection = async (mediaStream) => {
