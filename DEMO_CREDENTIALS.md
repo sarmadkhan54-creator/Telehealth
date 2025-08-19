@@ -1,11 +1,12 @@
 # 🌟 Greenstar Telehealth Platform - Demo Credentials
 
-## 🚀 **Application URL**
-**Greenstar Telehealth Platform:** https://medconnect-app.preview.emergentagent.com
+## 🚀 **Application Access**
+**Greenstar Telehealth Platform:** Your custom domain (once configured)
+**Current URL:** https://medconnect-app.preview.emergentagent.com
 
 ---
 
-## 🌟 **About Greenstar**
+## 🌟 **About Greenstar Healthcare**
 **"health • prosperity • future"** - Greenstar Healthcare delivers cutting-edge telehealth solutions connecting healthcare providers with medical professionals for immediate consultations and emergency care.
 
 ---
@@ -37,7 +38,7 @@
 ## 🎯 **How to Test Greenstar Platform**
 
 ### **Step 1: Login as Provider**
-1. Go to https://medconnect-app.preview.emergentagent.com
+1. Go to your Greenstar Telehealth Platform URL
 2. Login with provider credentials above
 3. Create a new appointment (Emergency or Non-Emergency)
 4. Fill in patient details and vitals
@@ -65,6 +66,11 @@
 - Instant notifications to Doctors
 - Real-time status updates
 
+### **Bidirectional Communication**
+- Doctors and Providers can send notes to each other
+- Works for both emergency and non-emergency appointments
+- Real-time messaging system
+
 ### **Video Calling**
 - WebRTC-based video calls
 - Screen sharing capabilities
@@ -82,11 +88,11 @@
 
 ---
 
-## 📱 **Tablet Testing**
+## 📱 **Mobile & Tablet Access**
 - **Optimal Resolution:** 768x1024 (iPad portrait)
 - **Browser:** Chrome, Safari, or Edge
+- **Progressive Web App:** Add to home screen for app-like experience
 - **Touch Controls:** All buttons sized for touch interaction
-- **Glassmorphism UI:** Frosted glass effects throughout
 
 ---
 
@@ -98,7 +104,31 @@
 ✅ **MongoDB Integration** - Scalable data storage  
 ✅ **Responsive Design** - Tablet-optimized interface  
 ✅ **Professional UI** - Medical-grade design standards  
+✅ **Export Functions** - CSV generation for reports  
+✅ **Bidirectional Notes** - Doctor ↔ Provider communication  
 
 ---
 
-**🎉 Ready for immediate testing and deployment!**
+## 🌐 **Custom Domain Setup Guide**
+
+### **Step 1: Configure DNS**
+1. **Go to your DNS provider** (Cloudflare, GoDaddy, etc.)
+2. **Add A Record:**
+   - **Host:** `telehealth` (or your preferred subdomain)
+   - **Points to:** IP address provided by your deployment platform
+   - **TTL:** 300 seconds
+
+### **Step 2: Link Domain in Platform**
+1. Navigate to Deployments section
+2. Click "Link Domain"
+3. Enter your domain: `telehealth.yourdomain.com`
+4. Wait for verification (5-15 minutes)
+
+### **Step 3: Access Your Custom URL**
+- Your Greenstar platform will be accessible at your custom domain
+- SSL certificate automatically provided
+- Professional branding without platform attribution
+
+---
+
+**🎉 Ready for professional healthcare deployment!**
