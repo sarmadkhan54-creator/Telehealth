@@ -33,6 +33,13 @@ const DoctorDashboard = ({ user, onLogout }) => {
   useEffect(() => {
     fetchAppointments();
     setupWebSocket();
+    
+    // Set up auto-refresh interval as fallback
+    const refreshInterval = setInterval(fetchAppointments, 30000); // Refresh every 30 seconds
+    
+    return () => {
+      clearInterval(refreshInterval);
+    };
   }, []);
 
   const setupWebSocket = () => {
@@ -43,6 +50,13 @@ const DoctorDashboard = ({ user, onLogout }) => {
       const notification = JSON.parse(event.data);
       setNotifications(prev => [notification, ...prev.slice(0, 4)]);
       
+      // Auto-refresh appointments when receiving notifications
+      if (notification.type === 'emergency_appointment' || 
+          notification.type === 'appointment_updated' ||
+          notification.type === 'video_call_invitation') {
+        fetchAppointments(); // Refresh appointments list
+      }
+      
       if (notification.type === 'emergency_appointment') {
         // Show browser notification for emergencies
         if (Notification.permission === 'granted') {
@@ -51,7 +65,23 @@ const DoctorDashboard = ({ user, onLogout }) => {
             icon: '/favicon.ico'
           });
         }
+      } else if (notification.type === 'video_call_invitation') {
+        if (Notification.permission === 'granted') {
+          new Notification('Video Call Invitation', {
+            body: `${notification.caller} is inviting you to a video call`,
+            icon: '/favicon.ico'
+          });
+        }
       }
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    ws.onclose = () => {
+      // Try to reconnect after 5 seconds
+      setTimeout(setupWebSocket, 5000);
     };
 
     // Request notification permission
