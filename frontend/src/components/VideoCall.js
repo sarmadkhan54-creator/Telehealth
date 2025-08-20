@@ -226,41 +226,79 @@ const VideoCall = ({ user }) => {
   const connectSignaling = () => {
     return new Promise((resolve, reject) => {
       const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+      
+      if (!BACKEND_URL) {
+        reject(new Error('Backend URL not configured'));
+        return;
+      }
+      
       const wsUrl = `${BACKEND_URL.replace('https:', 'wss:').replace('http:', 'ws:')}/api/ws/video-call/${sessionToken}`;
       
-      console.log('🔗 Connecting to signaling server...');
-      const socket = new WebSocket(wsUrl);
-      signalingSocketRef.current = socket;
+      console.log('🔗 Connecting to signaling server:', wsUrl);
+      
+      try {
+        const socket = new WebSocket(wsUrl);
+        signalingSocketRef.current = socket;
 
-      socket.onopen = () => {
-        console.log('✅ Signaling connected');
+        const connectionTimeout = setTimeout(() => {
+          if (socket.readyState !== WebSocket.OPEN) {
+            console.error('❌ WebSocket connection timeout');
+            socket.close();
+            reject(new Error('Signaling server connection timeout'));
+          }
+        }, 8000);
+
+        socket.onopen = () => {
+          console.log('✅ Signaling connected');
+          clearTimeout(connectionTimeout);
+          
+          // Join the call
+          const joinMessage = {
+            type: 'join',
+            sessionToken: sessionToken,
+            userId: user.id,
+            userName: user.full_name
+          };
+          
+          try {
+            socket.send(JSON.stringify(joinMessage));
+            console.log('📤 Join message sent');
+            resolve();
+          } catch (sendError) {
+            console.error('❌ Failed to send join message:', sendError);
+            reject(new Error('Failed to join call session'));
+          }
+        };
+
+        socket.onmessage = async (event) => {
+          try {
+            const message = JSON.parse(event.data);
+            console.log('📨 Received:', message.type);
+            await handleSignalingMessage(message);
+          } catch (parseError) {
+            console.error('❌ Failed to parse signaling message:', parseError);
+          }
+        };
+
+        socket.onerror = (error) => {
+          console.error('❌ WebSocket error:', error);
+          clearTimeout(connectionTimeout);
+          reject(new Error('WebSocket connection failed'));
+        };
+
+        socket.onclose = (event) => {
+          console.log('🔌 WebSocket closed:', event.code, event.reason);
+          clearTimeout(connectionTimeout);
+          
+          if (event.code !== 1000) { // 1000 is normal closure
+            console.error('❌ WebSocket closed unexpectedly');
+          }
+        };
         
-        // Join the call
-        socket.send(JSON.stringify({
-          type: 'join',
-          sessionToken: sessionToken,
-          userId: user.id,
-          userName: user.full_name
-        }));
-        
-        resolve();
-      };
-
-      socket.onmessage = async (event) => {
-        const message = JSON.parse(event.data);
-        console.log('📨 Received:', message.type);
-        
-        await handleSignalingMessage(message);
-      };
-
-      socket.onerror = (error) => {
-        console.error('❌ Signaling error:', error);
-        reject(error);
-      };
-
-      socket.onclose = () => {
-        console.log('🔌 Signaling disconnected');
-      };
+      } catch (socketError) {
+        console.error('❌ Failed to create WebSocket:', socketError);
+        reject(new Error('Cannot create WebSocket connection'));
+      }
     });
   };
 
