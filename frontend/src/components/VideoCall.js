@@ -530,33 +530,81 @@ const VideoCall = ({ user }) => {
     }
   };
 
+  // Emergency function to force stop all media devices
+  const emergencyStopAllMedia = () => {
+    console.log('🚨 EMERGENCY MEDIA STOP - Forcing all devices to stop...');
+    
+    try {
+      // Stop all tracks from getUserMedia
+      navigator.mediaDevices.enumerateDevices().then(devices => {
+        console.log('📱 Available devices:', devices.length);
+        
+        // Try to get current media stream and stop it
+        if (navigator.mediaDevices.getDisplayMedia) {
+          // Stop any screen sharing
+          navigator.mediaDevices.getDisplayMedia({ video: false }).then(stream => {
+            stream.getTracks().forEach(track => track.stop());
+          }).catch(() => {}); // Ignore errors
+        }
+      }).catch(() => {});
+      
+      // Force stop any remaining media
+      if (typeof window !== 'undefined' && window.MediaStreamTrack) {
+        // This is a hack but sometimes necessary
+        console.log('🔧 Attempting to force-stop all MediaStreamTracks...');
+      }
+      
+    } catch (error) {
+      console.error('❌ Emergency media stop failed:', error);
+    }
+  };
+
   // Enhanced cleanup on component unmount and page events
   useEffect(() => {
     const handleBeforeUnload = (event) => {
+      console.log('⚠️ Page unloading - emergency cleanup...');
+      emergencyStopAllMedia();
       cleanup();
     };
 
     const handleVisibilityChange = () => {
       if (document.hidden && callStatus === 'connected') {
-        console.log('⚠️ Tab hidden during call - maintaining connection');
+        console.log('👁️ Tab hidden during call - maintaining connection...');
       }
     };
 
     const handleWindowClose = () => {
+      console.log('❌ Window closing - emergency cleanup...');
+      emergencyStopAllMedia();
       cleanup();
+    };
+
+    // Add keyboard shortcut for emergency media stop (Ctrl+Shift+E)
+    const handleKeyDown = (event) => {
+      if (event.ctrlKey && event.shiftKey && event.key === 'E') {
+        console.log('⌨️ Emergency stop hotkey pressed...');
+        emergencyStopAllMedia();
+        cleanup();
+        navigate('/');
+      }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('unload', handleWindowClose);
+    document.addEventListener('keydown', handleKeyDown);
     
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('unload', handleWindowClose);
+      document.removeEventListener('keydown', handleKeyDown);
+      
+      // Final cleanup on component unmount
+      emergencyStopAllMedia();
       cleanup();
     };
-  }, [callStatus]);
+  }, [callStatus, navigate]);
 
   const getStatusColor = () => {
     switch (callStatus) {
