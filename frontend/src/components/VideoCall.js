@@ -97,7 +97,23 @@ const VideoCall = ({ user }) => {
     } catch (error) {
       console.error('❌ Failed to initialize call:', error);
       setCallStatus('failed');
-      alert(`Connection failed: ${error.message}. Please try again.`);
+      
+      // Provide specific error messages instead of "undefined"
+      let errorMessage = 'Connection failed. Please try again.';
+      
+      if (error.message === 'Media timeout') {
+        errorMessage = 'Camera/microphone access timed out. Please check permissions and try again.';
+      } else if (error.message === 'Signaling timeout') {
+        errorMessage = 'Failed to connect to call server. Please check your internet connection.';
+      } else if (error.name === 'NotAllowedError') {
+        errorMessage = 'Camera/microphone permission denied. Please allow access and try again.';
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = 'No camera or microphone found. Please connect devices and try again.';
+      } else if (error.message) {
+        errorMessage = `Connection error: ${error.message}`;
+      }
+      
+      alert(errorMessage);
       cleanup();
       navigate('/');
     }
