@@ -393,16 +393,30 @@ const VideoCall = ({ user }) => {
   };
 
   const endCall = async () => {
-    console.log('📞 Ending call...');
+    console.log('📞 USER INITIATED CALL END - Starting immediate cleanup...');
+    
+    // Immediate cleanup FIRST to stop camera/microphone
     cleanup();
     
+    // Then try to notify backend (but don't wait if it fails)
     try {
       const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-      await axios.post(`${BACKEND_URL}/api/video-call/end/${sessionToken}`);
+      const endCallPromise = axios.post(`${BACKEND_URL}/api/video-call/end/${sessionToken}`);
+      
+      // Don't wait more than 2 seconds for backend response
+      await Promise.race([
+        endCallPromise,
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Backend timeout')), 2000)
+        )
+      ]);
+      
+      console.log('✅ Backend notified of call end');
     } catch (error) {
-      console.error('Error ending call:', error);
+      console.warn('⚠️ Could not notify backend of call end (not critical):', error.message);
     }
     
+    // Navigate back immediately
     navigate('/');
   };
 
