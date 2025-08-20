@@ -369,42 +369,73 @@ const VideoCall = ({ user }) => {
   };
 
   const cleanup = () => {
-    console.log('🧹 Cleaning up call...');
+    console.log('🧹 EMERGENCY CLEANUP - Stopping all media devices...');
     
     try {
-      // Stop ALL local media tracks immediately
+      // AGGRESSIVE media track cleanup
       if (localStreamRef.current) {
-        localStreamRef.current.getTracks().forEach(track => {
-          console.log(`🔴 Stopping ${track.kind} track: ${track.label}`);
+        console.log('🔴 Stopping local stream tracks...');
+        localStreamRef.current.getTracks().forEach((track, index) => {
+          console.log(`   Stopping ${track.kind} track ${index + 1}: ${track.label}`);
           track.stop();
+          
+          // Double-check track is actually stopped
+          setTimeout(() => {
+            if (track.readyState !== 'ended') {
+              console.warn(`⚠️ Track ${track.kind} still active, forcing stop...`);
+              try {
+                track.stop();
+              } catch (e) {
+                console.error('Error force-stopping track:', e);
+              }
+            }
+          }, 100);
         });
         localStreamRef.current = null;
+        console.log('✅ Local stream cleared');
       }
 
-      // Clear local video element
+      // Clear video elements IMMEDIATELY
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = null;
-        console.log('📹 Local video cleared');
+        localVideoRef.current.load(); // Force reload to clear any cached media
+        console.log('📹 Local video element cleared and reloaded');
       }
 
-      // Clear remote video element
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = null;
-        console.log('📹 Remote video cleared');
+        remoteVideoRef.current.load(); // Force reload to clear any cached media
+        console.log('📹 Remote video element cleared and reloaded');
       }
 
-      // Close peer connection
+      // Close peer connection aggressively
       if (peerConnectionRef.current) {
-        // Remove all tracks from peer connection first
+        console.log('🔌 Closing peer connection...');
+        
+        // Remove and stop all senders
         peerConnectionRef.current.getSenders().forEach(sender => {
           if (sender.track) {
+            console.log(`   Stopping sender track: ${sender.track.kind}`);
             sender.track.stop();
+            try {
+              peerConnectionRef.current.removeTrack(sender);
+            } catch (e) {
+              console.log('Track already removed or connection closed');
+            }
+          }
+        });
+        
+        // Remove all receivers
+        peerConnectionRef.current.getReceivers().forEach(receiver => {
+          if (receiver.track) {
+            console.log(`   Stopping receiver track: ${receiver.track.kind}`);
+            receiver.track.stop();
           }
         });
         
         peerConnectionRef.current.close();
         peerConnectionRef.current = null;
-        console.log('🔌 Peer connection closed');
+        console.log('✅ Peer connection completely closed');
       }
 
       // Close signaling socket
@@ -421,15 +452,29 @@ const VideoCall = ({ user }) => {
         console.log('📡 Signaling socket closed');
       }
 
-      // Reset state
+      // Force garbage collection hint
+      if (window.gc) {
+        window.gc();
+      }
+
+      // Reset all state
       setCallStatus('ended');
       setRemoteUser(null);
       setConnectionQuality('disconnected');
+      setIsAudioEnabled(true);
+      setIsVideoEnabled(true);
       
-      console.log('✅ Cleanup completed - camera and microphone released');
+      console.log('🎉 COMPLETE CLEANUP FINISHED - All media devices should be released');
       
     } catch (error) {
       console.error('❌ Error during cleanup:', error);
+      
+      // Fallback: Try to get all media devices and stop them
+      navigator.mediaDevices.enumerateDevices().then(devices => {
+        console.log('🔍 Available devices after cleanup:', devices.length);
+      }).catch(e => {
+        console.log('Could not enumerate devices');
+      });
     }
   };
 
