@@ -2,24 +2,40 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+        
+        <!-- PWA Meta Tags -->
         <meta name="theme-color" content="#10b981" />
-        <meta name="description" content="Greenstar Telehealth Platform - Professional Healthcare Solutions | health • prosperity • future" />
-        <meta name="keywords" content="telehealth, healthcare, greenstar, medical consultation, emergency care, patient care" />
+        <meta name="description" content="Greenstar Telehealth Platform - Professional Healthcare Solutions for providers, doctors, and patients. Video consultations, appointment management, and patient care." />
+        <meta name="keywords" content="telehealth, telemedicine, healthcare, video consultation, medical appointments, patient care, greenstar" />
         <meta name="author" content="Greenstar Healthcare" />
         
-        <!-- Open Graph / Facebook -->
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content="Greenstar Telehealth Platform" />
-        <meta property="og:description" content="Professional telehealth platform connecting healthcare providers with medical professionals for real-time consultations." />
+        <!-- PWA Manifest -->
+        <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
         
-        <!-- Twitter -->
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:title" content="Greenstar Telehealth Platform" />
-        <meta property="twitter:description" content="Professional telehealth platform - health • prosperity • future" />
+        <!-- iOS PWA Meta Tags -->
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Greenstar Health" />
+        <link rel="apple-touch-icon" href="%PUBLIC_URL%/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="%PUBLIC_URL%/icons/icon-152x152.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/icons/icon-192x192.png" />
         
-        <!-- Favicon -->
-        <link rel="icon" type="image/png" sizes="32x32" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%2310b981%22/><text y=%22.9em%22 font-size=%2270%22 text-anchor=%22middle%22 x=%2250%25%22>🌟</text></svg>" />
+        <!-- Microsoft Tiles -->
+        <meta name="msapplication-TileImage" content="%PUBLIC_URL%/icons/icon-144x144.png" />
+        <meta name="msapplication-TileColor" content="#10b981" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        
+        <!-- Android PWA -->
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="application-name" content="Greenstar Health" />
+        
+        <!-- Prevent zoom on input focus (mobile) -->
+        <meta name="format-detection" content="telephone=no" />
+        
+        <!-- Security Headers for Healthcare -->
+        <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://meet.jit.si; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' wss: ws:; frame-src 'self' https://meet.jit.si;" />
         
         <title>Greenstar Telehealth Platform | Professional Healthcare Solutions</title>
     </head>
