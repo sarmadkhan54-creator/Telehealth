@@ -75,20 +75,22 @@ body {
     
     .nav-header .flex.items-center.space-x-4 {
       gap: 0.25rem;
+      justify-content: flex-end;
     }
     
     .nav-header button {
       padding: 0.5rem;
       min-width: 44px;
       min-height: 44px;
+      flex-shrink: 0;
     }
     
-    .nav-header button span {
+    .nav-header button span:not(.sr-only) {
       display: none;
     }
     
-    .nav-header button[title="Notification Settings"] span {
-      display: none !important;
+    .nav-header button[title="Notification Settings"] {
+      display: flex !important;
     }
   }
   
