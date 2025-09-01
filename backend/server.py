@@ -1016,6 +1016,83 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
     except WebSocketDisconnect:
         manager.disconnect(user_id)
 
+# Push notification endpoints
+@api_router.post("/push/subscribe")
+async def subscribe_to_push_notifications(subscription_data: UserPushSubscription, current_user: User = Depends(get_current_user)):
+    """Subscribe user to push notifications."""
+    try:
+        # Remove any existing subscriptions for this user to avoid duplicates
+        await db.push_subscriptions.delete_many({"user_id": current_user.id})
+        
+        # Add new subscription
+        subscription_doc = {
+            "user_id": current_user.id,
+            "subscription": subscription_data.subscription.dict(),
+            "created_at": datetime.now(timezone.utc),
+            "active": True
+        }
+        
+        result = await db.push_subscriptions.insert_one(subscription_doc)
+        
+        if result.inserted_id:
+            return {"message": "Successfully subscribed to push notifications", "success": True}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to subscribe to push notifications")
+            
+    except Exception as e:
+        print(f"Error subscribing user to push notifications: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@api_router.delete("/push/unsubscribe")
+async def unsubscribe_from_push_notifications(current_user: User = Depends(get_current_user)):
+    """Unsubscribe user from push notifications."""
+    try:
+        result = await db.push_subscriptions.delete_many({"user_id": current_user.id})
+        return {"message": f"Unsubscribed from {result.deleted_count} push notification subscriptions", "success": True}
+    except Exception as e:
+        print(f"Error unsubscribing user from push notifications: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@api_router.get("/push/vapid-key")
+async def get_vapid_public_key():
+    """Get VAPID public key for push notification subscription."""
+    return {"vapid_public_key": VAPID_PUBLIC_KEY}
+
+@api_router.post("/push/test")
+async def send_test_push_notification(current_user: User = Depends(get_current_user)):
+    """Send a test push notification to the current user."""
+    try:
+        payload = PushNotificationPayload(
+            title="Test Notification",
+            body="This is a test push notification from Greenstar Telehealth",
+            type="info",
+            data={"test": True}
+        )
+        
+        success = await send_push_notification(current_user.id, payload)
+        
+        if success:
+            return {"message": "Test notification sent successfully", "success": True}
+        else:
+            return {"message": "No active push subscriptions found or notification failed", "success": False}
+            
+    except Exception as e:
+        print(f"Error sending test push notification: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@api_router.post("/push/appointment-reminder/{appointment_id}")
+async def send_appointment_reminder(appointment_id: str, current_user: User = Depends(get_current_user)):
+    """Send appointment reminder push notifications (admin only)."""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can send appointment reminders")
+    
+    try:
+        await send_appointment_reminder_notifications(appointment_id)
+        return {"message": "Appointment reminder notifications sent", "success": True}
+    except Exception as e:
+        print(f"Error sending appointment reminder: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
 # Basic health check
 @api_router.get("/")
 async def root():
