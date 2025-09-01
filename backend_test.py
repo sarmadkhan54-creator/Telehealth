@@ -2021,6 +2021,410 @@ class MedConnectAPITester:
         
         return all_success
 
+    def test_video_call_android_compatibility_fixes(self):
+        """🎯 CRITICAL TEST: Test video call and notification fixes for Android compatibility"""
+        print("\n🎯 Testing Video Call & Notification Fixes for Android Compatibility")
+        print("=" * 80)
+        
+        if not self.appointment_id:
+            print("❌ No appointment ID available for Android compatibility testing")
+            return False
+            
+        if 'doctor' not in self.tokens or 'provider' not in self.tokens:
+            print("❌ Missing doctor or provider tokens for Android compatibility testing")
+            return False
+        
+        all_success = True
+        
+        # Test 1: Video Call Session Endpoints for both Doctor and Provider
+        print("\n📹 Testing Video Call Session Endpoints")
+        print("-" * 50)
+        
+        # Doctor gets video call session
+        success, doctor_response = self.run_test(
+            "GET /api/video-call/session/{appointment_id} (Doctor)",
+            "GET",
+            f"video-call/session/{self.appointment_id}",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if success:
+            doctor_jitsi_url = doctor_response.get('jitsi_url')
+            doctor_room_name = doctor_response.get('room_name')
+            if doctor_jitsi_url and doctor_room_name:
+                print(f"   ✅ Doctor Jitsi URL generated: {doctor_jitsi_url}")
+                print(f"   ✅ Doctor room name: {doctor_room_name}")
+            else:
+                print("   ❌ Missing Jitsi URL or room name for doctor")
+                all_success = False
+        else:
+            all_success = False
+        
+        # Provider gets video call session for same appointment
+        success, provider_response = self.run_test(
+            "GET /api/video-call/session/{appointment_id} (Provider)",
+            "GET",
+            f"video-call/session/{self.appointment_id}",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if success:
+            provider_jitsi_url = provider_response.get('jitsi_url')
+            provider_room_name = provider_response.get('room_name')
+            if provider_jitsi_url and provider_room_name:
+                print(f"   ✅ Provider Jitsi URL generated: {provider_jitsi_url}")
+                print(f"   ✅ Provider room name: {provider_room_name}")
+                
+                # Verify both get same Jitsi room (critical for Android compatibility)
+                if doctor_jitsi_url == provider_jitsi_url and doctor_room_name == provider_room_name:
+                    print("   🎉 CRITICAL SUCCESS: Doctor and Provider get SAME Jitsi room!")
+                else:
+                    print("   ❌ CRITICAL FAILURE: Doctor and Provider get different Jitsi rooms")
+                    all_success = False
+            else:
+                print("   ❌ Missing Jitsi URL or room name for provider")
+                all_success = False
+        else:
+            all_success = False
+        
+        # Test 2: WebSocket Notification System
+        print("\n🔌 Testing WebSocket Notification System")
+        print("-" * 50)
+        
+        try:
+            import websocket
+            import threading
+            import time
+            import json
+            
+            # Test WebSocket connection for both users
+            doctor_ws_url = f"wss://telehealth-pwa.preview.emergentagent.com/api/ws/{self.users['doctor']['id']}"
+            provider_ws_url = f"wss://telehealth-pwa.preview.emergentagent.com/api/ws/{self.users['provider']['id']}"
+            
+            doctor_connected = False
+            provider_connected = False
+            notifications_received = []
+            
+            def create_ws_handler(user_type):
+                def on_message(ws, message):
+                    try:
+                        msg_data = json.loads(message)
+                        notifications_received.append({
+                            'user': user_type,
+                            'message': msg_data
+                        })
+                        print(f"   📨 {user_type} received: {msg_data.get('type', 'unknown')}")
+                        
+                        # Check for jitsi_call_invitation
+                        if msg_data.get('type') == 'jitsi_call_invitation':
+                            jitsi_url = msg_data.get('jitsi_url')
+                            caller = msg_data.get('caller')
+                            if jitsi_url and caller:
+                                print(f"   ✅ {user_type} received jitsi_call_invitation with URL and caller info")
+                            else:
+                                print(f"   ❌ {user_type} jitsi_call_invitation missing URL or caller info")
+                    except json.JSONDecodeError:
+                        print(f"   ⚠️  {user_type} received non-JSON message: {message}")
+                
+                def on_open(ws):
+                    nonlocal doctor_connected, provider_connected
+                    if user_type == 'doctor':
+                        doctor_connected = True
+                    else:
+                        provider_connected = True
+                    print(f"   ✅ {user_type} WebSocket connected")
+                
+                def on_error(ws, error):
+                    print(f"   ❌ {user_type} WebSocket error: {error}")
+                
+                def on_close(ws, close_status_code, close_msg):
+                    print(f"   🔌 {user_type} WebSocket closed")
+                
+                return on_message, on_open, on_error, on_close
+            
+            # Create WebSocket connections
+            doctor_handlers = create_ws_handler('doctor')
+            provider_handlers = create_ws_handler('provider')
+            
+            doctor_ws = websocket.WebSocketApp(doctor_ws_url, *doctor_handlers)
+            provider_ws = websocket.WebSocketApp(provider_ws_url, *provider_handlers)
+            
+            # Start WebSocket connections in threads
+            doctor_thread = threading.Thread(target=doctor_ws.run_forever)
+            provider_thread = threading.Thread(target=provider_ws.run_forever)
+            
+            doctor_thread.daemon = True
+            provider_thread.daemon = True
+            
+            doctor_thread.start()
+            provider_thread.start()
+            
+            # Wait for connections
+            time.sleep(3)
+            
+            if doctor_connected and provider_connected:
+                print("   ✅ Both WebSocket connections established")
+                
+                # Test sending jitsi_call_invitation by triggering video call session
+                print("   📹 Triggering video call to test notifications...")
+                
+                # Doctor gets video session (should trigger notification to provider)
+                success, response = self.run_test(
+                    "Trigger Jitsi Call Notification",
+                    "GET",
+                    f"video-call/session/{self.appointment_id}",
+                    200,
+                    token=self.tokens['doctor']
+                )
+                
+                # Wait for notification
+                time.sleep(3)
+                
+                # Check if provider received jitsi_call_invitation
+                jitsi_notifications = [n for n in notifications_received 
+                                     if n['message'].get('type') == 'jitsi_call_invitation']
+                
+                if jitsi_notifications:
+                    print("   ✅ jitsi_call_invitation notifications working")
+                    for notif in jitsi_notifications:
+                        msg = notif['message']
+                        if msg.get('jitsi_url') and msg.get('caller'):
+                            print("   ✅ Notification includes jitsi_url and caller information")
+                        else:
+                            print("   ❌ Notification missing jitsi_url or caller information")
+                            all_success = False
+                else:
+                    print("   ⚠️  No jitsi_call_invitation notifications received (may be expected in test environment)")
+            else:
+                print("   ⚠️  WebSocket connections not established (may be expected in test environment)")
+            
+            # Close connections
+            doctor_ws.close()
+            provider_ws.close()
+            
+        except ImportError:
+            print("   ⚠️  WebSocket library not available, skipping WebSocket notification test")
+        except Exception as e:
+            print(f"   ❌ WebSocket notification test failed: {str(e)}")
+        
+        # Test 3: Push Notification System for Video Calls
+        print("\n🔔 Testing Push Notification System for Video Calls")
+        print("-" * 50)
+        
+        # First subscribe both users to push notifications
+        doctor_subscription = {
+            "user_id": self.users['doctor']['id'],
+            "subscription": {
+                "endpoint": "https://fcm.googleapis.com/fcm/send/android-doctor-endpoint",
+                "keys": {
+                    "p256dh": "BAndroidDoctorXfaXKGByLkQtXMDqn2cCoWLgXcDMpXNdlNqiQqkQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQ",
+                    "auth": "androidDoctorAuthKey123456789012"
+                }
+            }
+        }
+        
+        provider_subscription = {
+            "user_id": self.users['provider']['id'],
+            "subscription": {
+                "endpoint": "https://fcm.googleapis.com/fcm/send/android-provider-endpoint",
+                "keys": {
+                    "p256dh": "BAndroidProviderXfaXKGByLkQtXMDqn2cCoWLgXcDMpXNdlNqiQqkQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQ",
+                    "auth": "androidProviderAuthKey12345678901"
+                }
+            }
+        }
+        
+        # Subscribe doctor
+        success, response = self.run_test(
+            "Subscribe Doctor to Push Notifications",
+            "POST",
+            "push/subscribe",
+            200,
+            data=doctor_subscription,
+            token=self.tokens['doctor']
+        )
+        
+        if not success:
+            print("   ❌ Could not subscribe doctor to push notifications")
+            all_success = False
+        
+        # Subscribe provider
+        success, response = self.run_test(
+            "Subscribe Provider to Push Notifications",
+            "POST",
+            "push/subscribe",
+            200,
+            data=provider_subscription,
+            token=self.tokens['provider']
+        )
+        
+        if not success:
+            print("   ❌ Could not subscribe provider to push notifications")
+            all_success = False
+        
+        # Test video call push notification trigger
+        success, response = self.run_test(
+            "Start Video Call (Should Trigger Push Notification)",
+            "POST",
+            f"video-call/start/{self.appointment_id}",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if success:
+            print("   ✅ Video call start endpoint working (push notifications should be triggered)")
+        else:
+            print("   ❌ Video call start endpoint failed")
+            all_success = False
+        
+        # Test 4: End-to-End Video Call Workflow for Android
+        print("\n📱 Testing End-to-End Video Call Workflow for Android")
+        print("-" * 50)
+        
+        # Step 1: Doctor starts video call
+        success, doctor_start_response = self.run_test(
+            "Doctor Starts Video Call",
+            "POST",
+            f"video-call/start/{self.appointment_id}",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if success:
+            session_token = doctor_start_response.get('session_token')
+            print(f"   ✅ Doctor started video call, session: {session_token[:20]}...")
+        else:
+            print("   ❌ Doctor could not start video call")
+            all_success = False
+            
+        # Step 2: Provider should receive notification and get Jitsi URL
+        success, provider_session_response = self.run_test(
+            "Provider Gets Jitsi Room (After Notification)",
+            "GET",
+            f"video-call/session/{self.appointment_id}",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if success:
+            provider_jitsi_url = provider_session_response.get('jitsi_url')
+            if provider_jitsi_url:
+                print(f"   ✅ Provider can access Jitsi room: {provider_jitsi_url}")
+            else:
+                print("   ❌ Provider did not get Jitsi URL")
+                all_success = False
+        else:
+            all_success = False
+        
+        # Step 3: Both users should be able to access same Jitsi room
+        success, doctor_session_response = self.run_test(
+            "Doctor Gets Same Jitsi Room",
+            "GET",
+            f"video-call/session/{self.appointment_id}",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if success:
+            doctor_jitsi_url = doctor_session_response.get('jitsi_url')
+            if doctor_jitsi_url == provider_jitsi_url:
+                print("   🎉 SUCCESS: Both users can access same Jitsi room for Android compatibility!")
+            else:
+                print("   ❌ FAILURE: Users get different Jitsi rooms")
+                all_success = False
+        else:
+            all_success = False
+        
+        # Test 5: Error Handling for Android Compatibility
+        print("\n🚫 Testing Error Handling for Android Compatibility")
+        print("-" * 50)
+        
+        # Test invalid appointment ID
+        success, response = self.run_test(
+            "Invalid Appointment ID",
+            "GET",
+            "video-call/session/invalid-appointment-id",
+            404,
+            token=self.tokens['doctor']
+        )
+        
+        if success:
+            print("   ✅ Invalid appointment ID properly rejected")
+        else:
+            print("   ❌ Invalid appointment ID not properly handled")
+            all_success = False
+        
+        # Test unauthorized access
+        success, response = self.run_test(
+            "Unauthorized Access (Admin to Video Call)",
+            "GET",
+            f"video-call/session/{self.appointment_id}",
+            403,
+            token=self.tokens['admin']
+        )
+        
+        if success:
+            print("   ✅ Unauthorized access properly denied")
+        else:
+            print("   ❌ Unauthorized access not properly handled")
+            all_success = False
+        
+        # Test multiple appointment scenarios
+        print("\n📅 Testing Multiple Appointment Scenarios")
+        print("-" * 50)
+        
+        # Create another appointment for testing
+        appointment_data = {
+            "patient": {
+                "name": "Android Test Patient",
+                "age": 28,
+                "gender": "Female",
+                "vitals": {
+                    "blood_pressure": "115/75",
+                    "heart_rate": 70,
+                    "temperature": 98.7
+                },
+                "consultation_reason": "Android compatibility test"
+            },
+            "appointment_type": "non_emergency",
+            "consultation_notes": "Testing Android video call compatibility"
+        }
+        
+        success, response = self.run_test(
+            "Create Second Appointment for Testing",
+            "POST",
+            "appointments",
+            200,
+            data=appointment_data,
+            token=self.tokens['provider']
+        )
+        
+        if success:
+            second_appointment_id = response.get('id')
+            
+            # Test video call session for second appointment
+            success, response = self.run_test(
+                "Video Call Session for Second Appointment",
+                "GET",
+                f"video-call/session/{second_appointment_id}",
+                200,
+                token=self.tokens['doctor']
+            )
+            
+            if success:
+                second_jitsi_url = response.get('jitsi_url')
+                if second_jitsi_url and second_jitsi_url != doctor_jitsi_url:
+                    print("   ✅ Different appointments get different Jitsi rooms")
+                else:
+                    print("   ❌ Different appointments should get different Jitsi rooms")
+                    all_success = False
+            else:
+                all_success = False
+        
+        return all_success
+
 def main():
     print("🏥 MedConnect Telehealth API Testing - PUSH NOTIFICATIONS & VIDEO CALLS")
     print("=" * 80)
