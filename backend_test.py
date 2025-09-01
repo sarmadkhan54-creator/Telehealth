@@ -1886,6 +1886,7 @@ class MedConnectAPITester:
         
         # Test 3: Subscribe without authentication (should fail)
         subscription_data = {
+            "user_id": "unauthorized-user-id",  # Include user_id as expected by model
             "subscription": {
                 "endpoint": "https://fcm.googleapis.com/fcm/send/unauthorized-test",
                 "keys": {
