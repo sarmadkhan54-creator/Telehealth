@@ -46,10 +46,18 @@ function App() {
     setLoading(false);
   }, []);
 
-  const handleLogin = (token, userData) => {
+  const handleLogin = async (token, userData) => {
     localStorage.setItem('authToken', token);
     localStorage.setItem('userData', JSON.stringify(userData));
     setUser(userData);
+    
+    // Initialize push notifications after successful login
+    try {
+      console.log('🔔 Initializing push notifications...');
+      await pushNotificationManager.initialize(true);
+    } catch (error) {
+      console.error('Failed to initialize push notifications:', error);
+    }
   };
 
   const handleLogout = () => {
