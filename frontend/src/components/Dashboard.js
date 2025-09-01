@@ -47,21 +47,21 @@ const Dashboard = ({ user, onLogout }) => {
         fetchAppointments(); // Refresh appointments list
       }
       
-      // Handle video call invitations with sound popup
-      if (notification.type === 'video_call_invitation') {
+      // Handle Jitsi video call invitations
+      if (notification.type === 'jitsi_call_invitation') {
         // Play ringing sound
         playRingingSound();
         
-        // Show video call invitation popup with enhanced details
+        // Show video call invitation popup with Jitsi URL
         setVideoCallInvitation({
-          sessionToken: notification.session_token,
+          jitsiUrl: notification.jitsi_url,
+          roomName: notification.room_name,
           callerName: notification.caller,
           callerRole: notification.caller_role,
           appointmentId: notification.appointment_id,
           appointmentType: notification.appointment_type,
-          appointmentTime: notification.appointment_time,
           patient: notification.patient || {
-            name: notification.patient_name || "Unknown Patient",
+            name: "Unknown Patient",
             age: "Unknown",
             gender: "Unknown", 
             consultation_reason: "General consultation",
