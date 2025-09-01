@@ -51,6 +51,35 @@ body {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
+    width: 100%;
+  }
+  
+  .nav-header .flex.items-center.justify-between {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  /* Adjust logo and title on mobile */
+  .nav-header .flex.items-center.space-x-3 {
+    flex: 1;
+  }
+  
+  .nav-header .flex.items-center.space-x-4 {
+    flex-shrink: 0;
+    gap: 0.5rem;
+  }
+  
+  /* Hide user district on very small screens */
+  @media (max-width: 480px) {
+    .nav-header .text-right p:last-child {
+      display: none;
+    }
+    
+    .nav-header .flex.items-center.space-x-4 {
+      flex-direction: column;
+      align-items: flex-end;
+    }
   }
   
   /* Mobile dashboard adjustments */
