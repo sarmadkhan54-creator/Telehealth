@@ -139,16 +139,19 @@ self.addEventListener('push', (event) => {
   if (event.data) {
     const data = event.data.json();
     
+    // Android-specific notification handling
     const options = {
       body: data.body || 'New notification from Greenstar Telehealth',
       icon: '/icons/icon-192x192.png',
       badge: '/icons/badge-72x72.png',
-      vibrate: [200, 100, 200],
+      vibrate: [200, 100, 200, 100, 200], // More prominent vibration for Android
       data: data,
+      tag: data.type || 'default', // Group notifications by type
+      renotify: true, // Important for Android
       actions: [
         {
           action: 'view',
-          title: 'View',
+          title: data.type === 'video_call' ? 'Answer Call' : 'View',
           icon: '/icons/view-action.png'
         },
         {
@@ -157,7 +160,10 @@ self.addEventListener('push', (event) => {
           icon: '/icons/dismiss-action.png'
         }
       ],
-      requireInteraction: data.type === 'emergency' || data.type === 'video_call'
+      requireInteraction: data.type === 'emergency' || data.type === 'video_call',
+      // Android-specific options
+      silent: false,
+      timestamp: Date.now()
     };
 
     event.waitUntil(
