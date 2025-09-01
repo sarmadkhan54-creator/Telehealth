@@ -1751,6 +1751,7 @@ class MedConnectAPITester:
         
         # First, ensure both users are subscribed to push notifications
         provider_subscription = {
+            "user_id": self.users['provider']['id'],  # Include user_id as expected by model
             "subscription": {
                 "endpoint": "https://fcm.googleapis.com/fcm/send/provider-video-test",
                 "keys": {
@@ -1761,6 +1762,7 @@ class MedConnectAPITester:
         }
         
         doctor_subscription = {
+            "user_id": self.users['doctor']['id'],  # Include user_id as expected by model
             "subscription": {
                 "endpoint": "https://fcm.googleapis.com/fcm/send/doctor-video-test",
                 "keys": {
