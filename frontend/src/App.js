@@ -143,6 +143,9 @@ function App() {
             <Route path="*" element={<Navigate to="/login" replace />} />
           )}
         </Routes>
+        
+        {/* PWA Install Prompt - only show for logged-in users */}
+        {user && <PWAInstallPrompt />}
       </BrowserRouter>
     </div>
   );
