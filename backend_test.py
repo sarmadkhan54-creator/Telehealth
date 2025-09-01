@@ -2426,16 +2426,19 @@ class MedConnectAPITester:
         return all_success
 
 def main():
-    print("🏥 MedConnect Telehealth API Testing - PUSH NOTIFICATIONS & VIDEO CALLS")
+    print("🏥 MedConnect Telehealth API Testing - ANDROID COMPATIBILITY FIXES")
     print("=" * 80)
     
     tester = MedConnectAPITester()
     
-    # Test sequence - focused on push notifications and video call functionality
+    # Test sequence - focused on Android compatibility fixes
     tests = [
         ("Health Check", tester.test_health_check),
         ("Login All Roles", tester.test_login_all_roles),
         ("Create Appointment", tester.test_create_appointment),
+        
+        # 🎯 CRITICAL: Android Compatibility Fixes
+        ("🎯 ANDROID COMPATIBILITY FIXES", tester.test_video_call_android_compatibility_fixes),
         
         # Push Notification Tests
         ("🔑 Push Notification VAPID Key", tester.test_push_notification_vapid_key),
@@ -2459,10 +2462,14 @@ def main():
     print(f"\n🚀 Running {len(tests)} focused test suites...")
     
     failed_tests = []
+    android_compatibility_passed = False
+    
     for test_name, test_func in tests:
         print(f"\n{'='*20} {test_name} {'='*20}")
         try:
             result = test_func()
+            if test_name == "🎯 ANDROID COMPATIBILITY FIXES":
+                android_compatibility_passed = result
             if not result:
                 failed_tests.append(test_name)
         except Exception as e:
@@ -2475,6 +2482,20 @@ def main():
     print(f"   Tests Run: {tester.tests_run}")
     print(f"   Tests Passed: {tester.tests_passed}")
     print(f"   Success Rate: {(tester.tests_passed/tester.tests_run*100):.1f}%" if tester.tests_run > 0 else "No tests run")
+    
+    # 🎯 CRITICAL: Android Compatibility Results
+    print(f"\n🎯 ANDROID COMPATIBILITY FIXES RESULTS:")
+    if android_compatibility_passed:
+        print("   ✅ ANDROID COMPATIBILITY: PASSED")
+        print("   ✅ Video call endpoints working for both doctor and provider")
+        print("   ✅ Jitsi URLs properly generated and returned")
+        print("   ✅ WebSocket notification system functional")
+        print("   ✅ Push notification system working")
+        print("   ✅ End-to-end video call workflow operational")
+        print("   ✅ Error handling working correctly")
+    else:
+        print("   ❌ ANDROID COMPATIBILITY: FAILED")
+        print("   ❌ Critical issues found in video call and notification fixes")
     
     if failed_tests:
         print(f"\n❌ Failed Test Suites ({len(failed_tests)}):")
@@ -2501,11 +2522,12 @@ def main():
     else:
         print(f"   ❌ VAPID public key not retrieved")
     
-    if tester.tests_passed >= tester.tests_run * 0.8:  # 80% pass rate
-        print("🎉 Push notification and video call functionality is working correctly!")
+    # Return based on Android compatibility results
+    if android_compatibility_passed and tester.tests_passed >= tester.tests_run * 0.8:
+        print("🎉 Android compatibility fixes are working correctly!")
         return 0
     else:
-        print("⚠️  Some critical tests failed - check logs above")
+        print("⚠️  Critical Android compatibility issues found - check logs above")
         return 1
 
 if __name__ == "__main__":
