@@ -1503,8 +1503,9 @@ class MedConnectAPITester:
             print("❌ No provider token available")
             return False
         
-        # Test subscription data (mock browser push subscription)
+        # Test subscription data (matching UserPushSubscription model)
         subscription_data = {
+            "user_id": self.users['provider']['id'],  # Include user_id as expected by model
             "subscription": {
                 "endpoint": "https://fcm.googleapis.com/fcm/send/test-endpoint-12345",
                 "keys": {
