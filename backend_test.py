@@ -1550,6 +1550,7 @@ class MedConnectAPITester:
         # Test 3: Test with different user (doctor)
         if 'doctor' in self.tokens:
             doctor_subscription_data = {
+                "user_id": self.users['doctor']['id'],  # Include user_id as expected by model
                 "subscription": {
                     "endpoint": "https://fcm.googleapis.com/fcm/send/doctor-endpoint-67890",
                     "keys": {
