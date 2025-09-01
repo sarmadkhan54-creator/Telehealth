@@ -498,19 +498,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "PWA Service Worker Implementation"
-    - "Push Notification Backend Endpoints"
-    - "Push Notification Integration"
-    - "PWA Manifest Configuration"
-    - "PWA Service Worker Registration"
-    - "PWA Icons Generation"
-    - "PWA Meta Tags"
-    - "Push Notification Frontend Integration"
-    - "PWA Install Prompt Component"
-    - "Notification Settings Component"
-    - "App Integration for PWA Features"
-    - "Dashboard Notification Settings Integration"
-  stuck_tasks: []
+    - "Video Call Notification Sound System Frontend Fix"
+  stuck_tasks:
+    - "Video Call Notification Sound System Frontend Fix"
   test_all: false
   test_priority: "high_first"
 
