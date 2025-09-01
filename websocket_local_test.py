@@ -7,7 +7,7 @@ import sys
 class LocalWebSocketTester:
     def __init__(self):
         # Test against local backend directly
-        self.api_url = "https://greenstar-health.preview.emergentagent.com/api"
+        self.api_url = "https://telehealth-pwa.preview.emergentagent.com/api"
         self.local_ws_url = "ws://localhost:8001"  # Direct connection to backend
         self.tokens = {}
         self.users = {}

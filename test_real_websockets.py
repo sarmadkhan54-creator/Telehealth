@@ -9,7 +9,7 @@ async def test_notification_websocket():
     
     # Login to get a real user ID
     login_response = requests.post(
-        "https://greenstar-health.preview.emergentagent.com/api/login",
+        "https://telehealth-pwa.preview.emergentagent.com/api/login",
         json={"username": "demo_doctor", "password": "Demo123!"}
     )
     
@@ -52,7 +52,7 @@ async def test_video_call_websocket():
     
     # First create a video call session
     login_response = requests.post(
-        "https://greenstar-health.preview.emergentagent.com/api/login",
+        "https://telehealth-pwa.preview.emergentagent.com/api/login",
         json={"username": "demo_doctor", "password": "Demo123!"}
     )
     
@@ -64,7 +64,7 @@ async def test_video_call_websocket():
     
     # Create an appointment first
     provider_login = requests.post(
-        "https://greenstar-health.preview.emergentagent.com/api/login",
+        "https://telehealth-pwa.preview.emergentagent.com/api/login",
         json={"username": "demo_provider", "password": "Demo123!"}
     )
     
@@ -88,7 +88,7 @@ async def test_video_call_websocket():
     }
     
     appointment_response = requests.post(
-        "https://greenstar-health.preview.emergentagent.com/api/appointments",
+        "https://telehealth-pwa.preview.emergentagent.com/api/appointments",
         json=appointment_data,
         headers={'Authorization': f'Bearer {provider_token}'}
     )
@@ -101,7 +101,7 @@ async def test_video_call_websocket():
     
     # Start video call
     video_call_response = requests.post(
-        f"https://greenstar-health.preview.emergentagent.com/api/video-call/start/{appointment_id}",
+        f"https://telehealth-pwa.preview.emergentagent.com/api/video-call/start/{appointment_id}",
         headers={'Authorization': f'Bearer {token}'}
     )
     
