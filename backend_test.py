@@ -2051,8 +2051,8 @@ def main():
         for test in failed_tests:
             print(f"   - {test}")
     
-    # Special focus on video call and appointment edit features
-    print(f"\n📹 VIDEO CALL & APPOINTMENT EDIT SUMMARY:")
+    # Special focus on push notifications and video call features
+    print(f"\n📹🔔 PUSH NOTIFICATIONS & VIDEO CALL SUMMARY:")
     if len(tester.tokens) == 3:
         print(f"   ✅ All 3 user types can login successfully")
         print(f"   ✅ Provider: {tester.demo_credentials['provider']['username']}")
@@ -2066,8 +2066,13 @@ def main():
     else:
         print(f"   ❌ No test appointment was created")
     
+    if hasattr(tester, 'vapid_public_key'):
+        print(f"   ✅ VAPID public key retrieved for push notifications")
+    else:
+        print(f"   ❌ VAPID public key not retrieved")
+    
     if tester.tests_passed >= tester.tests_run * 0.8:  # 80% pass rate
-        print("🎉 Video call and appointment edit functionality is working correctly!")
+        print("🎉 Push notification and video call functionality is working correctly!")
         return 0
     else:
         print("⚠️  Some critical tests failed - check logs above")
