@@ -929,6 +929,12 @@ const Dashboard = ({ user, onLogout }) => {
           </div>
         </div>
       )}
+      
+      {/* Notification Settings Modal */}
+      <NotificationSettings 
+        isOpen={showNotificationSettings}
+        onClose={() => setShowNotificationSettings(false)}
+      />
     </div>
   );
 };
