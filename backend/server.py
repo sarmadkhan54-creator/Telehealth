@@ -250,6 +250,140 @@ class PushNotificationPayload(BaseModel):
     data: Optional[Dict[str, Any]] = None
     type: str = "info"  # info, emergency, video_call, appointment_reminder
 
+# Push notification helper functions
+async def send_push_notification(user_id: str, payload: PushNotificationPayload):
+    """Send push notification to a specific user."""
+    try:
+        # Get user's push subscriptions
+        subscriptions = await db.push_subscriptions.find({"user_id": user_id, "active": True}).to_list(None)
+        
+        if not subscriptions:
+            return False
+        
+        notification_data = {
+            "title": payload.title,
+            "body": payload.body,
+            "icon": payload.icon,
+            "badge": payload.badge,
+            "data": payload.data or {},
+            "type": payload.type
+        }
+        
+        success_count = 0
+        for sub_doc in subscriptions:
+            try:
+                subscription = sub_doc["subscription"]
+                
+                response = webpush(
+                    subscription_info={
+                        "endpoint": subscription["endpoint"],
+                        "keys": subscription["keys"]
+                    },
+                    data=json.dumps(notification_data),
+                    vapid_private_key=VAPID_PRIVATE_KEY,
+                    vapid_claims=VAPID_CLAIMS
+                )
+                
+                if response.status_code in [200, 201, 204]:
+                    success_count += 1
+                else:
+                    # Mark subscription as inactive if it fails
+                    await db.push_subscriptions.update_one(
+                        {"_id": sub_doc["_id"]},
+                        {"$set": {"active": False}}
+                    )
+                    
+            except WebPushException as e:
+                print(f"Push notification failed for user {user_id}: {e}")
+                # Mark subscription as inactive
+                await db.push_subscriptions.update_one(
+                    {"_id": sub_doc["_id"]},
+                    {"$set": {"active": False}}
+                )
+            except Exception as e:
+                print(f"Unexpected error sending push notification: {e}")
+                
+        return success_count > 0
+        
+    except Exception as e:
+        print(f"Error sending push notification to user {user_id}: {e}")
+        return False
+
+async def send_appointment_reminder_notifications(appointment_id: str):
+    """Send appointment reminder notifications to relevant users."""
+    try:
+        appointment = await db.appointments.find_one({"id": appointment_id})
+        if not appointment:
+            return
+            
+        provider_id = appointment["provider_id"]
+        doctor_id = appointment.get("doctor_id")
+        
+        # Send to provider
+        provider_payload = PushNotificationPayload(
+            title="Appointment Reminder",
+            body=f"You have an upcoming {appointment['appointment_type']} appointment",
+            type="appointment_reminder",
+            data={
+                "appointment_id": appointment_id,
+                "action": "view_appointment"
+            }
+        )
+        await send_push_notification(provider_id, provider_payload)
+        
+        # Send to doctor if assigned
+        if doctor_id:
+            doctor_payload = PushNotificationPayload(
+                title="Appointment Reminder", 
+                body=f"You have an upcoming consultation with {appointment['patient_name']}",
+                type="appointment_reminder",
+                data={
+                    "appointment_id": appointment_id,
+                    "action": "view_appointment"
+                }
+            )
+            await send_push_notification(doctor_id, doctor_payload)
+            
+    except Exception as e:
+        print(f"Error sending appointment reminders: {e}")
+
+async def send_video_call_notification(appointment_id: str, caller_role: str):
+    """Send push notification for video call invitation."""
+    try:
+        appointment = await db.appointments.find_one({"id": appointment_id})
+        if not appointment:
+            return
+            
+        provider_id = appointment["provider_id"]
+        doctor_id = appointment.get("doctor_id")
+        
+        # Determine who to notify based on caller
+        if caller_role == "doctor" and provider_id:
+            target_user_id = provider_id
+            caller_name = "Doctor"
+        elif caller_role == "provider" and doctor_id:
+            target_user_id = doctor_id
+            caller_name = "Provider"
+        else:
+            return
+            
+        payload = PushNotificationPayload(
+            title="Incoming Video Call",
+            body=f"{caller_name} is inviting you to a video consultation",
+            type="video_call",
+            data={
+                "appointment_id": appointment_id,
+                "action": "join_call",
+                "caller_role": caller_role
+            }
+        )
+        
+        await send_push_notification(target_user_id, payload)
+        
+    except Exception as e:
+        print(f"Error sending video call notification: {e}")
+
+
 # Utility functions
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
