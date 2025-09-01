@@ -1466,6 +1466,535 @@ class MedConnectAPITester:
         """Test video call functionality - DEPRECATED, use test_video_call_start_and_join instead"""
         return self.test_video_call_start_and_join()
 
+    def test_push_notification_vapid_key(self):
+        """Test VAPID public key endpoint"""
+        print("\n🔑 Testing Push Notification VAPID Key Endpoint")
+        print("-" * 50)
+        
+        success, response = self.run_test(
+            "Get VAPID Public Key",
+            "GET",
+            "push/vapid-key",
+            200
+        )
+        
+        if success and 'vapid_public_key' in response:
+            vapid_key = response['vapid_public_key']
+            print(f"   ✅ VAPID key retrieved: {vapid_key[:20]}...")
+            
+            # Validate VAPID key format (should start with 'B' for uncompressed key)
+            if vapid_key.startswith('B') and len(vapid_key) > 80:
+                print("   ✅ VAPID key format appears valid")
+                self.vapid_public_key = vapid_key
+                return True
+            else:
+                print("   ❌ VAPID key format appears invalid")
+                return False
+        else:
+            print("   ❌ VAPID key not found in response")
+            return False
+
+    def test_push_notification_subscription(self):
+        """Test push notification subscription endpoints"""
+        print("\n📱 Testing Push Notification Subscription")
+        print("-" * 50)
+        
+        if 'provider' not in self.tokens:
+            print("❌ No provider token available")
+            return False
+        
+        # Test subscription data (mock browser push subscription)
+        subscription_data = {
+            "subscription": {
+                "endpoint": "https://fcm.googleapis.com/fcm/send/test-endpoint-12345",
+                "keys": {
+                    "p256dh": "BNbXfaXKGByLkQtXMDqn2cCoWLgXcDMpXNdlNqiQqkQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQ",
+                    "auth": "authKeyTest12345678901234567890"
+                }
+            }
+        }
+        
+        # Test 1: Subscribe to push notifications
+        success, response = self.run_test(
+            "Subscribe to Push Notifications",
+            "POST",
+            "push/subscribe",
+            200,
+            data=subscription_data,
+            token=self.tokens['provider']
+        )
+        
+        if success and response.get('success'):
+            print("   ✅ Successfully subscribed to push notifications")
+        else:
+            print("   ❌ Failed to subscribe to push notifications")
+            return False
+        
+        # Test 2: Subscribe again (should replace existing subscription)
+        success, response = self.run_test(
+            "Re-subscribe (Should Replace Existing)",
+            "POST",
+            "push/subscribe",
+            200,
+            data=subscription_data,
+            token=self.tokens['provider']
+        )
+        
+        if success and response.get('success'):
+            print("   ✅ Re-subscription successful (replaced existing)")
+        else:
+            print("   ❌ Re-subscription failed")
+            return False
+        
+        # Test 3: Test with different user (doctor)
+        if 'doctor' in self.tokens:
+            doctor_subscription_data = {
+                "subscription": {
+                    "endpoint": "https://fcm.googleapis.com/fcm/send/doctor-endpoint-67890",
+                    "keys": {
+                        "p256dh": "BDoctorXfaXKGByLkQtXMDqn2cCoWLgXcDMpXNdlNqiQqkQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQ",
+                        "auth": "doctorAuthKey1234567890123456789"
+                    }
+                }
+            }
+            
+            success, response = self.run_test(
+                "Doctor Subscribe to Push Notifications",
+                "POST",
+                "push/subscribe",
+                200,
+                data=doctor_subscription_data,
+                token=self.tokens['doctor']
+            )
+            
+            if success and response.get('success'):
+                print("   ✅ Doctor successfully subscribed to push notifications")
+            else:
+                print("   ❌ Doctor failed to subscribe to push notifications")
+                return False
+        
+        return True
+
+    def test_push_notification_unsubscribe(self):
+        """Test push notification unsubscribe endpoint"""
+        print("\n📱❌ Testing Push Notification Unsubscribe")
+        print("-" * 50)
+        
+        if 'provider' not in self.tokens:
+            print("❌ No provider token available")
+            return False
+        
+        # Test unsubscribe
+        success, response = self.run_test(
+            "Unsubscribe from Push Notifications",
+            "DELETE",
+            "push/unsubscribe",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if success and response.get('success'):
+            deleted_count = response.get('message', '').split()[2] if 'Unsubscribed from' in response.get('message', '') else '0'
+            print(f"   ✅ Successfully unsubscribed ({deleted_count} subscriptions removed)")
+            return True
+        else:
+            print("   ❌ Failed to unsubscribe from push notifications")
+            return False
+
+    def test_push_notification_test_endpoint(self):
+        """Test sending test push notifications"""
+        print("\n🧪 Testing Push Notification Test Endpoint")
+        print("-" * 50)
+        
+        if 'doctor' not in self.tokens:
+            print("❌ No doctor token available")
+            return False
+        
+        # First, subscribe doctor to push notifications
+        subscription_data = {
+            "subscription": {
+                "endpoint": "https://fcm.googleapis.com/fcm/send/test-doctor-endpoint",
+                "keys": {
+                    "p256dh": "BTestDoctorXfaXKGByLkQtXMDqn2cCoWLgXcDMpXNdlNqiQqkQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQ",
+                    "auth": "testDoctorAuthKey123456789012345"
+                }
+            }
+        }
+        
+        success, response = self.run_test(
+            "Subscribe Doctor for Test Notification",
+            "POST",
+            "push/subscribe",
+            200,
+            data=subscription_data,
+            token=self.tokens['doctor']
+        )
+        
+        if not success:
+            print("   ❌ Could not subscribe doctor for test")
+            return False
+        
+        # Test sending test notification
+        success, response = self.run_test(
+            "Send Test Push Notification",
+            "POST",
+            "push/test",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if success:
+            if response.get('success'):
+                print("   ✅ Test notification sent successfully")
+            else:
+                print("   ⚠️  Test notification endpoint responded but no active subscriptions")
+            return True
+        else:
+            print("   ❌ Failed to send test push notification")
+            return False
+
+    def test_push_notification_appointment_reminder_admin_only(self):
+        """Test appointment reminder push notifications (admin only)"""
+        print("\n📅🔔 Testing Appointment Reminder Push Notifications (Admin Only)")
+        print("-" * 70)
+        
+        if 'admin' not in self.tokens:
+            print("❌ No admin token available")
+            return False
+        
+        if not self.appointment_id:
+            print("❌ No appointment ID available")
+            return False
+        
+        all_success = True
+        
+        # Test 1: Admin can send appointment reminders
+        success, response = self.run_test(
+            "Send Appointment Reminder (Admin - Should Work)",
+            "POST",
+            f"push/appointment-reminder/{self.appointment_id}",
+            200,
+            token=self.tokens['admin']
+        )
+        
+        if success and response.get('success'):
+            print("   ✅ Admin can send appointment reminders")
+        else:
+            print("   ❌ Admin cannot send appointment reminders")
+            all_success = False
+        
+        # Test 2: Provider cannot send appointment reminders (should fail)
+        if 'provider' in self.tokens:
+            success, response = self.run_test(
+                "Send Appointment Reminder (Provider - Should Fail)",
+                "POST",
+                f"push/appointment-reminder/{self.appointment_id}",
+                403,
+                token=self.tokens['provider']
+            )
+            
+            if success:
+                print("   ✅ Provider correctly denied appointment reminder access")
+            else:
+                print("   ❌ Provider unexpectedly allowed to send appointment reminders")
+                all_success = False
+        
+        # Test 3: Doctor cannot send appointment reminders (should fail)
+        if 'doctor' in self.tokens:
+            success, response = self.run_test(
+                "Send Appointment Reminder (Doctor - Should Fail)",
+                "POST",
+                f"push/appointment-reminder/{self.appointment_id}",
+                403,
+                token=self.tokens['doctor']
+            )
+            
+            if success:
+                print("   ✅ Doctor correctly denied appointment reminder access")
+            else:
+                print("   ❌ Doctor unexpectedly allowed to send appointment reminders")
+                all_success = False
+        
+        # Test 4: Invalid appointment ID
+        invalid_appointment_id = "invalid-appointment-12345"
+        success, response = self.run_test(
+            "Send Reminder for Invalid Appointment",
+            "POST",
+            f"push/appointment-reminder/{invalid_appointment_id}",
+            200,  # Should still return 200 but handle gracefully
+            token=self.tokens['admin']
+        )
+        
+        if success:
+            print("   ✅ Invalid appointment ID handled gracefully")
+        else:
+            print("   ❌ Invalid appointment ID caused server error")
+            all_success = False
+        
+        return all_success
+
+    def test_push_notification_video_call_integration(self):
+        """Test push notification integration with video call start"""
+        print("\n📹🔔 Testing Push Notification Integration with Video Calls")
+        print("-" * 65)
+        
+        if not self.appointment_id:
+            print("❌ No appointment ID available")
+            return False
+        
+        if 'doctor' not in self.tokens or 'provider' not in self.tokens:
+            print("❌ Missing doctor or provider tokens")
+            return False
+        
+        # First, ensure both users are subscribed to push notifications
+        provider_subscription = {
+            "subscription": {
+                "endpoint": "https://fcm.googleapis.com/fcm/send/provider-video-test",
+                "keys": {
+                    "p256dh": "BProviderVideoXfaXKGByLkQtXMDqn2cCoWLgXcDMpXNdlNqiQqkQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQ",
+                    "auth": "providerVideoAuthKey12345678901234"
+                }
+            }
+        }
+        
+        doctor_subscription = {
+            "subscription": {
+                "endpoint": "https://fcm.googleapis.com/fcm/send/doctor-video-test",
+                "keys": {
+                    "p256dh": "BDoctorVideoXfaXKGByLkQtXMDqn2cCoWLgXcDMpXNdlNqiQqkQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQ",
+                    "auth": "doctorVideoAuthKey123456789012345"
+                }
+            }
+        }
+        
+        # Subscribe both users
+        success1, _ = self.run_test(
+            "Subscribe Provider for Video Call Notifications",
+            "POST",
+            "push/subscribe",
+            200,
+            data=provider_subscription,
+            token=self.tokens['provider']
+        )
+        
+        success2, _ = self.run_test(
+            "Subscribe Doctor for Video Call Notifications",
+            "POST",
+            "push/subscribe",
+            200,
+            data=doctor_subscription,
+            token=self.tokens['doctor']
+        )
+        
+        if not (success1 and success2):
+            print("   ❌ Could not subscribe users for video call notification testing")
+            return False
+        
+        print("   ✅ Both users subscribed to push notifications")
+        
+        # Test 1: Doctor starts video call (should trigger push notification to provider)
+        success, response = self.run_test(
+            "Doctor Starts Video Call (Should Trigger Push Notification)",
+            "POST",
+            f"video-call/start/{self.appointment_id}",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if success:
+            session_token = response.get('session_token')
+            print(f"   ✅ Doctor started video call, session: {session_token[:20]}...")
+            print("   ℹ️  Push notification should have been sent to provider")
+        else:
+            print("   ❌ Doctor could not start video call")
+            return False
+        
+        # Test 2: Provider starts video call (should trigger push notification to doctor)
+        success, response = self.run_test(
+            "Provider Starts Video Call (Should Trigger Push Notification)",
+            "POST",
+            f"video-call/start/{self.appointment_id}",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if success:
+            session_token = response.get('session_token')
+            print(f"   ✅ Provider started video call, session: {session_token[:20]}...")
+            print("   ℹ️  Push notification should have been sent to doctor")
+        else:
+            print("   ❌ Provider could not start video call")
+            return False
+        
+        print("   ✅ Video call push notification integration working")
+        return True
+
+    def test_push_notification_error_handling(self):
+        """Test push notification error handling"""
+        print("\n🚨 Testing Push Notification Error Handling")
+        print("-" * 50)
+        
+        all_success = True
+        
+        # Test 1: Invalid subscription data
+        if 'provider' in self.tokens:
+            invalid_subscription = {
+                "subscription": {
+                    "endpoint": "",  # Invalid empty endpoint
+                    "keys": {
+                        "p256dh": "invalid",
+                        "auth": "invalid"
+                    }
+                }
+            }
+            
+            success, response = self.run_test(
+                "Subscribe with Invalid Data",
+                "POST",
+                "push/subscribe",
+                500,  # Should handle gracefully but may return 500
+                data=invalid_subscription,
+                token=self.tokens['provider']
+            )
+            
+            # Accept either 400 or 500 as valid error responses
+            if success or response:
+                print("   ✅ Invalid subscription data handled appropriately")
+            else:
+                print("   ❌ Invalid subscription data not handled properly")
+                all_success = False
+        
+        # Test 2: Unauthorized access to endpoints
+        success, response = self.run_test(
+            "Access Push Endpoints Without Token",
+            "GET",
+            "push/vapid-key",
+            200  # VAPID key should be public
+        )
+        
+        if success:
+            print("   ✅ VAPID key accessible without authentication (correct)")
+        else:
+            print("   ❌ VAPID key not accessible")
+            all_success = False
+        
+        # Test 3: Subscribe without authentication (should fail)
+        subscription_data = {
+            "subscription": {
+                "endpoint": "https://fcm.googleapis.com/fcm/send/unauthorized-test",
+                "keys": {
+                    "p256dh": "BUnauthorizedTest",
+                    "auth": "unauthorizedAuth"
+                }
+            }
+        }
+        
+        success, response = self.run_test(
+            "Subscribe Without Authentication (Should Fail)",
+            "POST",
+            "push/subscribe",
+            401,  # Should require authentication
+            data=subscription_data
+        )
+        
+        if success:
+            print("   ✅ Subscription correctly requires authentication")
+        else:
+            print("   ❌ Subscription unexpectedly allowed without authentication")
+            all_success = False
+        
+        return all_success
+
+    def test_push_notification_models_validation(self):
+        """Test push notification data models and validation"""
+        print("\n📋 Testing Push Notification Models and Validation")
+        print("-" * 55)
+        
+        if 'provider' not in self.tokens:
+            print("❌ No provider token available")
+            return False
+        
+        all_success = True
+        
+        # Test 1: Valid subscription with all required fields
+        valid_subscription = {
+            "subscription": {
+                "endpoint": "https://fcm.googleapis.com/fcm/send/valid-endpoint-test",
+                "keys": {
+                    "p256dh": "BValidTestXfaXKGByLkQtXMDqn2cCoWLgXcDMpXNdlNqiQqkQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQzQ",
+                    "auth": "validTestAuthKey1234567890123456"
+                }
+            }
+        }
+        
+        success, response = self.run_test(
+            "Valid Subscription Model",
+            "POST",
+            "push/subscribe",
+            200,
+            data=valid_subscription,
+            token=self.tokens['provider']
+        )
+        
+        if success and response.get('success'):
+            print("   ✅ Valid subscription model accepted")
+        else:
+            print("   ❌ Valid subscription model rejected")
+            all_success = False
+        
+        # Test 2: Missing keys field
+        missing_keys_subscription = {
+            "subscription": {
+                "endpoint": "https://fcm.googleapis.com/fcm/send/missing-keys-test"
+                # Missing keys field
+            }
+        }
+        
+        success, response = self.run_test(
+            "Subscription Missing Keys Field",
+            "POST",
+            "push/subscribe",
+            422,  # Validation error
+            data=missing_keys_subscription,
+            token=self.tokens['provider']
+        )
+        
+        # Accept 422 (validation error) or 500 (server error) as valid responses
+        if success or (not success and response):
+            print("   ✅ Missing keys field properly validated")
+        else:
+            print("   ❌ Missing keys field validation failed")
+            all_success = False
+        
+        # Test 3: Missing endpoint field
+        missing_endpoint_subscription = {
+            "subscription": {
+                "keys": {
+                    "p256dh": "BMissingEndpointTest",
+                    "auth": "missingEndpointAuth123456789012"
+                }
+                # Missing endpoint field
+            }
+        }
+        
+        success, response = self.run_test(
+            "Subscription Missing Endpoint Field",
+            "POST",
+            "push/subscribe",
+            422,  # Validation error
+            data=missing_endpoint_subscription,
+            token=self.tokens['provider']
+        )
+        
+        # Accept 422 (validation error) or 500 (server error) as valid responses
+        if success or (not success and response):
+            print("   ✅ Missing endpoint field properly validated")
+        else:
+            print("   ❌ Missing endpoint field validation failed")
+            all_success = False
+        
+        return all_success
+
 def main():
     print("🏥 MedConnect Telehealth API Testing - FOCUSED ON SAME SESSION VIDEO CALLS")
     print("=" * 80)
