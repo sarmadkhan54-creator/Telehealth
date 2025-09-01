@@ -51,81 +51,117 @@ const Dashboard = ({ user, onLogout }) => {
     
     try {
       const ws = new WebSocket(wsUrl);
+      
+      ws.onopen = () => {
+        console.log('✅ WebSocket connected successfully');
+      };
     
-    ws.onmessage = (event) => {
-      const notification = JSON.parse(event.data);
-      
-      // Auto-refresh appointments when receiving notifications
-      if (notification.type === 'emergency_appointment' || 
-          notification.type === 'appointment_accepted' || 
-          notification.type === 'appointment_updated' ||
-          notification.type === 'video_call_invitation') {
-        fetchAppointments(); // Refresh appointments list
-      }
-      
-      // Handle Jitsi video call invitations
-      if (notification.type === 'jitsi_call_invitation') {
-        // Play ringing sound
-        playRingingSound();
-        
-        // Show video call invitation popup with Jitsi URL
-        setVideoCallInvitation({
-          jitsiUrl: notification.jitsi_url,
-          roomName: notification.room_name,
-          callerName: notification.caller,
-          callerRole: notification.caller_role,
-          appointmentId: notification.appointment_id,
-          appointmentType: notification.appointment_type,
-          patient: notification.patient || {
-            name: "Unknown Patient",
-            age: "Unknown",
-            gender: "Unknown", 
-            consultation_reason: "General consultation",
-            vitals: {}
+      ws.onmessage = (event) => {
+        try {
+          const notification = JSON.parse(event.data);
+          console.log('📨 Received WebSocket notification:', notification);
+          
+          // Auto-refresh appointments when receiving notifications
+          if (notification.type === 'emergency_appointment' || 
+              notification.type === 'appointment_accepted' || 
+              notification.type === 'appointment_updated' ||
+              notification.type === 'video_call_invitation') {
+            fetchAppointments(); // Refresh appointments list
           }
-        });
-        setShowVideoCallInvitation(true);
-        
-        // Auto-hide popup after 30 seconds
-        setTimeout(() => {
-          stopRingingSound();
-          setShowVideoCallInvitation(false);
-          setVideoCallInvitation(null);
-        }, 30000);
-      }
-      
-      // Show browser notification for important updates
-      if (Notification.permission === 'granted') {
-        if (notification.type === 'appointment_accepted') {
-          new Notification('Appointment Accepted', {
-            body: `Doctor accepted your appointment for ${notification.patient_name}`,
-            icon: '/favicon.ico'
-          });
-        } else if (notification.type === 'video_call_invitation') {
-          new Notification('Video Call Invitation', {
-            body: `${notification.caller} is inviting you to a video call`,
-            icon: '/favicon.ico',
-            requireInteraction: true
-          });
+          
+          // Handle Jitsi video call invitations
+          if (notification.type === 'jitsi_call_invitation') {
+            console.log('📞 Received video call invitation');
+            
+            // Play ringing sound
+            playRingingSound();
+            
+            // Show video call invitation popup with Jitsi URL
+            setVideoCallInvitation({
+              jitsiUrl: notification.jitsi_url,
+              roomName: notification.room_name,
+              callerName: notification.caller,
+              callerRole: notification.caller_role,
+              appointmentId: notification.appointment_id,
+              appointmentType: notification.appointment_type,
+              patient: notification.patient || {
+                name: "Unknown Patient",
+                age: "Unknown",
+                gender: "Unknown", 
+                consultation_reason: "General consultation",
+                vitals: {}
+              }
+            });
+            setShowVideoCallInvitation(true);
+            
+            // Auto-hide popup after 30 seconds
+            setTimeout(() => {
+              stopRingingSound();
+              setShowVideoCallInvitation(false);
+              setVideoCallInvitation(null);
+            }, 30000);
+            
+            // Send browser notification if permission granted
+            if (Notification.permission === 'granted') {
+              const browserNotification = new Notification('Incoming Video Call', {
+                body: `${notification.caller} is inviting you to a video consultation`,
+                icon: '/icons/icon-192x192.png',
+                tag: 'video-call-invitation',
+                requireInteraction: true
+              });
+              
+              browserNotification.onclick = () => {
+                handleAcceptVideoCall();
+                browserNotification.close();
+              };
+            }
+          }
+          
+          // Show browser notification for important updates
+          if (Notification.permission === 'granted') {
+            if (notification.type === 'appointment_accepted') {
+              new Notification('Appointment Accepted', {
+                body: `Doctor accepted your appointment for ${notification.patient_name}`,
+                icon: '/favicon.ico'
+              });
+            } else if (notification.type === 'video_call_invitation') {
+              new Notification('Video Call Invitation', {
+                body: `${notification.caller} is inviting you to a video call`,
+                icon: '/favicon.ico',
+                requireInteraction: true
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
         }
+      };
+
+      ws.onerror = (error) => {
+        console.error('❌ WebSocket error:', error);
+      };
+
+      ws.onclose = (event) => {
+        console.log('🔌 WebSocket disconnected, attempting to reconnect in 5 seconds...');
+        console.log('Close event:', event.code, event.reason);
+        // Try to reconnect after 5 seconds
+        setTimeout(setupWebSocket, 5000);
+      };
+
+      // Request notification permission for mobile
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission().then(permission => {
+          console.log('📱 Notification permission:', permission);
+        });
       }
-    };
 
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-
-    ws.onclose = () => {
-      // Try to reconnect after 5 seconds
+      return () => ws.close();
+      
+    } catch (error) {
+      console.error('❌ Error setting up WebSocket:', error);
+      // Retry after 5 seconds
       setTimeout(setupWebSocket, 5000);
-    };
-
-    // Request notification permission
-    if (Notification.permission === 'default') {
-      Notification.requestPermission();
     }
-
-    return () => ws.close();
   };
 
   const playRingingSound = () => {
