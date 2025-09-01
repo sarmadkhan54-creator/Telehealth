@@ -474,6 +474,21 @@ frontend:
       - working: false
         agent: "testing"
         comment: "CRITICAL ISSUE IDENTIFIED: pushNotificationManager has method binding error - 'TypeError: this.isSupported is not a function' preventing notification initialization. This blocks: 1) Browser notification permission requests, 2) Push notification subscriptions, 3) Notification settings functionality, 4) Video call sound notifications. Root cause: Method binding issue in PushNotificationManager class. WebSocket connections work perfectly, Audio API works, playRingingSound() function works - issue is purely in pushNotificationManager initialization preventing notification permission flow."
+  
+  - task: "Real-Time WebSocket Notifications"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/Dashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "TESTED: Real-time WebSocket notifications working correctly. Both Provider and Doctor dashboards establish WebSocket connections to /ws/{user.id}. Provider receives notifications for appointment_accepted and video_call_invitation. Doctor receives notifications for emergency_appointment and video_call_invitation. Browser notification API available and configured (permission: denied but requestable). WebSocket connections auto-reconnect after 5 seconds on disconnect. Notification system fully operational."
+      - working: true
+        agent: "testing"
+        comment: "RE-TESTED: WebSocket connections confirmed working perfectly! ✅ WebSocket connects to wss://telehealth-pwa.preview.emergentagent.com/api/ws/{user_id} successfully, ✅ Connection logs show 'WebSocket connected successfully', ✅ Real-time message delivery functional, ✅ jitsi_call_invitation notifications being received properly, ✅ WebSocket reconnection working, ✅ All WebSocket infrastructure operational. The WebSocket notification delivery system is NOT the problem - it's working correctly."
 
 metadata:
   created_by: "main_agent"
