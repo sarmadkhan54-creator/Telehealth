@@ -1996,16 +1996,28 @@ class MedConnectAPITester:
         return all_success
 
 def main():
-    print("🏥 MedConnect Telehealth API Testing - FOCUSED ON SAME SESSION VIDEO CALLS")
+    print("🏥 MedConnect Telehealth API Testing - PUSH NOTIFICATIONS & VIDEO CALLS")
     print("=" * 80)
     
     tester = MedConnectAPITester()
     
-    # Test sequence - focused on SAME SESSION video call functionality
+    # Test sequence - focused on push notifications and video call functionality
     tests = [
         ("Health Check", tester.test_health_check),
         ("Login All Roles", tester.test_login_all_roles),
         ("Create Appointment", tester.test_create_appointment),
+        
+        # Push Notification Tests
+        ("🔑 Push Notification VAPID Key", tester.test_push_notification_vapid_key),
+        ("📱 Push Notification Subscription", tester.test_push_notification_subscription),
+        ("🧪 Push Notification Test Endpoint", tester.test_push_notification_test_endpoint),
+        ("📅🔔 Appointment Reminder (Admin Only)", tester.test_push_notification_appointment_reminder_admin_only),
+        ("📹🔔 Video Call Push Integration", tester.test_push_notification_video_call_integration),
+        ("📋 Push Notification Models", tester.test_push_notification_models_validation),
+        ("🚨 Push Notification Error Handling", tester.test_push_notification_error_handling),
+        ("📱❌ Push Notification Unsubscribe", tester.test_push_notification_unsubscribe),
+        
+        # Video Call Tests
         ("🎯 Video Call Session Same Token", tester.test_video_call_session_same_token),
         ("Video Call WebSocket Signaling", tester.test_video_call_websocket_signaling),
         ("End-to-End Video Call Workflow", tester.test_video_call_end_to_end_workflow),
