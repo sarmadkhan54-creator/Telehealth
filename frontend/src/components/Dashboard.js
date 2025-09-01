@@ -35,8 +35,22 @@ const Dashboard = ({ user, onLogout }) => {
   }, []);
 
   const setupWebSocket = () => {
-    const wsUrl = `${BACKEND_URL.replace('https:', 'wss:').replace('http:', 'ws:')}/api/ws/${user.id}`;
-    const ws = new WebSocket(wsUrl);
+    // Construct WebSocket URL properly for mobile and desktop
+    let wsUrl;
+    if (BACKEND_URL.startsWith('https://')) {
+      wsUrl = BACKEND_URL.replace('https://', 'wss://') + `/api/ws/${user.id}`;
+    } else if (BACKEND_URL.startsWith('http://')) {
+      wsUrl = BACKEND_URL.replace('http://', 'ws://') + `/api/ws/${user.id}`;
+    } else {
+      // Fallback for relative URLs
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      wsUrl = `${protocol}//${window.location.host}/api/ws/${user.id}`;
+    }
+    
+    console.log(`🔌 Connecting to WebSocket: ${wsUrl}`);
+    
+    try {
+      const ws = new WebSocket(wsUrl);
     
     ws.onmessage = (event) => {
       const notification = JSON.parse(event.data);
