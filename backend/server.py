@@ -870,6 +870,9 @@ async def start_video_call(appointment_id: str, current_user: User = Depends(get
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
         await manager.send_personal_message(notification, target_user_id)
+        
+        # Send push notification
+        await send_video_call_notification(appointment_id, current_user.role)
     
     return {"session_token": session_token, "appointment_id": appointment_id}
 
