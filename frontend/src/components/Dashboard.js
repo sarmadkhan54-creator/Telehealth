@@ -26,11 +26,52 @@ const Dashboard = ({ user, onLogout }) => {
     fetchAppointments();
     setupWebSocket();
     
-    // Set up auto-refresh interval as fallback
+    // Auto-refresh appointments every 30 seconds
     const refreshInterval = setInterval(fetchAppointments, 30000); // Refresh every 30 seconds
+    
+    // Request notification permissions on first interaction
+    const requestPermissionsOnInteraction = async () => {
+      try {
+        // Request notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+          const permission = await Notification.requestPermission();
+          console.log('📱 Notification permission requested:', permission);
+          
+          if (permission === 'granted') {
+            // Initialize push notifications after permission granted
+            const { pushNotificationManager } = await import('../utils/pushNotifications');
+            await pushNotificationManager.initialize(true);
+            console.log('✅ Push notifications initialized after permission grant');
+          }
+        }
+        
+        // Test audio context (requires user interaction)
+        if (window.AudioContext || window.webkitAudioContext) {
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          if (audioContext.state === 'suspended') {
+            await audioContext.resume();
+            console.log('✅ Audio context resumed after user interaction');
+          }
+        }
+      } catch (error) {
+        console.error('Error requesting permissions:', error);
+      }
+    };
+    
+    // Add click listener to enable permissions on first interaction
+    const handleFirstInteraction = () => {
+      requestPermissionsOnInteraction();
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
+    };
+    
+    document.addEventListener('click', handleFirstInteraction);
+    document.addEventListener('touchstart', handleFirstInteraction);
     
     return () => {
       clearInterval(refreshInterval);
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
     };
   }, []);
 
