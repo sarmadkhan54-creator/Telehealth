@@ -708,7 +708,7 @@ async def start_video_call(appointment_id: str, current_user: User = Depends(get
 
 @api_router.get("/video-call/session/{appointment_id}")
 async def get_video_call_session(appointment_id: str, current_user: User = Depends(get_current_user)):
-    """Get existing video call session for an appointment, or create one if none exists"""
+    """Get or create Jitsi room for appointment"""
     appointment = await db.appointments.find_one({"id": appointment_id})
     if not appointment:
         raise HTTPException(status_code=404, detail="Appointment not found")
@@ -725,67 +725,65 @@ async def get_video_call_session(appointment_id: str, current_user: User = Depen
     else:
         raise HTTPException(status_code=403, detail="Access denied")
     
-    # Look for existing video session for this appointment
-    existing_session = await db.video_sessions.find_one(
-        {"appointment_id": appointment_id, "ended_at": None},
-        sort=[("started_at", -1)]  # Get the most recent active session
+    # Generate Jitsi room name based on appointment ID
+    room_name = f"greenstar-appointment-{appointment_id}"
+    
+    # Create Jitsi meeting URL
+    jitsi_domain = "meet.jit.si"  # Using public Jitsi server
+    jitsi_url = f"https://{jitsi_domain}/{room_name}"
+    
+    # Store the Jitsi room info
+    jitsi_session = {
+        "appointment_id": appointment_id,
+        "room_name": room_name,
+        "jitsi_url": jitsi_url,
+        "created_by": current_user.id,
+        "created_at": datetime.now(timezone.utc),
+        "participants": []
+    }
+    
+    # Update or insert Jitsi session
+    await db.jitsi_sessions.update_one(
+        {"appointment_id": appointment_id},
+        {"$set": jitsi_session},
+        upsert=True
     )
     
-    if existing_session:
-        # Return existing session
-        return {
-            "session_token": existing_session["session_token"], 
-            "appointment_id": appointment_id,
-            "status": "existing"
-        }
+    # Notify the other participant about video call invitation
+    if current_user.role == "doctor":
+        target_user_id = appointment.get("provider_id")
     else:
-        # No existing session, create a new one
-        session_token = str(uuid.uuid4())
+        target_user_id = appointment.get("doctor_id")
+    
+    if target_user_id:
+        # Get appointment details for notification
+        patient_info = appointment.get("patient", {})
         
-        video_session = VideoCallSession(
-            appointment_id=appointment_id,
-            provider_id=appointment["provider_id"],
-            doctor_id=current_user.id if current_user.role == "doctor" else appointment.get("doctor_id"),
-            session_token=session_token
-        )
-        
-        await db.video_sessions.insert_one(video_session.dict())
-        
-        # Notify the other participant
-        if current_user.role == "doctor":
-            target_user_id = appointment["provider_id"]
-        else:
-            target_user_id = appointment.get("doctor_id")
-        
-        if target_user_id:
-            # Get appointment details for notification
-            appointment_doc = await db.appointments.find_one({"id": appointment_id})
-            patient_info = appointment_doc.get("patient", {}) if appointment_doc else {}
-            
-            notification = {
-                "type": "video_call_invitation",
-                "session_token": session_token,
-                "appointment_id": appointment_id,
-                "caller": current_user.full_name,
-                "caller_role": current_user.role,
-                "appointment_type": appointment.get("appointment_type", "non_emergency"),
-                "patient": {
-                    "name": patient_info.get("name", "Unknown Patient"),
-                    "age": patient_info.get("age", "Unknown"),
-                    "gender": patient_info.get("gender", "Unknown"),
-                    "consultation_reason": patient_info.get("consultation_reason", "General consultation"),
-                    "vitals": patient_info.get("vitals", {})
-                },
-                "appointment_time": appointment.get("appointment_time", ""),
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            }
-            await manager.send_personal_message(notification, target_user_id)
-        
-        return {
-            "session_token": session_token, 
+        notification = {
+            "type": "jitsi_call_invitation",
             "appointment_id": appointment_id,
-            "status": "created"
+            "jitsi_url": jitsi_url,
+            "room_name": room_name,
+            "caller": current_user.full_name,
+            "caller_role": current_user.role,
+            "appointment_type": appointment.get("appointment_type", "non_emergency"),
+            "patient": {
+                "name": patient_info.get("name", "Unknown Patient"),
+                "age": patient_info.get("age", "Unknown"),
+                "gender": patient_info.get("gender", "Unknown"),
+                "consultation_reason": patient_info.get("consultation_reason", "General consultation"),
+                "vitals": patient_info.get("vitals", {})
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
+        await manager.send_personal_message(notification, target_user_id)
+    
+    return {
+        "jitsi_url": jitsi_url,
+        "room_name": room_name,
+        "appointment_id": appointment_id,
+        "status": "ready"
+    }
 
 @api_router.post("/video-call/end/{session_token}")
 async def end_video_call(session_token: str, current_user: User = Depends(get_current_user)):
