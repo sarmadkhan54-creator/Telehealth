@@ -105,6 +105,42 @@
 user_problem_statement: "Complete the PWA conversion with push notifications, offline mode, background sync, and Android-focused home screen icons"
 
 backend:
+  - task: "PWA Service Worker Implementation"
+    implemented: true
+    working: true
+    file: "/app/frontend/public/sw.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Service worker created with caching, push notifications, and offline support. Fixed ESLint error with 'clients' vs 'self.clients'"
+  
+  - task: "Push Notification Backend Endpoints"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Added VAPID keys, push notification models (PushSubscription, UserPushSubscription, PushNotificationPayload), push notification helper functions, and API endpoints: /push/subscribe, /push/unsubscribe, /push/vapid-key, /push/test, /push/appointment-reminder"
+  
+  - task: "Push Notification Integration"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Integrated push notifications into video call start endpoint to send notifications to other participants. Added pywebpush dependency."
+  
   - task: "Video Call Start Endpoint"
     implemented: true
     working: true
