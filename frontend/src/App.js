@@ -6,7 +6,7 @@ import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
 import PatientForm from './components/PatientForm';
 import DoctorDashboard from './components/DoctorDashboard';
-import VideoCall from './components/VideoCall';
+
 import AdminDashboard from './components/AdminDashboard';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
