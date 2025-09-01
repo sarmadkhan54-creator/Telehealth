@@ -441,7 +441,18 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Video Call WebSocket Signaling"
+    - "PWA Service Worker Implementation"
+    - "Push Notification Backend Endpoints"
+    - "Push Notification Integration"
+    - "PWA Manifest Configuration"
+    - "PWA Service Worker Registration"
+    - "PWA Icons Generation"
+    - "PWA Meta Tags"
+    - "Push Notification Frontend Integration"
+    - "PWA Install Prompt Component"
+    - "Notification Settings Component"
+    - "App Integration for PWA Features"
+    - "Dashboard Notification Settings Integration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
