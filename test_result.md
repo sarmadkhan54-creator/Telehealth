@@ -138,11 +138,14 @@ backend:
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Integrated push notifications into video call start endpoint to send notifications to other participants. Added pywebpush dependency."
+      - working: true
+        agent: "testing"
+        comment: "TESTED: Push notification integration with video calls working perfectly! ✅ Video call start endpoint (/api/video-call/start/{appointment_id}) successfully triggers push notifications to other participants, ✅ send_video_call_notification() helper function works correctly, ✅ Push notifications sent when doctor starts call (notifies provider) and when provider starts call (notifies doctor), ✅ Integration properly identifies target users based on appointment roles, ✅ Push notification data includes proper video call invitation details with appointment context, ✅ All push notification helper functions (send_push_notification, send_appointment_reminder_notifications, send_video_call_notification) working correctly, ✅ MongoDB storage of push subscription data verified. Video call push notification integration fully operational."
   
   - task: "Video Call Start Endpoint"
     implemented: true
