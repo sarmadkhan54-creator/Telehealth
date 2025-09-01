@@ -32,12 +32,22 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // FOR DEBUGGING: Uncomment the next lines to force logout on app start
+    // localStorage.removeItem('authToken');
+    // localStorage.removeItem('userData');
+    // sessionStorage.clear();
+    
     const token = localStorage.getItem('authToken');
     const userData = localStorage.getItem('userData');
+    
+    console.log('🔍 Checking existing authentication...');
+    console.log('Token exists:', !!token);
+    console.log('User data exists:', !!userData);
     
     if (token && userData) {
       try {
         const parsedUserData = JSON.parse(userData);
+        console.log('👤 Auto-logging in user:', parsedUserData.username);
         setUser(parsedUserData);
         
         // Initialize push notifications for existing logged-in user
@@ -49,6 +59,8 @@ function App() {
         localStorage.removeItem('authToken');
         localStorage.removeItem('userData');
       }
+    } else {
+      console.log('🚪 No existing authentication found - showing login page');
     }
     setLoading(false);
   }, []);
