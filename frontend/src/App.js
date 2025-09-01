@@ -68,9 +68,24 @@ function App() {
   };
 
   const handleLogout = () => {
+    // Clear all authentication data
     localStorage.removeItem('authToken');
     localStorage.removeItem('userData');
+    
+    // Clear any push notification subscriptions
+    if (pushNotificationManager) {
+      pushNotificationManager.unsubscribe().catch(error => {
+        console.error('Error unsubscribing from push notifications:', error);
+      });
+    }
+    
+    // Reset user state
     setUser(null);
+    
+    // Clear any browser cache/session storage as well
+    sessionStorage.clear();
+    
+    console.log('🚪 User logged out and all data cleared');
   };
 
   if (loading) {
