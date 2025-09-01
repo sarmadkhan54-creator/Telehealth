@@ -1234,8 +1234,8 @@ class MedConnectAPITester:
         print("\n🔌 Testing Video Call WebSocket Signaling")
         print("-" * 50)
         
-        if not hasattr(self, 'video_session_token') or not self.video_session_token:
-            print("❌ No video session token available for WebSocket testing")
+        if not hasattr(self, 'video_room_name') or not self.video_room_name:
+            print("❌ No video room name available for WebSocket testing")
             return False
         
         try:
@@ -1244,7 +1244,9 @@ class MedConnectAPITester:
             import time
             
             # Test WebSocket connection to video call signaling endpoint
-            ws_url = f"wss://greenstar-health.preview.emergentagent.com/ws/video-call/{self.video_session_token}"
+            # Note: The actual WebSocket endpoint for video calls is different from Jitsi
+            # This test verifies the general WebSocket infrastructure
+            ws_url = f"wss://telehealth-pwa.preview.emergentagent.com/api/ws/{self.users['doctor']['id']}"
             print(f"   Testing WebSocket URL: {ws_url}")
             
             connection_successful = False
@@ -1258,15 +1260,6 @@ class MedConnectAPITester:
                 nonlocal connection_successful
                 connection_successful = True
                 print("   ✅ WebSocket connection established")
-                
-                # Send join message
-                join_message = {
-                    "type": "join",
-                    "userId": self.users['doctor']['id'],
-                    "userName": self.users['doctor']['full_name']
-                }
-                ws.send(json.dumps(join_message))
-                print(f"   📤 Sent join message: {join_message}")
                 
                 # Wait a bit then close
                 time.sleep(2)
@@ -1294,9 +1287,8 @@ class MedConnectAPITester:
             time.sleep(5)
             
             if connection_successful:
-                print("   ✅ WebSocket signaling endpoint accessible")
-                if messages_received:
-                    print(f"   ✅ Received {len(messages_received)} messages from server")
+                print("   ✅ WebSocket signaling infrastructure accessible")
+                print("   ℹ️  Video calls use Jitsi Meet for actual peer-to-peer connection")
                 return True
             else:
                 print("   ❌ WebSocket connection failed")
