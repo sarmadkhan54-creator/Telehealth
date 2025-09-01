@@ -217,6 +217,24 @@ class VideoCallSession(BaseModel):
     started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     ended_at: Optional[datetime] = None
 
+class PushSubscription(BaseModel):
+    endpoint: str
+    keys: Dict[str, str]  # Contains p256dh and auth keys
+    
+class UserPushSubscription(BaseModel):
+    user_id: str
+    subscription: PushSubscription
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    active: bool = True
+
+class PushNotificationPayload(BaseModel):
+    title: str
+    body: str
+    icon: str = "/icons/icon-192x192.png"
+    badge: str = "/icons/badge-72x72.png"
+    data: Optional[Dict[str, Any]] = None
+    type: str = "info"  # info, emergency, video_call, appointment_reminder
+
 # Utility functions
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
