@@ -43,26 +43,17 @@ body {
   /* Mobile navigation */
   .nav-header {
     padding: 1rem;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .nav-header .flex {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-    width: 100%;
   }
   
   .nav-header .flex.items-center.justify-between {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
   }
   
   /* Adjust logo and title on mobile */
   .nav-header .flex.items-center.space-x-3 {
     flex: 1;
+    min-width: 0;
   }
   
   .nav-header .flex.items-center.space-x-4 {
@@ -70,15 +61,34 @@ body {
     gap: 0.5rem;
   }
   
-  /* Hide user district on very small screens */
+  /* Make notification button more visible on mobile */
+  .nav-header button[title="Notification Settings"] {
+    min-width: 40px;
+    min-height: 40px;
+  }
+  
+  /* Hide user info text on very small screens */
   @media (max-width: 480px) {
-    .nav-header .text-right p:last-child {
+    .nav-header .text-right {
       display: none;
     }
     
     .nav-header .flex.items-center.space-x-4 {
-      flex-direction: column;
-      align-items: flex-end;
+      gap: 0.25rem;
+    }
+    
+    .nav-header button {
+      padding: 0.5rem;
+      min-width: 44px;
+      min-height: 44px;
+    }
+    
+    .nav-header button span {
+      display: none;
+    }
+    
+    .nav-header button[title="Notification Settings"] span {
+      display: none !important;
     }
   }
   
