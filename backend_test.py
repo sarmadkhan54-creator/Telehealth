@@ -1331,10 +1331,10 @@ class MedConnectAPITester:
         doctor_start_token = doctor_start_response.get('session_token')
         print(f"   ✅ Doctor got session token X: {doctor_start_token[:20]}...")
         
-        # Step 2: Provider joins call → should get SAME session token X
-        print("   Step 2: Provider gets session for same appointment...")
+        # Step 2: Provider gets Jitsi session → should get SAME room
+        print("   Step 2: Provider gets Jitsi session for same appointment...")
         success, provider_session_response = self.run_test(
-            "Provider Gets Session Token",
+            "Provider Gets Jitsi Session",
             "GET",
             f"video-call/session/{self.appointment_id}",
             200,
@@ -1344,18 +1344,36 @@ class MedConnectAPITester:
         if not success:
             return False
             
-        provider_session_token = provider_session_response.get('session_token')
-        print(f"   ✅ Provider got session token: {provider_session_token[:20]}...")
+        provider_jitsi_url = provider_session_response.get('jitsi_url')
+        provider_room_name = provider_session_response.get('room_name')
+        print(f"   ✅ Provider got Jitsi room: {provider_room_name}")
         
-        # Step 3: Verify both have SAME session token
-        if doctor_start_token == provider_session_token:
-            print("   🎉 SUCCESS: Both doctor and provider have SAME session token!")
+        # Step 3: Doctor gets Jitsi session → should get SAME room as provider
+        print("   Step 3: Doctor gets Jitsi session...")
+        success, doctor_session_response = self.run_test(
+            "Doctor Gets Jitsi Session",
+            "GET",
+            f"video-call/session/{self.appointment_id}",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if not success:
+            return False
+            
+        doctor_jitsi_url = doctor_session_response.get('jitsi_url')
+        doctor_room_name = doctor_session_response.get('room_name')
+        print(f"   ✅ Doctor got Jitsi room: {doctor_room_name}")
+        
+        # Step 4: Verify both have SAME Jitsi room
+        if doctor_jitsi_url == provider_jitsi_url and doctor_room_name == provider_room_name:
+            print("   🎉 SUCCESS: Both doctor and provider have SAME Jitsi room!")
         else:
-            print("   ❌ FAILURE: Doctor and provider have different session tokens")
+            print("   ❌ FAILURE: Doctor and provider have different Jitsi rooms")
             return False
         
-        # Step 4: Both should be able to join via WebSocket signaling
-        print("   Step 3: Testing join endpoint for both users...")
+        # Step 5: Both should be able to join via session tokens
+        print("   Step 4: Testing join endpoint for both users...")
         
         # Doctor joins
         success, doctor_join_response = self.run_test(
@@ -1372,22 +1390,37 @@ class MedConnectAPITester:
             print("   ❌ Doctor cannot join video call")
             return False
         
-        # Provider joins
-        success, provider_join_response = self.run_test(
-            "Provider Joins Video Call",
-            "GET",
-            f"video-call/join/{provider_session_token}",
+        # Provider starts their own session to get a token
+        success, provider_start_response = self.run_test(
+            "Provider Starts Video Call",
+            "POST",
+            f"video-call/start/{self.appointment_id}",
             200,
             token=self.tokens['provider']
         )
         
         if success:
-            print("   ✅ Provider can join video call")
+            provider_start_token = provider_start_response.get('session_token')
+            
+            # Provider joins
+            success, provider_join_response = self.run_test(
+                "Provider Joins Video Call",
+                "GET",
+                f"video-call/join/{provider_start_token}",
+                200,
+                token=self.tokens['provider']
+            )
+            
+            if success:
+                print("   ✅ Provider can join video call")
+            else:
+                print("   ❌ Provider cannot join video call")
+                return False
         else:
-            print("   ❌ Provider cannot join video call")
+            print("   ❌ Provider cannot start video call")
             return False
         
-        print("   🎉 End-to-End workflow SUCCESS: Both users can connect to same session!")
+        print("   🎉 End-to-End workflow SUCCESS: Both users can connect to same Jitsi room!")
         return True
 
     def test_video_call_session_cleanup_and_errors(self):
