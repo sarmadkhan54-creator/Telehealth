@@ -36,7 +36,13 @@ function App() {
     
     if (token && userData) {
       try {
-        setUser(JSON.parse(userData));
+        const parsedUserData = JSON.parse(userData);
+        setUser(parsedUserData);
+        
+        // Initialize push notifications for existing logged-in user
+        pushNotificationManager.initialize(true).catch(error => {
+          console.error('Failed to initialize push notifications:', error);
+        });
       } catch (error) {
         console.error('Error parsing user data:', error);
         localStorage.removeItem('authToken');
