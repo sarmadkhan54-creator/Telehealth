@@ -187,8 +187,8 @@ self.addEventListener('notificationclick', (event) => {
         }
         
         // Otherwise open new window
-        if (clients.openWindow) {
-          return clients.openWindow('/');
+        if (self.clients.openWindow) {
+          return self.clients.openWindow('/');
         }
       })
     );
