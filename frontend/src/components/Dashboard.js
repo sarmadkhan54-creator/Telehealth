@@ -310,8 +310,18 @@ const Dashboard = ({ user, onLogout }) => {
       
       console.log(`Opening Jitsi meeting: ${jitsi_url}`);
       
-      // Open Jitsi in new window/tab
-      window.open(jitsi_url, '_blank', 'width=1200,height=800');
+      // Mobile-friendly approach: Use location.href for better mobile compatibility
+      if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        // On mobile devices, open in same tab for better reliability
+        window.location.href = jitsi_url;
+      } else {
+        // On desktop, try new window first, fallback to same tab
+        const newWindow = window.open(jitsi_url, '_blank', 'width=1200,height=800');
+        if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+          // Popup blocked, use same tab
+          window.location.href = jitsi_url;
+        }
+      }
       
     } catch (error) {
       console.error('Error joining video call:', error);
