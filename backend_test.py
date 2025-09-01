@@ -1150,7 +1150,7 @@ class MedConnectAPITester:
             print("❌ Missing doctor or provider tokens for session testing")
             return False
         
-        # Test 1: Doctor gets session token for appointment
+        # Test 1: Doctor gets Jitsi session for appointment
         success, doctor_response = self.run_test(
             "Get Video Call Session (Doctor - First Call)",
             "GET",
@@ -1163,16 +1163,17 @@ class MedConnectAPITester:
             print("❌ Doctor could not get video call session")
             return False
             
-        doctor_session_token = doctor_response.get('session_token')
+        doctor_jitsi_url = doctor_response.get('jitsi_url')
+        doctor_room_name = doctor_response.get('room_name')
         doctor_status = doctor_response.get('status')
         
-        if not doctor_session_token:
-            print("❌ No session token returned for doctor")
+        if not doctor_jitsi_url or not doctor_room_name:
+            print("❌ No Jitsi URL or room name returned for doctor")
             return False
             
-        print(f"   ✅ Doctor got session token: {doctor_session_token[:20]}... (status: {doctor_status})")
+        print(f"   ✅ Doctor got Jitsi session: {doctor_room_name} (status: {doctor_status})")
         
-        # Test 2: Provider gets session token for SAME appointment
+        # Test 2: Provider gets Jitsi session for SAME appointment
         success, provider_response = self.run_test(
             "Get Video Call Session (Provider - Same Appointment)",
             "GET",
@@ -1185,36 +1186,28 @@ class MedConnectAPITester:
             print("❌ Provider could not get video call session")
             return False
             
-        provider_session_token = provider_response.get('session_token')
+        provider_jitsi_url = provider_response.get('jitsi_url')
+        provider_room_name = provider_response.get('room_name')
         provider_status = provider_response.get('status')
         
-        if not provider_session_token:
-            print("❌ No session token returned for provider")
+        if not provider_jitsi_url or not provider_room_name:
+            print("❌ No Jitsi URL or room name returned for provider")
             return False
             
-        print(f"   ✅ Provider got session token: {provider_session_token[:20]}... (status: {provider_status})")
+        print(f"   ✅ Provider got Jitsi session: {provider_room_name} (status: {provider_status})")
         
-        # 🎯 CRITICAL CHECK: Both should have the SAME session token
-        if doctor_session_token == provider_session_token:
-            print(f"   🎉 SUCCESS: Doctor and Provider have SAME session token!")
-            print(f"   🎯 SAME TOKEN VERIFIED: {doctor_session_token}")
+        # 🎯 CRITICAL CHECK: Both should have the SAME Jitsi room
+        if doctor_jitsi_url == provider_jitsi_url and doctor_room_name == provider_room_name:
+            print(f"   🎉 SUCCESS: Doctor and Provider have SAME Jitsi room!")
+            print(f"   🎯 SAME ROOM VERIFIED: {doctor_room_name}")
+            print(f"   🎯 SAME URL VERIFIED: {doctor_jitsi_url}")
         else:
-            print(f"   ❌ CRITICAL FAILURE: Doctor and Provider have DIFFERENT session tokens!")
-            print(f"   Doctor token:   {doctor_session_token}")
-            print(f"   Provider token: {provider_session_token}")
+            print(f"   ❌ CRITICAL FAILURE: Doctor and Provider have DIFFERENT Jitsi rooms!")
+            print(f"   Doctor room:   {doctor_room_name}")
+            print(f"   Provider room: {provider_room_name}")
             return False
         
-        # Test 3: Verify session creation vs retrieval logic
-        if doctor_status == "created" and provider_status == "existing":
-            print("   ✅ Session logic correct: Doctor created, Provider retrieved existing")
-        elif doctor_status == "existing" and provider_status == "created":
-            print("   ✅ Session logic correct: Provider created, Doctor retrieved existing")
-        elif doctor_status == "existing" and provider_status == "existing":
-            print("   ✅ Session logic correct: Both retrieved existing session")
-        else:
-            print(f"   ⚠️  Unexpected session status combination: Doctor={doctor_status}, Provider={provider_status}")
-        
-        # Test 4: Multiple calls should return same token (no duplicates)
+        # Test 3: Multiple calls should return same room (no duplicates)
         success, doctor_response2 = self.run_test(
             "Get Video Call Session (Doctor - Second Call)",
             "GET",
@@ -1224,15 +1217,15 @@ class MedConnectAPITester:
         )
         
         if success:
-            doctor_session_token2 = doctor_response2.get('session_token')
-            if doctor_session_token == doctor_session_token2:
-                print("   ✅ Multiple calls return same token (no duplicates)")
+            doctor_room_name2 = doctor_response2.get('room_name')
+            if doctor_room_name == doctor_room_name2:
+                print("   ✅ Multiple calls return same room (no duplicates)")
             else:
-                print("   ❌ Multiple calls created different tokens")
+                print("   ❌ Multiple calls created different rooms")
                 return False
         
-        # Store the session token for WebSocket testing
-        self.video_session_token = doctor_session_token
+        # Store the room name for other tests
+        self.video_room_name = doctor_room_name
         
         return True
 
