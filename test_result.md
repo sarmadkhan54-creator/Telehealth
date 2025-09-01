@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "join call is not working i told you to check each funtion also make the edit funtion functional"
+user_problem_statement: "Complete the PWA conversion with push notifications, offline mode, background sync, and Android-focused home screen icons"
 
 backend:
   - task: "Video Call Start Endpoint"
