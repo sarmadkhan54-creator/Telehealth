@@ -463,17 +463,17 @@ frontend:
         agent: "testing"
         comment: "FIXED & TESTED: Fixed environment variable issue in VideoCall component. Video call peer connection now working perfectly. Successfully tested: 1) Doctor Start Call creates session tokens and navigates to video call page, 2) Provider Join Call works with session tokens, 3) WebSocket signaling connects to /ws/video-call/{session_token}, 4) WebRTC peer connection available and functional, 5) All video call controls working (mute, video, screen share, end call), 6) Call status shows 'Connected' with 'Good connection' quality, 7) Local video stream working, 8) Waiting for remote participant interface working correctly."
 
-  - task: "Real-Time WebSocket Notifications"
-    implemented: true
-    working: true
-    file: "/app/frontend/src/components/Dashboard.js"
+  - task: "Video Call Notification Sound System Frontend Fix"
+    implemented: false
+    working: false
+    file: "/app/frontend/src/utils/pushNotifications.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-      - working: true
+      - working: false
         agent: "testing"
-        comment: "TESTED: Real-time WebSocket notifications working correctly. Both Provider and Doctor dashboards establish WebSocket connections to /ws/{user.id}. Provider receives notifications for appointment_accepted and video_call_invitation. Doctor receives notifications for emergency_appointment and video_call_invitation. Browser notification API available and configured (permission: denied but requestable). WebSocket connections auto-reconnect after 5 seconds on disconnect. Notification system fully operational."
+        comment: "CRITICAL ISSUE IDENTIFIED: pushNotificationManager has method binding error - 'TypeError: this.isSupported is not a function' preventing notification initialization. This blocks: 1) Browser notification permission requests, 2) Push notification subscriptions, 3) Notification settings functionality, 4) Video call sound notifications. Root cause: Method binding issue in PushNotificationManager class. WebSocket connections work perfectly, Audio API works, playRingingSound() function works - issue is purely in pushNotificationManager initialization preventing notification permission flow."
 
 metadata:
   created_by: "main_agent"
