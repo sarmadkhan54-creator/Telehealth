@@ -205,19 +205,27 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
-  const playRingingSound = () => {
+  const playRingingSound = async () => {
     try {
-      // Create a continuous ringing sound like a real phone
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      
-      let isRingingActive = true;
-      const ringingInterval = setInterval(() => {
-        if (!isRingingActive) {
-          clearInterval(ringingInterval);
-          return;
+      // Ensure audio context is available and running
+      let audioContext;
+      try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioContext.state === 'suspended') {
+          await audioContext.resume();
+          console.log('✅ Audio context resumed for ringing sound');
         }
+      } catch (contextError) {
+        console.error('Audio context creation failed:', contextError);
+        throw contextError;
+      }
+      
+      // Create a continuous ringing sound like a real phone
+      let isRingingActive = true;
+      
+      const ringingInterval = setInterval(() => {
+        if (!isRingingActive) return;
         
-        // Create ring tone (two quick tones)
         const createRingTone = (frequency, startTime, duration) => {
           const oscillator = audioContext.createOscillator();
           const gainNode = audioContext.createGain();
@@ -229,7 +237,7 @@ const Dashboard = ({ user, onLogout }) => {
           oscillator.frequency.value = frequency;
           
           gainNode.gain.setValueAtTime(0, startTime);
-          gainNode.gain.linearRampToValueAtTime(0.15, startTime + 0.05);
+          gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.05); // Increased volume
           gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
           
           oscillator.start(startTime);
@@ -254,29 +262,75 @@ const Dashboard = ({ user, onLogout }) => {
       setRingingAudio({ stop: stopRinging });
       setIsRinging(true);
       
-      console.log('📞 Started phone ringing sound');
+      console.log('📞 Started phone ringing sound with enhanced audio');
       return stopRinging;
       
     } catch (error) {
-      console.error('Error creating ringing sound:', error);
+      console.error('Web Audio API failed, trying HTML5 Audio fallback:', error);
       
-      // Fallback to HTML5 Audio with looping
+      // Enhanced fallback to HTML5 Audio with looping
       try {
-        const ringToneData = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp6qNVFApGn+DyvGYfCSSLzfDVgjMGHW7A7+OZURE';
-        const audio = new Audio(ringToneData);
-        audio.loop = true;
-        audio.volume = 0.4;
+        // Create a better ring tone data URL
+        const createRingToneUrl = () => {
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const sampleRate = audioContext.sampleRate;
+          const duration = 0.3;
+          const frequency = 800;
+          
+          const samples = sampleRate * duration;
+          const buffer = new Float32Array(samples);
+          
+          for (let i = 0; i < samples; i++) {
+            const t = i / sampleRate;
+            buffer[i] = Math.sin(2 * Math.PI * frequency * t) * 0.3 * Math.exp(-t * 3);
+          }
+          
+          return buffer;
+        };
         
-        audio.play().then(() => {
-          console.log('📞 Fallback ringing sound playing');
-          setRingingAudio(audio);
-          setIsRinging(true);
-        }).catch(fallbackError => {
-          console.log('All ringing sounds failed');
-        });
+        // Use a simple audio element with looping
+        const audio = new Audio();
+        audio.loop = true;
+        audio.volume = 0.5;
+        
+        // Create a simple beep sound data URL
+        const beepData = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp6qNVFApGn+DyvGYfCSSLzfDVgjMGHW7A7+OZURE';
+        audio.src = beepData;
+        
+        const playPromise = audio.play();
+        
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            console.log('📞 Fallback ringing sound playing (HTML5 Audio)');
+            setRingingAudio(audio);
+            setIsRinging(true);
+          }).catch(fallbackError => {
+            console.error('All audio playback methods failed:', fallbackError);
+            
+            // Last resort: Browser notification with requireInteraction
+            if ('Notification' in window && Notification.permission === 'granted') {
+              const notification = new Notification('📞 Incoming Video Call', {
+                body: 'You have an incoming video call. Click to answer.',
+                requireInteraction: true,
+                tag: 'video-call-backup'
+              });
+              
+              notification.onclick = () => {
+                // Handle call acceptance here if needed
+                notification.close();
+              };
+              
+              console.log('📞 Using notification as audio fallback');
+            }
+          });
+        }
         
       } catch (fallbackError) {
-        console.log('Unable to play ringing sound');
+        console.error('All ringing sound methods failed:', fallbackError);
+        
+        // Final fallback: Just show visual notification
+        setIsRinging(true);
+        console.log('📞 Using visual-only notification (no audio available)');
       }
     }
   };
