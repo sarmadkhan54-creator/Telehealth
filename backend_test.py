@@ -1844,6 +1844,7 @@ class MedConnectAPITester:
         # Test 1: Invalid subscription data
         if 'provider' in self.tokens:
             invalid_subscription = {
+                "user_id": self.users['provider']['id'],  # Include user_id as expected by model
                 "subscription": {
                     "endpoint": "",  # Invalid empty endpoint
                     "keys": {
