@@ -128,14 +128,15 @@ const DoctorDashboard = ({ user, onLogout }) => {
 
   const startVideoCall = async (appointmentId) => {
     try {
-      // Get existing video call session for this appointment (or create if none exists)
+      // Get Jitsi room for this appointment
       const response = await axios.get(`${API}/video-call/session/${appointmentId}`);
-      const { session_token, status } = response.data;
+      const { jitsi_url } = response.data;
       
-      console.log(`${status === 'existing' ? 'Joining existing' : 'Creating new'} video call session: ${session_token}`);
+      console.log(`Starting Jitsi meeting: ${jitsi_url}`);
       
-      // Navigate to video call page
-      navigate(`/video-call/${session_token}`);
+      // Open Jitsi in new window/tab
+      window.open(jitsi_url, '_blank', 'width=1200,height=800');
+      
     } catch (error) {
       console.error('Error starting video call:', error);
       alert('Error starting video call. Please try again.');
