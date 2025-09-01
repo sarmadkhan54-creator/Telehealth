@@ -1923,6 +1923,7 @@ class MedConnectAPITester:
         
         # Test 1: Valid subscription with all required fields
         valid_subscription = {
+            "user_id": self.users['provider']['id'],  # Include user_id as expected by model
             "subscription": {
                 "endpoint": "https://fcm.googleapis.com/fcm/send/valid-endpoint-test",
                 "keys": {
