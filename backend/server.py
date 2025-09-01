@@ -785,30 +785,20 @@ async def get_video_call_session(appointment_id: str, current_user: User = Depen
         "status": "ready"
     }
 
-@api_router.post("/video-call/end/{session_token}")
-async def end_video_call(session_token: str, current_user: User = Depends(get_current_user)):
-    """End a video call session"""
-    video_session = await db.video_sessions.find_one({"session_token": session_token})
-    if not video_session:
-        raise HTTPException(status_code=404, detail="Video session not found")
-    
-    # Check if user is authorized to end this call
-    if current_user.role == "doctor":
-        if video_session["doctor_id"] != current_user.id:
-            raise HTTPException(status_code=403, detail="You are not authorized to end this call")
-    elif current_user.role == "provider":
-        if video_session["provider_id"] != current_user.id:
-            raise HTTPException(status_code=403, detail="You are not authorized to end this call")
-    else:
-        raise HTTPException(status_code=403, detail="Only doctors and providers can end video calls")
+@api_router.post("/video-call/end/{room_name}")
+async def end_jitsi_call(room_name: str, current_user: User = Depends(get_current_user)):
+    """End a Jitsi video call session"""
+    jitsi_session = await db.jitsi_sessions.find_one({"room_name": room_name})
+    if not jitsi_session:
+        raise HTTPException(status_code=404, detail="Jitsi session not found")
     
     # Mark session as ended
-    await db.video_sessions.update_one(
-        {"session_token": session_token},
+    await db.jitsi_sessions.update_one(
+        {"room_name": room_name},
         {"$set": {"ended_at": datetime.now(timezone.utc)}}
     )
     
-    return {"message": "Video call session ended successfully"}
+    return {"message": "Jitsi call session ended successfully"}
 
 @api_router.get("/video-call/join/{session_token}")
 async def join_video_call(session_token: str, current_user: User = Depends(get_current_user)):
