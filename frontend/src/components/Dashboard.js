@@ -203,8 +203,9 @@ const Dashboard = ({ user, onLogout }) => {
 
   const handleAcceptVideoCall = () => {
     stopRingingSound(); // Stop ringing when call is accepted
-    if (videoCallInvitation) {
-      navigate(`/video-call/${videoCallInvitation.sessionToken}`);
+    if (videoCallInvitation && videoCallInvitation.jitsiUrl) {
+      // Open Jitsi meeting in new window/tab
+      window.open(videoCallInvitation.jitsiUrl, '_blank', 'width=1200,height=800');
       setShowVideoCallInvitation(false);
       setVideoCallInvitation(null);
     }
