@@ -352,6 +352,14 @@ const Dashboard = ({ user, onLogout }) => {
               <p className="text-sm text-gray-600">{user.district}</p>
             </div>
             <button
+              onClick={() => setShowNotificationSettings(true)}
+              className="flex items-center space-x-2 px-3 py-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+              title="Notification Settings"
+            >
+              <Bell className="w-4 h-4" />
+              <span className="hidden sm:inline">Notifications</span>
+            </button>
+            <button
               onClick={onLogout}
               className="flex items-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             >
