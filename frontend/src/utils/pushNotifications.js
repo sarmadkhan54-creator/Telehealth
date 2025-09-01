@@ -26,7 +26,7 @@ export class PushNotificationManager {
   constructor() {
     this.vapidPublicKey = null;
     this.subscription = null;
-    this.isSupported = 'serviceWorker' in navigator && 'PushManager' in window;
+    this.supportStatus = 'serviceWorker' in navigator && 'PushManager' in window;
   }
 
   // Check if push notifications are supported
