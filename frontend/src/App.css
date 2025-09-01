@@ -124,6 +124,45 @@ body {
   }
 }
 
+/* PWA-specific styles for installed apps */
+@media (display-mode: standalone) {
+  .App {
+    /* Hide address bar area on installed PWA */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  
+  .nav-header {
+    /* Account for status bar in standalone mode */
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+}
+
+/* Android PWA specific adjustments */
+@media (display-mode: standalone) and (orientation: portrait) {
+  .glass-card {
+    /* Better spacing for Android PWA */
+    margin: 0.75rem;
+  }
+  
+  .nav-header {
+    /* Android status bar accommodation */
+    min-height: 60px;
+  }
+}
+
+/* iOS PWA specific adjustments */
+@supports (-webkit-touch-callout: none) {
+  @media (display-mode: standalone) {
+    .App {
+      /* iOS safe area handling */
+      padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    }
+  }
+}
+
 /* Enhanced glassmorphism components */
 .glass-card {
   background: rgba(255, 255, 255, 0.25);
