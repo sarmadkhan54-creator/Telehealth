@@ -122,10 +122,7 @@ function App() {
                   )
                 } 
               />
-              <Route 
-                path="/video-call/:sessionToken" 
-                element={<VideoCall user={user} />} 
-              />
+
             </>
           ) : (
             <Route path="*" element={<Navigate to="/login" replace />} />
