@@ -1246,7 +1246,7 @@ class MedConnectAPITester:
             # Test WebSocket connection to video call signaling endpoint
             # Note: The actual WebSocket endpoint for video calls is different from Jitsi
             # This test verifies the general WebSocket infrastructure
-            ws_url = f"wss://telehealth-pwa.preview.emergentagent.com/api/ws/{self.users['doctor']['id']}"
+            ws_url = f"wss://greenstar-health.preview.emergentagent.com/api/ws/{self.users['doctor']['id']}"
             print(f"   Testing WebSocket URL: {ws_url}")
             
             connection_successful = False
