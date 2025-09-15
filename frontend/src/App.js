@@ -51,9 +51,9 @@ function App() {
         setUser(parsedUserData);
         
         // Initialize push notifications for existing logged-in user
-        pushNotificationManager.initialize(true).catch(error => {
-          console.error('Failed to initialize push notifications:', error);
-        });
+        // pushNotificationManager.initialize(true).catch(error => {
+        //   console.error('Failed to initialize push notifications:', error);
+        // });
       } catch (error) {
         console.error('Error parsing user data:', error);
         localStorage.removeItem('authToken');
