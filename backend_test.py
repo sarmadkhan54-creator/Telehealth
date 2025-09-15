@@ -2513,8 +2513,8 @@ class MedConnectAPITester:
             import json
             
             # Test WebSocket connection for doctor
-            doctor_ws_url = f"wss://greenstar-health.preview.emergentagent.com/api/ws/{doctor_id}"
-            provider_ws_url = f"wss://greenstar-health.preview.emergentagent.com/api/ws/{provider_id}"
+            doctor_ws_url = f"ws://localhost:8001/api/ws/{doctor_id}"
+            provider_ws_url = f"ws://localhost:8001/api/ws/{provider_id}"
             
             doctor_connected = False
             provider_connected = False
