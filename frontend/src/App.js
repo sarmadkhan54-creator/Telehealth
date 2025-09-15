@@ -71,12 +71,12 @@ function App() {
     setUser(userData);
     
     // Initialize push notifications after successful login
-    try {
-      console.log('🔔 Initializing push notifications...');
-      await pushNotificationManager.initialize(true);
-    } catch (error) {
-      console.error('Failed to initialize push notifications:', error);
-    }
+    // try {
+    //   console.log('🔔 Initializing push notifications...');
+    //   await pushNotificationManager.initialize(true);
+    // } catch (error) {
+    //   console.error('Failed to initialize push notifications:', error);
+    // }
   };
 
   const handleLogout = () => {
