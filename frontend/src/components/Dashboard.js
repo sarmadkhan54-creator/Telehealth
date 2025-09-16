@@ -523,12 +523,25 @@ const Dashboard = ({ user, onLogout }) => {
               <p className="text-sm text-gray-600">{user.district}</p>
             </div>
             <button
-              onClick={() => setShowNotificationSettings(true)}
-              className="flex items-center space-x-2 px-3 py-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-              title="Notification Settings"
+              onClick={() => setShowNotificationPanel(true)}
+              className="flex items-center space-x-2 px-3 py-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors relative"
+              title="Notifications"
             >
               <Bell className="w-4 h-4" />
               <span className="hidden sm:inline">Notifications</span>
+              {notifications.filter(n => !n.isRead).length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1 py-0.5 rounded-full min-w-[16px] h-4 flex items-center justify-center">
+                  {notifications.filter(n => !n.isRead).length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setShowNotificationSettings(true)}
+              className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+              title="Notification Settings"
+            >
+              <Bell className="w-4 h-4" />
+              <span className="hidden sm:inline">Settings</span>
             </button>
             <button
               onClick={onLogout}
