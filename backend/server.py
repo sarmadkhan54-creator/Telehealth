@@ -613,21 +613,28 @@ async def create_appointment(appointment_data: AppointmentCreate, current_user: 
     
     await db.appointments.insert_one(appointment.dict())
     
-    # Send notification to doctors if emergency
-    if appointment_data.appointment_type == "emergency":
-        doctors = await db.users.find({"role": "doctor", "is_active": True}).to_list(1000)
-        notification = {
-            "type": "emergency_appointment",
-            "appointment_id": appointment.id,
-            "patient_name": patient.name,
-            "provider_name": current_user.full_name,
-            "provider_district": current_user.district,
+    # Send notification to doctors for both emergency and non-emergency appointments
+    doctors = await db.users.find({"role": "doctor", "is_active": True}).to_list(1000)
+    notification = {
+        "type": "emergency_appointment" if appointment_data.appointment_type == "emergency" else "new_appointment",
+        "appointment_id": appointment.id,
+        "appointment_type": appointment_data.appointment_type,
+        "patient_name": patient.name,
+        "provider_name": current_user.full_name,
+        "provider_district": current_user.district,
+        "consultation_reason": patient.consultation_reason,
+        "patient": {
+            "name": patient.name,
+            "age": patient.age,
+            "gender": patient.gender,
             "consultation_reason": patient.consultation_reason,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
-        
-        for doctor in doctors:
-            await manager.send_personal_message(notification, doctor["id"])
+            "vitals": patient.vitals if hasattr(patient, 'vitals') and patient.vitals else {}
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    
+    for doctor in doctors:
+        await manager.send_personal_message(notification, doctor["id"])
     
     return appointment
 
