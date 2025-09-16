@@ -21,6 +21,7 @@ const Dashboard = ({ user, onLogout }) => {
   const [isRinging, setIsRinging] = useState(false);
   const [ringingAudio, setRingingAudio] = useState(null);
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
+  const [showNotificationPanel, setShowNotificationPanel] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
