@@ -1147,6 +1147,10 @@ async def send_appointment_reminder(appointment_id: str, current_user: User = De
         raise HTTPException(status_code=500, detail="Internal server error")
 
 # Basic health check
+@api_router.get("/health")
+async def health_check():
+    return {"status": "healthy", "message": "Greenstar Telehealth API is running"}
+
 @api_router.get("/")
 async def root():
     return {"message": "MedConnect Telehealth API is running"}
