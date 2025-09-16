@@ -109,8 +109,8 @@ const AdminDashboard = ({ user, onLogout }) => {
   const fetchData = async () => {
     try {
       const [usersResponse, appointmentsResponse] = await Promise.all([
-        axios.get(`${API}/users`),
-        axios.get(`${API}/appointments`)
+        axios.get(`${API}/users`, getAxiosConfig()),
+        axios.get(`${API}/appointments`, getAxiosConfig())
       ]);
       
       setUsers(usersResponse.data);
