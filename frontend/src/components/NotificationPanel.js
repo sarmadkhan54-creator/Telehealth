@@ -151,6 +151,8 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
         return `${notification.caller} is calling you for ${notification.patient?.name || 'patient consultation'}`;
       case 'emergency_appointment':
         return `Emergency consultation for ${notification.patient_name} from ${notification.provider_name}`;
+      case 'new_appointment':
+        return `New consultation for ${notification.patient_name} from ${notification.provider_name}`;
       case 'appointment_accepted':
         return `Dr. ${notification.doctor_name} accepted your appointment for ${notification.patient_name}`;
       case 'appointment_updated':
