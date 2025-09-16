@@ -144,11 +144,16 @@ const Dashboard = ({ user, onLogout }) => {
             
             // Send browser notification if permission granted
             if (Notification.permission === 'granted') {
-              const browserNotification = new Notification('Incoming Video Call', {
+              const browserNotification = new Notification('📞 Incoming Video Call', {
                 body: `${notification.caller} is inviting you to a video consultation`,
                 icon: '/icons/icon-192x192.png',
+                badge: '/icons/badge-72x72.png',
                 tag: 'video-call-invitation',
-                requireInteraction: true
+                requireInteraction: true,
+                actions: [
+                  { action: 'answer', title: 'Answer' },
+                  { action: 'decline', title: 'Decline' }
+                ]
               });
               
               browserNotification.onclick = () => {
@@ -158,17 +163,17 @@ const Dashboard = ({ user, onLogout }) => {
             }
           }
           
-          // Show browser notification for important updates
+          // Handle other notification types
           if (Notification.permission === 'granted') {
             if (notification.type === 'appointment_accepted') {
-              new Notification('Appointment Accepted', {
+              new Notification('✅ Appointment Accepted', {
                 body: `Doctor accepted your appointment for ${notification.patient_name}`,
-                icon: '/favicon.ico'
+                icon: '/icons/icon-192x192.png'
               });
-            } else if (notification.type === 'video_call_invitation') {
-              new Notification('Video Call Invitation', {
-                body: `${notification.caller} is inviting you to a video call`,
-                icon: '/favicon.ico',
+            } else if (notification.type === 'emergency_appointment') {
+              new Notification('🚨 Emergency Appointment', {
+                body: `New emergency appointment: ${notification.patient_name}`,
+                icon: '/icons/icon-192x192.png',
                 requireInteraction: true
               });
             }
