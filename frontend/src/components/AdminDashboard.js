@@ -823,7 +823,11 @@ const AdminDashboard = ({ user, onLogout }) => {
     if (!confirmed) return;
 
     try {
-      await axios.put(`${API}/users/${userId}/status`, { is_active: !currentStatus });
+      await axios.put(
+        `${API}/users/${userId}/status`, 
+        { is_active: !currentStatus },
+        getAxiosConfig()
+      );
       alert(`User ${action}d successfully`);
       fetchData(); // Refresh the users list
     } catch (error) {
