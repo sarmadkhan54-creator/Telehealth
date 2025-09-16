@@ -37,32 +37,10 @@ function App() {
     localStorage.removeItem('userData');
     sessionStorage.clear();
     
-    const token = localStorage.getItem('authToken');
-    const userData = localStorage.getItem('userData');
-    
-    console.log('🔍 Checking existing authentication...');
-    console.log('Token exists:', !!token);
-    console.log('User data exists:', !!userData);
-    
-    if (token && userData) {
-      try {
-        const parsedUserData = JSON.parse(userData);
-        console.log('👤 Auto-logging in user:', parsedUserData.username);
-        setUser(parsedUserData);
-        
-        // Initialize push notifications for existing logged-in user
-        // pushNotificationManager.initialize(true).catch(error => {
-        //   console.error('Failed to initialize push notifications:', error);
-        // });
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userData');
-      }
-    } else {
-      console.log('🚪 No existing authentication found - showing login page');
-    }
+    // Set loading to false immediately - no dependencies needed
     setLoading(false);
+    
+    console.log('🚪 App loaded - showing login page');
   }, []);
 
   const handleLogin = async (token, userData) => {
