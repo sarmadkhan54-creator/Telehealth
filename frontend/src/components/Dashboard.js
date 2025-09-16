@@ -1114,6 +1114,13 @@ const Dashboard = ({ user, onLogout }) => {
         </div>
       )}
       
+      {/* Notification Panel */}
+      <NotificationPanel
+        user={user}
+        isOpen={showNotificationPanel}
+        onClose={() => setShowNotificationPanel(false)}
+      />
+
       {/* Notification Settings Modal */}
       <NotificationSettings 
         isOpen={showNotificationSettings}
