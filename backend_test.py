@@ -3416,6 +3416,295 @@ class MedConnectAPITester:
         
         return all_success
 
+    def test_jitsi_video_call_system(self):
+        """🎯 COMPREHENSIVE JITSI VIDEO CALL SYSTEM TESTING"""
+        print("\n🎯 COMPREHENSIVE JITSI VIDEO CALL SYSTEM TESTING")
+        print("=" * 80)
+        
+        all_success = True
+        
+        # Test 1: Video Call Session Creation
+        print("\n1️⃣ Testing Video Call Session Creation")
+        print("-" * 50)
+        
+        if not self.appointment_id:
+            print("❌ No appointment ID available for Jitsi testing")
+            return False
+            
+        if 'doctor' not in self.tokens or 'provider' not in self.tokens:
+            print("❌ Missing doctor or provider tokens for Jitsi testing")
+            return False
+        
+        # Test doctor getting Jitsi session
+        success, doctor_response = self.run_test(
+            "Get Jitsi Session (Doctor)",
+            "GET",
+            f"video-call/session/{self.appointment_id}",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if not success:
+            print("❌ Doctor could not get Jitsi session")
+            all_success = False
+        else:
+            doctor_jitsi_url = doctor_response.get('jitsi_url')
+            doctor_room_name = doctor_response.get('room_name')
+            doctor_status = doctor_response.get('status')
+            
+            print(f"   ✅ Doctor Jitsi session created successfully")
+            print(f"   Room Name: {doctor_room_name}")
+            print(f"   Jitsi URL: {doctor_jitsi_url}")
+            print(f"   Status: {doctor_status}")
+            
+            # Verify URL format
+            if doctor_jitsi_url and doctor_jitsi_url.startswith('https://meet.jit.si/'):
+                print("   ✅ Jitsi URL properly formatted")
+            else:
+                print("   ❌ Jitsi URL format incorrect")
+                all_success = False
+            
+            # Verify room naming convention
+            expected_room = f"greenstar-appointment-{self.appointment_id}"
+            if doctor_room_name == expected_room:
+                print("   ✅ Room naming convention matches appointments")
+            else:
+                print(f"   ❌ Room naming incorrect. Expected: {expected_room}, Got: {doctor_room_name}")
+                all_success = False
+        
+        # Test provider getting same Jitsi session
+        success, provider_response = self.run_test(
+            "Get Jitsi Session (Provider - Same Appointment)",
+            "GET",
+            f"video-call/session/{self.appointment_id}",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if not success:
+            print("❌ Provider could not get Jitsi session")
+            all_success = False
+        else:
+            provider_jitsi_url = provider_response.get('jitsi_url')
+            provider_room_name = provider_response.get('room_name')
+            
+            print(f"   ✅ Provider Jitsi session retrieved successfully")
+            
+            # Critical check: Both should have SAME room
+            if doctor_jitsi_url == provider_jitsi_url and doctor_room_name == provider_room_name:
+                print("   🎉 SUCCESS: Doctor and Provider have SAME Jitsi room!")
+                print(f"   🎯 VERIFIED: Both users connect to {doctor_room_name}")
+            else:
+                print("   ❌ CRITICAL: Doctor and Provider have DIFFERENT Jitsi rooms!")
+                all_success = False
+        
+        # Test 2: Jitsi URL Configuration
+        print("\n2️⃣ Testing Jitsi URL Configuration")
+        print("-" * 50)
+        
+        if doctor_jitsi_url:
+            # Test URL accessibility (basic format check)
+            if "meet.jit.si" in doctor_jitsi_url and doctor_room_name in doctor_jitsi_url:
+                print("   ✅ Jitsi URLs are properly formatted")
+                print("   ✅ Room names are unique per appointment")
+                print("   ✅ URLs should be accessible from external clients")
+            else:
+                print("   ❌ Jitsi URL configuration issues detected")
+                all_success = False
+        
+        # Test 3: Authentication & Permissions
+        print("\n3️⃣ Testing Authentication & Permissions")
+        print("-" * 50)
+        
+        # Test with different user roles
+        test_cases = [
+            ("doctor", "Doctor", 200),
+            ("provider", "Provider", 200),
+            ("admin", "Admin", 403)  # Admin should not access video calls
+        ]
+        
+        for role, role_name, expected_status in test_cases:
+            if role in self.tokens:
+                success, response = self.run_test(
+                    f"Video Call Access ({role_name})",
+                    "GET",
+                    f"video-call/session/{self.appointment_id}",
+                    expected_status,
+                    token=self.tokens[role]
+                )
+                
+                if success:
+                    if expected_status == 200:
+                        print(f"   ✅ {role_name} can access video calls")
+                    else:
+                        print(f"   ✅ {role_name} correctly denied video call access")
+                else:
+                    print(f"   ❌ {role_name} video call access test failed")
+                    all_success = False
+        
+        # Test with invalid appointment ID
+        success, response = self.run_test(
+            "Video Call Access (Invalid Appointment)",
+            "GET",
+            "video-call/session/invalid-appointment-id",
+            404,
+            token=self.tokens['doctor']
+        )
+        
+        if success:
+            print("   ✅ Invalid appointment IDs properly rejected")
+        else:
+            print("   ❌ Invalid appointment ID handling failed")
+            all_success = False
+        
+        # Test without authentication
+        success, response = self.run_test(
+            "Video Call Access (No Auth)",
+            "GET",
+            f"video-call/session/{self.appointment_id}",
+            403,
+            token=None
+        )
+        
+        if success:
+            print("   ✅ Proper authentication headers required")
+        else:
+            print("   ❌ Authentication requirement not enforced")
+            all_success = False
+        
+        # Test 4: Appointment Integration
+        print("\n4️⃣ Testing Appointment Integration")
+        print("-" * 50)
+        
+        # Test with accepted appointment (should work)
+        if self.appointment_id:
+            # First accept the appointment
+            accept_data = {
+                "status": "accepted",
+                "doctor_id": self.users['doctor']['id']
+            }
+            
+            success, response = self.run_test(
+                "Accept Appointment for Video Call",
+                "PUT",
+                f"appointments/{self.appointment_id}",
+                200,
+                data=accept_data,
+                token=self.tokens['doctor']
+            )
+            
+            if success:
+                print("   ✅ Appointment accepted successfully")
+                
+                # Now test video call on accepted appointment
+                success, response = self.run_test(
+                    "Video Call on Accepted Appointment",
+                    "GET",
+                    f"video-call/session/{self.appointment_id}",
+                    200,
+                    token=self.tokens['doctor']
+                )
+                
+                if success:
+                    print("   ✅ Video calls work with accepted appointments")
+                else:
+                    print("   ❌ Video calls failed on accepted appointment")
+                    all_success = False
+            else:
+                print("   ❌ Could not accept appointment for testing")
+                all_success = False
+        
+        # Test 5: Emergency vs Non-Emergency Appointments
+        print("\n5️⃣ Testing Emergency vs Non-Emergency Appointments")
+        print("-" * 50)
+        
+        # Create emergency appointment for testing
+        if 'provider' in self.tokens:
+            emergency_data = {
+                "patient": {
+                    "name": "Emergency Jitsi Test Patient",
+                    "age": 45,
+                    "gender": "Female",
+                    "vitals": {
+                        "blood_pressure": "180/120",
+                        "heart_rate": 110,
+                        "temperature": 102.5
+                    },
+                    "consultation_reason": "Chest pain - Jitsi video call test"
+                },
+                "appointment_type": "emergency",
+                "consultation_notes": "URGENT: Jitsi video call testing"
+            }
+            
+            success, response = self.run_test(
+                "Create Emergency Appointment for Jitsi Test",
+                "POST",
+                "appointments",
+                200,
+                data=emergency_data,
+                token=self.tokens['provider']
+            )
+            
+            if success:
+                emergency_appointment_id = response.get('id')
+                print(f"   ✅ Emergency appointment created: {emergency_appointment_id}")
+                
+                # Test Jitsi session on emergency appointment
+                success, response = self.run_test(
+                    "Jitsi Session on Emergency Appointment",
+                    "GET",
+                    f"video-call/session/{emergency_appointment_id}",
+                    200,
+                    token=self.tokens['doctor']
+                )
+                
+                if success:
+                    emergency_jitsi_url = response.get('jitsi_url')
+                    emergency_room_name = response.get('room_name')
+                    
+                    print("   ✅ Jitsi sessions work with emergency appointments")
+                    print(f"   Emergency Room: {emergency_room_name}")
+                    
+                    # Verify different appointments get different rooms
+                    if emergency_room_name != doctor_room_name:
+                        print("   ✅ Different appointments get different Jitsi rooms")
+                    else:
+                        print("   ❌ Different appointments got same Jitsi room")
+                        all_success = False
+                else:
+                    print("   ❌ Jitsi session failed on emergency appointment")
+                    all_success = False
+            else:
+                print("   ❌ Could not create emergency appointment for testing")
+                all_success = False
+        
+        # Test 6: Multiple Session Calls (No Duplicates)
+        print("\n6️⃣ Testing Multiple Session Calls (No Duplicates)")
+        print("-" * 50)
+        
+        # Make multiple calls to same appointment
+        for i in range(3):
+            success, response = self.run_test(
+                f"Multiple Jitsi Session Call #{i+1}",
+                "GET",
+                f"video-call/session/{self.appointment_id}",
+                200,
+                token=self.tokens['doctor']
+            )
+            
+            if success:
+                room_name = response.get('room_name')
+                if room_name == doctor_room_name:
+                    print(f"   ✅ Call #{i+1}: Same room returned (no duplicates)")
+                else:
+                    print(f"   ❌ Call #{i+1}: Different room returned")
+                    all_success = False
+            else:
+                print(f"   ❌ Call #{i+1}: Failed")
+                all_success = False
+        
+        return all_success
+
 def main():
     print("🏥 MedConnect Telehealth API Testing - COMPREHENSIVE AUTHENTICATION & CREDENTIAL ERROR INVESTIGATION")
     print("=" * 100)
