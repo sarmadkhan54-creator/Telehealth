@@ -561,11 +561,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Admin Authentication System"
-    - "Admin User Management Endpoints" 
-    - "Admin CRUD Operations"
+    - "Comprehensive Authentication & Credential Error Investigation"
     - "Authentication Headers Verification"
-    - "Video Call Notification System Backend"
+    - "Database Connection & User Records Verification"
+    - "CORS & Network Accessibility Testing"
+    - "JWT Token Generation & Validation Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
