@@ -970,7 +970,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     
     try {
       // Fetch the appointment details
-      const response = await axios.get(`${API}/appointments/${appointmentId}`);
+      const response = await axios.get(`${API}/appointments/${appointmentId}`, getAxiosConfig());
       setEditingAppointment(response.data);
       setShowEditAppointmentModal(true);
     } catch (error) {
