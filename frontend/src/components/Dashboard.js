@@ -190,8 +190,17 @@ const Dashboard = ({ user, onLogout }) => {
       ws.onclose = (event) => {
         console.log('🔌 WebSocket disconnected, attempting to reconnect in 5 seconds...');
         console.log('Close event:', event.code, event.reason);
+        
+        // Clear existing timeout if any
+        if (reconnectTimeout) {
+          clearTimeout(reconnectTimeout);
+        }
+        
         // Try to reconnect after 5 seconds
-        setTimeout(setupWebSocket, 5000);
+        const reconnectTimeout = setTimeout(() => {
+          console.log('🔄 Attempting WebSocket reconnection...');
+          setupWebSocket();
+        }, 5000);
       };
 
       // Request notification permission for mobile
