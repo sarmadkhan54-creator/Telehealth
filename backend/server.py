@@ -1158,28 +1158,51 @@ async def root():
 # Video Call WebSocket endpoint
 @app.websocket("/api/ws/video-call/{session_token}")
 async def video_call_websocket(websocket: WebSocket, session_token: str):
-    # Get user info from token (this should be passed somehow, for now use session_token as user_id)
-    user_id = session_token  # Simplified - in production, validate session_token and get user_id
-    user_name = f"User-{user_id[:8]}"  # Simplified username
-    
     try:
-        await video_call_manager.join_session(session_token, user_id, websocket, user_name)
-        print(f"✅ Video call WebSocket connected: session={session_token}, user={user_id}")
+        # Validate session token exists in video_call_sessions
+        session_exists = await db.video_call_sessions.find_one({"session_token": session_token})
+        if not session_exists:
+            print(f"❌ Invalid session token: {session_token}")
+            await websocket.close(code=4000, reason="Invalid session token")
+            return
+            
+        # Use session token as unique identifier for this call
+        user_id = f"user-{session_token[:8]}"
+        user_name = f"Participant-{session_token[:8]}"
+        
+        await websocket.accept()
+        print(f"✅ Video call WebSocket accepted: session={session_token}, user={user_id}")
+        
+        if session_token not in video_call_manager.active_sessions:
+            video_call_manager.active_sessions[session_token] = {}
+        
+        video_call_manager.active_sessions[session_token][user_id] = websocket
+        
+        # Send welcome message
+        await websocket.send_text(json.dumps({
+            "type": "connection-established",
+            "session": session_token,
+            "userId": user_id
+        }))
+        
+        print(f"🔌 Video call session active: {len(video_call_manager.active_sessions[session_token])} participants")
         
         while True:
             data = await websocket.receive_text()
             message = json.loads(data)
-            print(f"📡 Video call message: {message}")
+            print(f"📡 Video call message from {user_id}: {message.get('type', 'unknown')}")
             
-            # Relay WebRTC signaling messages
+            # Relay WebRTC signaling messages to other participants
             await video_call_manager.relay_message(session_token, user_id, message)
             
     except WebSocketDisconnect:
-        print(f"📡 Video call WebSocket disconnected: session={session_token}, user={user_id}")
-        video_call_manager.leave_session(session_token, user_id)
+        print(f"📡 Video call WebSocket disconnected: session={session_token}")
+        if session_token in video_call_manager.active_sessions:
+            user_id = f"user-{session_token[:8]}"
+            video_call_manager.leave_session(session_token, user_id)
     except Exception as e:
         print(f"❌ Video call WebSocket error: {e}")
-        video_call_manager.leave_session(session_token, user_id)
+        await websocket.close(code=1011, reason=str(e))
 
 # Test WebSocket endpoint
 @app.websocket("/test-ws")
