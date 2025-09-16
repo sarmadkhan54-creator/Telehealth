@@ -95,6 +95,360 @@ class MedConnectAPITester:
         
         return all_success
 
+    def test_comprehensive_authentication_scenarios(self):
+        """🎯 COMPREHENSIVE AUTHENTICATION & CREDENTIAL ERROR INVESTIGATION"""
+        print("\n🎯 COMPREHENSIVE AUTHENTICATION & CREDENTIAL ERROR INVESTIGATION")
+        print("=" * 80)
+        
+        all_success = True
+        
+        # Test 1: Valid credentials for all demo users
+        print("\n1️⃣ Testing Valid Demo Credentials")
+        print("-" * 50)
+        
+        for role, credentials in self.demo_credentials.items():
+            success, response = self.run_test(
+                f"Valid Login - {role.title()}",
+                "POST", 
+                "login",
+                200,
+                data=credentials
+            )
+            
+            if success and 'access_token' in response and 'user' in response:
+                print(f"   ✅ {role.title()} login successful")
+                print(f"   Token Type: {response.get('token_type', 'N/A')}")
+                print(f"   User Role: {response['user'].get('role', 'N/A')}")
+                print(f"   User Active: {response['user'].get('is_active', 'N/A')}")
+                
+                # Store tokens for further testing
+                self.tokens[role] = response['access_token']
+                self.users[role] = response['user']
+            else:
+                print(f"   ❌ {role.title()} login failed - CRITICAL ISSUE")
+                all_success = False
+        
+        # Test 2: Invalid credentials
+        print("\n2️⃣ Testing Invalid Credentials")
+        print("-" * 50)
+        
+        invalid_tests = [
+            {"username": "demo_provider", "password": "WrongPassword123!", "desc": "Wrong Password"},
+            {"username": "nonexistent_user", "password": "Demo123!", "desc": "Non-existent User"},
+            {"username": "demo_admin", "password": "demo123!", "desc": "Wrong Case Password"},
+            {"username": "DEMO_PROVIDER", "password": "Demo123!", "desc": "Wrong Case Username"},
+        ]
+        
+        for test_case in invalid_tests:
+            success, response = self.run_test(
+                f"Invalid Login - {test_case['desc']}",
+                "POST",
+                "login", 
+                401,  # Expecting 401 Unauthorized
+                data={"username": test_case["username"], "password": test_case["password"]}
+            )
+            
+            if success:
+                print(f"   ✅ {test_case['desc']} correctly rejected (401)")
+            else:
+                print(f"   ❌ {test_case['desc']} not properly rejected")
+                all_success = False
+        
+        # Test 3: Edge cases and malformed requests
+        print("\n3️⃣ Testing Edge Cases & Malformed Requests")
+        print("-" * 50)
+        
+        edge_cases = [
+            {"data": {"username": "", "password": ""}, "desc": "Empty Fields"},
+            {"data": {"username": "demo_provider", "password": ""}, "desc": "Empty Password"},
+            {"data": {"username": "", "password": "Demo123!"}, "desc": "Empty Username"},
+            {"data": {"username": "demo_provider"}, "desc": "Missing Password Field"},
+            {"data": {"password": "Demo123!"}, "desc": "Missing Username Field"},
+            {"data": {}, "desc": "Empty Request Body"},
+            {"data": {"username": "demo_provider", "password": "Demo123!", "extra": "field"}, "desc": "Extra Fields"},
+        ]
+        
+        for test_case in edge_cases:
+            success, response = self.run_test(
+                f"Edge Case - {test_case['desc']}",
+                "POST",
+                "login",
+                422 if test_case['desc'] in ['Missing Password Field', 'Missing Username Field', 'Empty Request Body'] else 401,
+                data=test_case["data"]
+            )
+            
+            if success:
+                print(f"   ✅ {test_case['desc']} handled correctly")
+            else:
+                print(f"   ❌ {test_case['desc']} not handled properly")
+                # Don't fail the entire test for edge cases
+        
+        # Test 4: JWT Token validation
+        print("\n4️⃣ Testing JWT Token Generation & Validation")
+        print("-" * 50)
+        
+        if 'provider' in self.tokens:
+            # Test valid token
+            success, response = self.run_test(
+                "Valid Token - Get Appointments",
+                "GET",
+                "appointments",
+                200,
+                token=self.tokens['provider']
+            )
+            
+            if success:
+                print("   ✅ Valid JWT token accepted")
+            else:
+                print("   ❌ Valid JWT token rejected - CRITICAL ISSUE")
+                all_success = False
+            
+            # Test invalid token
+            success, response = self.run_test(
+                "Invalid Token - Get Appointments",
+                "GET",
+                "appointments",
+                401,
+                token="invalid.jwt.token"
+            )
+            
+            if success:
+                print("   ✅ Invalid JWT token correctly rejected")
+            else:
+                print("   ❌ Invalid JWT token accepted - SECURITY ISSUE")
+                all_success = False
+            
+            # Test missing token
+            success, response = self.run_test(
+                "Missing Token - Get Appointments",
+                "GET",
+                "appointments",
+                403,
+                token=None
+            )
+            
+            if success:
+                print("   ✅ Missing token correctly rejected")
+            else:
+                print("   ❌ Missing token accepted - SECURITY ISSUE")
+                all_success = False
+        
+        # Test 5: CORS and network accessibility
+        print("\n5️⃣ Testing CORS & Network Accessibility")
+        print("-" * 50)
+        
+        try:
+            # Test basic connectivity
+            success, response = self.run_test(
+                "Backend Accessibility - Health Check",
+                "GET",
+                "health",
+                200
+            )
+            
+            if success:
+                print("   ✅ Backend accessible from external URL")
+                print(f"   Response: {response.get('message', 'N/A')}")
+            else:
+                print("   ❌ Backend not accessible - CRITICAL NETWORK ISSUE")
+                all_success = False
+            
+            # Test CORS headers (basic check)
+            import requests
+            try:
+                response = requests.options(f"{self.api_url}/login", timeout=10)
+                cors_headers = {
+                    'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                    'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                    'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers'),
+                }
+                
+                if any(cors_headers.values()):
+                    print("   ✅ CORS headers present")
+                    for header, value in cors_headers.items():
+                        if value:
+                            print(f"   {header}: {value}")
+                else:
+                    print("   ⚠️  CORS headers not detected (may still work)")
+                    
+            except Exception as e:
+                print(f"   ⚠️  CORS check failed: {str(e)}")
+                
+        except Exception as e:
+            print(f"   ❌ Network test failed: {str(e)}")
+            all_success = False
+        
+        # Test 6: Database connection and user records
+        print("\n6️⃣ Testing Database Connection & User Records")
+        print("-" * 50)
+        
+        if 'admin' in self.tokens:
+            success, response = self.run_test(
+                "Database Access - Get All Users",
+                "GET",
+                "users",
+                200,
+                token=self.tokens['admin']
+            )
+            
+            if success and isinstance(response, list):
+                print(f"   ✅ Database accessible - {len(response)} users found")
+                
+                # Check if demo users exist
+                demo_users_found = {}
+                for user in response:
+                    username = user.get('username', '')
+                    if username in ['demo_provider', 'demo_doctor', 'demo_admin']:
+                        demo_users_found[username] = user
+                        print(f"   ✅ Found {username}: {user.get('full_name', 'N/A')} (Active: {user.get('is_active', 'N/A')})")
+                
+                missing_users = set(['demo_provider', 'demo_doctor', 'demo_admin']) - set(demo_users_found.keys())
+                if missing_users:
+                    print(f"   ❌ Missing demo users: {', '.join(missing_users)} - CRITICAL ISSUE")
+                    all_success = False
+                else:
+                    print("   ✅ All demo users exist in database")
+                    
+            else:
+                print("   ❌ Database access failed - CRITICAL ISSUE")
+                all_success = False
+        
+        # Test 7: Rate limiting and security measures
+        print("\n7️⃣ Testing Rate Limiting & Security Measures")
+        print("-" * 50)
+        
+        # Test multiple failed login attempts
+        failed_attempts = 0
+        for i in range(5):
+            success, response = self.run_test(
+                f"Failed Login Attempt #{i+1}",
+                "POST",
+                "login",
+                401,
+                data={"username": "demo_provider", "password": "WrongPassword123!"}
+            )
+            
+            if success:
+                failed_attempts += 1
+            else:
+                # If we get a different status code (like 429 for rate limiting), note it
+                print(f"   ⚠️  Attempt #{i+1} returned unexpected status (possible rate limiting)")
+                break
+        
+        print(f"   ✅ Completed {failed_attempts} failed login attempts")
+        
+        # Test if legitimate login still works after failed attempts
+        success, response = self.run_test(
+            "Legitimate Login After Failed Attempts",
+            "POST",
+            "login",
+            200,
+            data=self.demo_credentials['provider']
+        )
+        
+        if success:
+            print("   ✅ Legitimate login works after failed attempts")
+        else:
+            print("   ❌ Legitimate login blocked after failed attempts - POSSIBLE RATE LIMITING ISSUE")
+            # Don't fail the test as this might be intentional security
+        
+        # Test 8: Error response format validation
+        print("\n8️⃣ Testing Error Response Format")
+        print("-" * 50)
+        
+        success, response = self.run_test(
+            "Error Format Check - Invalid Login",
+            "POST",
+            "login",
+            401,
+            data={"username": "demo_provider", "password": "WrongPassword"}
+        )
+        
+        if success:
+            print("   ✅ Error response returned correctly")
+            if isinstance(response, dict) and 'detail' in response:
+                print(f"   Error message: {response['detail']}")
+                print("   ✅ Error format matches FastAPI standard")
+            else:
+                print(f"   ⚠️  Unexpected error format: {response}")
+        
+        return all_success
+
+    def test_authentication_headers_comprehensive(self):
+        """Test comprehensive authentication header scenarios"""
+        print("\n🔐 Testing Authentication Headers - Comprehensive")
+        print("-" * 60)
+        
+        all_success = True
+        
+        if 'admin' not in self.tokens:
+            print("❌ No admin token available for header testing")
+            return False
+        
+        # Test 1: Valid Bearer token format
+        success, response = self.run_test(
+            "Valid Bearer Token Format",
+            "GET",
+            "users",
+            200,
+            token=self.tokens['admin']
+        )
+        
+        if success:
+            print("   ✅ Valid Bearer token format accepted")
+        else:
+            print("   ❌ Valid Bearer token format rejected")
+            all_success = False
+        
+        # Test 2: Invalid token formats
+        invalid_token_tests = [
+            {"token": "invalid-token-format", "desc": "Invalid Token Format"},
+            {"token": "Bearer", "desc": "Bearer Without Token"},
+            {"token": "", "desc": "Empty Token"},
+        ]
+        
+        for test_case in invalid_token_tests:
+            # Manually construct headers for invalid formats
+            headers = {'Content-Type': 'application/json'}
+            if test_case["token"]:
+                if test_case["token"] == "Bearer":
+                    headers['Authorization'] = "Bearer"
+                else:
+                    headers['Authorization'] = f"Bearer {test_case['token']}"
+            
+            try:
+                import requests
+                response = requests.get(f"{self.api_url}/users", headers=headers, timeout=10)
+                
+                if response.status_code == 401:
+                    print(f"   ✅ {test_case['desc']} correctly rejected (401)")
+                elif response.status_code == 403:
+                    print(f"   ✅ {test_case['desc']} correctly rejected (403)")
+                else:
+                    print(f"   ❌ {test_case['desc']} not properly rejected (got {response.status_code})")
+                    all_success = False
+                    
+            except Exception as e:
+                print(f"   ❌ {test_case['desc']} test failed: {str(e)}")
+                all_success = False
+        
+        # Test 3: Expired token simulation (using malformed token)
+        success, response = self.run_test(
+            "Malformed Token (Simulating Expired)",
+            "GET",
+            "users",
+            401,
+            token="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.invalid.signature"
+        )
+        
+        if success:
+            print("   ✅ Malformed/expired token correctly rejected")
+        else:
+            print("   ❌ Malformed/expired token not properly rejected")
+            all_success = False
+        
+        return all_success
+
     def test_admin_only_get_users(self):
         """Test that only admin can get all users"""
         print("\n👥 Testing Admin-Only Get Users Access")
