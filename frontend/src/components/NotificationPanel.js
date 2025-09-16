@@ -469,7 +469,7 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
                             }}
                             className="flex items-center space-x-1 px-3 py-1 bg-blue-500 text-white text-xs rounded-full hover:bg-blue-600 transition-colors"
                           >
-                            <Check className="w-3 h-3" />
+                            <CheckCircle className="w-3 h-3" />
                             <span>Accept</span>
                           </button>
                         </div>
