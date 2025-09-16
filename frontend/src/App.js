@@ -41,6 +41,14 @@ function App() {
     setLoading(false);
     
     console.log('🚪 App loaded - showing login page');
+    
+    // Failsafe: Ensure loading is set to false after maximum 2 seconds
+    const failsafeTimeout = setTimeout(() => {
+      setLoading(false);
+      console.log('🔧 Failsafe: Forced loading to false');
+    }, 2000);
+    
+    return () => clearTimeout(failsafeTimeout);
   }, []);
 
   const handleLogin = async (token, userData) => {
