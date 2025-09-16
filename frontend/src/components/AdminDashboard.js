@@ -798,7 +798,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     if (!confirmed) return;
 
     try {
-      await axios.delete(`${API}/users/${userId}`);
+      await axios.delete(`${API}/users/${userId}`, getAxiosConfig());
       alert('User deleted successfully');
       fetchData(); // Refresh the users list
     } catch (error) {
