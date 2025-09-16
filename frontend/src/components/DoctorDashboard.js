@@ -17,6 +17,7 @@ import {
   PhoneCall
 } from 'lucide-react';
 import NotificationPanel from './NotificationPanel';
+import CallButton from './CallButton';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
