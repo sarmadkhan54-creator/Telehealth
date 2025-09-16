@@ -771,7 +771,7 @@ const AdminDashboard = ({ user, onLogout }) => {
         district: editingUser.district,
         specialty: editingUser.specialty,
         is_active: editingUser.is_active
-      });
+      }, getAxiosConfig());
       
       alert('User updated successfully');
       setShowEditUserModal(false);
