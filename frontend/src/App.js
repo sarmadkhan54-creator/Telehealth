@@ -7,7 +7,6 @@ import Dashboard from './components/Dashboard';
 import PatientForm from './components/PatientForm';
 import DoctorDashboard from './components/DoctorDashboard';
 import AdminDashboard from './components/AdminDashboard';
-import VideoCall from './components/VideoCall';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import { pushNotificationManager } from './utils/pushNotifications';
 
