@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Complete the PWA conversion with push notifications, offline mode, background sync, and Android-focused home screen icons"
+user_problem_statement: "Fix credential error when users try to login from other devices (app works only on developer's device)"
 
 backend:
   - task: "PWA Service Worker Implementation"
