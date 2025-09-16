@@ -946,6 +946,8 @@ const AdminDashboard = ({ user, onLogout }) => {
       </div>
     );
   };
+
+  const handleEditAppointment = async (appointmentId) => {
     if (user.role !== 'admin') {
       alert('Access Denied: Only administrators can edit appointments');
       return;
