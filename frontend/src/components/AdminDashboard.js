@@ -374,7 +374,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-        await axios.put(`${API}/appointments/${editingAppointment.id}`, formData);
+        await axios.put(`${API}/appointments/${editingAppointment.id}`, formData, getAxiosConfig());
         setShowEditAppointmentModal(false);
         setEditingAppointment(null);
         fetchData();
