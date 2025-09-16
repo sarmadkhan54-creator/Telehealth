@@ -155,6 +155,17 @@ function App() {
                   )
                 } 
               />
+              
+              <Route 
+                path="/video-call/:sessionToken" 
+                element={
+                  (user.role === 'provider' || user.role === 'doctor') ? (
+                    <VideoCall user={user} />
+                  ) : (
+                    <Navigate to="/" replace />
+                  )
+                } 
+              />
 
             </>
           ) : (
