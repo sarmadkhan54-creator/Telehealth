@@ -539,12 +539,19 @@ const DoctorDashboard = ({ user, onLogout }) => {
                     <div className="ml-4 flex flex-col space-y-2">
                       {appointment.status === 'accepted' && (
                         <>
+                          <CallButton
+                            appointmentId={appointment.id}
+                            targetUser={appointment.provider}
+                            currentUser={user}
+                            size="medium"
+                            variant="primary"
+                          />
                           <button
                             onClick={() => startVideoCall(appointment.id)}
-                            className="btn-primary flex items-center space-x-2"
+                            className="btn-secondary flex items-center space-x-2 text-xs"
                           >
-                            <Video className="w-4 h-4" />
-                            <span>Start Call</span>
+                            <Video className="w-3 h-3" />
+                            <span>Join Meeting</span>
                           </button>
                           <button
                             onClick={() => handleCompleteAppointment(appointment.id)}
