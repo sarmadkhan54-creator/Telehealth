@@ -689,25 +689,14 @@ const Dashboard = ({ user, onLogout }) => {
                       )}
                     </div>
 
-                    {/* Provider Actions */}
+                    {/* Provider Actions - Can only accept calls, not initiate */}
                     <div className="ml-4 flex flex-col space-y-2">
                       {appointment.status === 'accepted' && (
-                        <>
-                          <CallButton
-                            appointmentId={appointment.id}
-                            targetUser={appointment.doctor}
-                            currentUser={user}
-                            size="medium"
-                            variant="primary"
-                          />
-                          <button
-                            onClick={() => handleJoinCall(appointment.id)}
-                            className="btn-secondary flex items-center space-x-2 text-xs"
-                          >
-                            <Phone className="w-3 h-3" />
-                            <span>Join Meeting</span>
-                          </button>
-                        </>
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                          <Phone className="w-5 h-5 text-green-600 mx-auto mb-2" />
+                          <p className="text-sm text-green-800 font-medium mb-1">Ready for Video Call</p>
+                          <p className="text-xs text-green-600">Waiting for Dr. {appointment.doctor?.full_name} to call</p>
+                        </div>
                       )}
 
                       <button
