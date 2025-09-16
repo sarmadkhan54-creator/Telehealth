@@ -55,8 +55,10 @@ const DoctorDashboard = ({ user, onLogout }) => {
       
       // Auto-refresh appointments when receiving notifications
       if (notification.type === 'emergency_appointment' || 
+          notification.type === 'new_appointment' ||
           notification.type === 'appointment_updated' ||
           notification.type === 'video_call_invitation') {
+        console.log('📅 Received appointment notification, refreshing appointments...');
         fetchAppointments(); // Refresh appointments list
       }
       
