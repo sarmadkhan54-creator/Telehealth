@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Phone, PhoneOff, User, Clock, AlertTriangle, Check, Eye } from 'lucide-react';
+import { X, Phone, PhoneOff, User, Clock, AlertTriangle, Check, Eye, Calendar } from 'lucide-react';
 
 const NotificationPanel = ({ user, isOpen, onClose }) => {
   const [notifications, setNotifications] = useState([]);
