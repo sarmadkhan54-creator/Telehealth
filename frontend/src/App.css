@@ -20,6 +20,9 @@ body {
   background: linear-gradient(135deg, #10b981 0%, #065f46 100%);
   /* Ensure full height on mobile devices */
   min-height: 100dvh; /* dvh for better mobile support */
+  /* Ensure app appears above any deployment overlays */
+  position: relative;
+  z-index: 9999;
 }
 
 /* Mobile-first responsive design */
