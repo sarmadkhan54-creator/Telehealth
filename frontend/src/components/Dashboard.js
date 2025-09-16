@@ -91,6 +91,7 @@ const Dashboard = ({ user, onLogout }) => {
           
           // Auto-refresh appointments when receiving notifications
           if (notification.type === 'emergency_appointment' || 
+              notification.type === 'new_appointment' ||
               notification.type === 'appointment_accepted' || 
               notification.type === 'appointment_updated' ||
               notification.type === 'video_call_invitation') {
