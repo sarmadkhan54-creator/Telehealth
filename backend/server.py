@@ -1159,8 +1159,8 @@ async def root():
 @app.websocket("/api/ws/video-call/{session_token}")
 async def video_call_websocket(websocket: WebSocket, session_token: str):
     try:
-        # Validate session token exists in video_call_sessions
-        session_exists = await db.video_call_sessions.find_one({"session_token": session_token})
+        # Validate session token exists in video_sessions
+        session_exists = await db.video_sessions.find_one({"session_token": session_token})
         if not session_exists:
             print(f"❌ Invalid session token: {session_token}")
             await websocket.close(code=4000, reason="Invalid session token")
