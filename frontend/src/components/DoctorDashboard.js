@@ -559,14 +559,13 @@ const DoctorDashboard = ({ user, onLogout }) => {
                       )}
                       
                       {appointment.status === 'accepted' && (
-                          <button
-                            onClick={() => handleCompleteAppointment(appointment.id)}
-                            className="btn-secondary flex items-center space-x-2"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                            <span>Complete</span>
-                          </button>
-                        </>
+                        <button
+                          onClick={() => handleCompleteAppointment(appointment.id)}
+                          className="btn-secondary flex items-center space-x-2"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                          <span>Complete</span>
+                        </button>
                       )}
                       
                       {/* Enhanced options for ALL appointments */}
