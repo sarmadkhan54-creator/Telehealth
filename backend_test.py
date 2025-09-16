@@ -3872,7 +3872,7 @@ def main():
         print("🎯 Backend authentication problems may be causing credential errors on other devices.")
         return 1
 
-    def test_create_appointment_and_verify_doctor_visibility(self):
+def test_create_appointment_and_verify_doctor_visibility(self):
         """🎯 REVIEW REQUEST: CREATE TEST APPOINTMENT AND VERIFY DOCTOR VISIBILITY"""
         print("\n🎯 REVIEW REQUEST: CREATE TEST APPOINTMENT AND VERIFY DOCTOR VISIBILITY")
         print("=" * 80)
