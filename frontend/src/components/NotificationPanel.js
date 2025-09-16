@@ -132,6 +132,8 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
         return `📞 Incoming Video Call`;
       case 'emergency_appointment':
         return `🚨 Emergency Appointment`;
+      case 'new_appointment':
+        return `📅 New Appointment`;
       case 'appointment_accepted':
         return `✅ Appointment Accepted`;
       case 'appointment_updated':
