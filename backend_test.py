@@ -3417,108 +3417,170 @@ class MedConnectAPITester:
         return all_success
 
 def main():
-    print("🏥 MedConnect Telehealth API Testing - ANDROID COMPATIBILITY FIXES")
-    print("=" * 80)
+    print("🏥 MedConnect Telehealth API Testing - COMPREHENSIVE AUTHENTICATION & CREDENTIAL ERROR INVESTIGATION")
+    print("=" * 100)
     
     tester = MedConnectAPITester()
     
-    # Test sequence - focused on Android compatibility fixes
+    # Test sequence - focused on comprehensive authentication testing
     tests = [
         ("Health Check", tester.test_health_check),
+        
+        # 🎯 CRITICAL: Comprehensive Authentication Testing
+        ("🎯 COMPREHENSIVE AUTHENTICATION SCENARIOS", tester.test_comprehensive_authentication_scenarios),
+        ("🔐 AUTHENTICATION HEADERS COMPREHENSIVE", tester.test_authentication_headers_comprehensive),
+        
+        # Standard authentication tests
         ("Login All Roles", tester.test_login_all_roles),
+        ("Admin Only Get Users", tester.test_admin_only_get_users),
+        ("Admin Only Create User", tester.test_admin_only_create_user),
+        ("Admin Only Delete User", tester.test_admin_only_delete_user),
+        ("Admin Only Update User Status", tester.test_admin_only_update_user_status),
+        ("Authentication Headers Verification", tester.test_authentication_headers_comprehensive),
+        
+        # Database and backend functionality tests
         ("Create Appointment", tester.test_create_appointment),
+        ("Role-Based Appointment Access", tester.test_role_based_appointment_access),
+        ("Appointment Details", tester.test_appointment_details),
+        ("Appointment Edit Permissions", tester.test_appointment_edit_permissions),
         
-        # 🎯 CRITICAL: Android Compatibility Fixes
-        ("🎯 ANDROID COMPATIBILITY FIXES", tester.test_video_call_android_compatibility_fixes),
+        # Video Call Authentication Tests
+        ("Video Call Start and Join", tester.test_video_call_start_and_join),
+        ("🎯 Video Call Session Same Token", tester.test_video_call_session_same_token),
+        ("Video Call WebSocket Signaling", tester.test_video_call_websocket_signaling),
+        ("Session Cleanup & Error Handling", tester.test_video_call_session_cleanup_and_errors),
         
-        # Push Notification Tests
+        # Push Notification Authentication Tests
         ("🔑 Push Notification VAPID Key", tester.test_push_notification_vapid_key),
         ("📱 Push Notification Subscription", tester.test_push_notification_subscription),
         ("🧪 Push Notification Test Endpoint", tester.test_push_notification_test_endpoint),
         ("📅🔔 Appointment Reminder (Admin Only)", tester.test_push_notification_appointment_reminder_admin_only),
         ("📹🔔 Video Call Push Integration", tester.test_push_notification_video_call_integration),
-        ("📋 Push Notification Models", tester.test_push_notification_models_validation),
         ("🚨 Push Notification Error Handling", tester.test_push_notification_error_handling),
         ("📱❌ Push Notification Unsubscribe", tester.test_push_notification_unsubscribe),
-        
-        # Video Call Tests
-        ("🎯 Video Call Session Same Token", tester.test_video_call_session_same_token),
-        ("Video Call WebSocket Signaling", tester.test_video_call_websocket_signaling),
-        ("End-to-End Video Call Workflow", tester.test_video_call_end_to_end_workflow),
-        ("Session Cleanup & Error Handling", tester.test_video_call_session_cleanup_and_errors),
-        ("Video Call Start and Join", tester.test_video_call_start_and_join),
-        ("Appointment Edit Permissions", tester.test_appointment_edit_permissions),
     ]
     
-    print(f"\n🚀 Running {len(tests)} focused test suites...")
+    print(f"\n🚀 Running {len(tests)} comprehensive authentication test suites...")
     
     failed_tests = []
-    android_compatibility_passed = False
+    authentication_passed = False
+    critical_auth_issues = []
     
     for test_name, test_func in tests:
         print(f"\n{'='*20} {test_name} {'='*20}")
         try:
             result = test_func()
-            if test_name == "🎯 ANDROID COMPATIBILITY FIXES":
-                android_compatibility_passed = result
+            if test_name == "🎯 COMPREHENSIVE AUTHENTICATION SCENARIOS":
+                authentication_passed = result
+                if not result:
+                    critical_auth_issues.append("Core authentication scenarios failed")
+            elif test_name == "🔐 AUTHENTICATION HEADERS COMPREHENSIVE":
+                if not result:
+                    critical_auth_issues.append("Authentication header validation failed")
             if not result:
                 failed_tests.append(test_name)
         except Exception as e:
             print(f"❌ Test suite '{test_name}' failed with error: {str(e)}")
             failed_tests.append(test_name)
+            if "AUTHENTICATION" in test_name.upper():
+                critical_auth_issues.append(f"{test_name}: {str(e)}")
     
     # Print final results
-    print(f"\n{'='*80}")
+    print(f"\n{'='*100}")
     print(f"📊 Final Results:")
     print(f"   Tests Run: {tester.tests_run}")
     print(f"   Tests Passed: {tester.tests_passed}")
     print(f"   Success Rate: {(tester.tests_passed/tester.tests_run*100):.1f}%" if tester.tests_run > 0 else "No tests run")
     
-    # 🎯 CRITICAL: Android Compatibility Results
-    print(f"\n🎯 ANDROID COMPATIBILITY FIXES RESULTS:")
-    if android_compatibility_passed:
-        print("   ✅ ANDROID COMPATIBILITY: PASSED")
-        print("   ✅ Video call endpoints working for both doctor and provider")
-        print("   ✅ Jitsi URLs properly generated and returned")
-        print("   ✅ WebSocket notification system functional")
-        print("   ✅ Push notification system working")
-        print("   ✅ End-to-end video call workflow operational")
-        print("   ✅ Error handling working correctly")
+    # 🎯 CRITICAL: Authentication Results
+    print(f"\n🎯 COMPREHENSIVE AUTHENTICATION & CREDENTIAL ERROR INVESTIGATION RESULTS:")
+    print("=" * 80)
+    
+    if authentication_passed and len(critical_auth_issues) == 0:
+        print("   ✅ AUTHENTICATION SYSTEM: FULLY OPERATIONAL")
+        print("   ✅ All demo credentials working correctly")
+        print("   ✅ JWT token generation and validation working")
+        print("   ✅ Invalid credentials properly rejected")
+        print("   ✅ Edge cases handled correctly")
+        print("   ✅ CORS headers configured properly")
+        print("   ✅ Backend accessible from external URL")
+        print("   ✅ Database connection stable")
+        print("   ✅ User records exist and accessible")
+        print("   ✅ Error response format correct")
+        print("   ✅ No rate limiting blocking legitimate users")
+        print("   ✅ Authentication headers working correctly")
+        print("\n   🎉 CONCLUSION: Backend authentication is NOT the cause of credential errors on other devices")
     else:
-        print("   ❌ ANDROID COMPATIBILITY: FAILED")
-        print("   ❌ Critical issues found in video call and notification fixes")
+        print("   ❌ AUTHENTICATION SYSTEM: ISSUES FOUND")
+        print("   ❌ Critical authentication problems detected")
+        if critical_auth_issues:
+            print("\n   🚨 CRITICAL ISSUES:")
+            for issue in critical_auth_issues:
+                print(f"      - {issue}")
+        print("\n   ⚠️  CONCLUSION: Backend authentication issues may be causing credential errors")
+    
+    # Detailed authentication analysis
+    print(f"\n🔍 DETAILED AUTHENTICATION ANALYSIS:")
+    print("-" * 50)
+    
+    # Check demo credentials
+    demo_login_success = len(tester.tokens) == 3
+    if demo_login_success:
+        print(f"   ✅ Demo Credentials: ALL WORKING")
+        print(f"      - demo_provider/Demo123! ✅")
+        print(f"      - demo_doctor/Demo123! ✅")
+        print(f"      - demo_admin/Demo123! ✅")
+    else:
+        print(f"   ❌ Demo Credentials: {len(tester.tokens)}/3 WORKING")
+        for role in ['provider', 'doctor', 'admin']:
+            if role in tester.tokens:
+                print(f"      - demo_{role}/Demo123! ✅")
+            else:
+                print(f"      - demo_{role}/Demo123! ❌")
+    
+    # Check backend accessibility
+    print(f"\n   🌐 Backend Accessibility:")
+    print(f"      - External URL: {tester.base_url}")
+    print(f"      - API Endpoint: {tester.api_url}")
+    
+    # Check database connectivity
+    if 'admin' in tester.tokens:
+        print(f"   ✅ Database: ACCESSIBLE")
+    else:
+        print(f"   ❌ Database: NOT ACCESSIBLE (admin login failed)")
     
     if failed_tests:
         print(f"\n❌ Failed Test Suites ({len(failed_tests)}):")
         for test in failed_tests:
             print(f"   - {test}")
     
-    # Special focus on push notifications and video call features
-    print(f"\n📹🔔 PUSH NOTIFICATIONS & VIDEO CALL SUMMARY:")
-    if len(tester.tokens) == 3:
-        print(f"   ✅ All 3 user types can login successfully")
-        print(f"   ✅ Provider: {tester.demo_credentials['provider']['username']}")
-        print(f"   ✅ Doctor: {tester.demo_credentials['doctor']['username']}")
-        print(f"   ✅ Admin: {tester.demo_credentials['admin']['username']}")
-    else:
-        print(f"   ⚠️  Only {len(tester.tokens)}/3 users can login")
+    # Network and CORS analysis
+    print(f"\n🌐 NETWORK & CORS ANALYSIS:")
+    print(f"   - Backend URL: {tester.base_url}")
+    print(f"   - CORS Configuration: Checked in comprehensive test")
+    print(f"   - External Device Access: Should work if authentication passes")
     
-    if tester.appointment_id:
-        print(f"   ✅ Test appointment created: {tester.appointment_id}")
+    # Final recommendation
+    print(f"\n💡 RECOMMENDATION:")
+    if authentication_passed and demo_login_success:
+        print("   ✅ Backend authentication is working correctly")
+        print("   ✅ All demo credentials are functional")
+        print("   ✅ The 'credential error' issue is likely NOT caused by backend problems")
+        print("   ✅ Check frontend implementation, network connectivity, or device-specific issues")
+        print("   ✅ Verify frontend is using correct backend URL and API endpoints")
     else:
-        print(f"   ❌ No test appointment was created")
+        print("   ❌ Backend authentication has issues that need to be resolved")
+        print("   ❌ Fix the identified authentication problems first")
+        print("   ❌ Re-test after fixes are implemented")
     
-    if hasattr(tester, 'vapid_public_key'):
-        print(f"   ✅ VAPID public key retrieved for push notifications")
-    else:
-        print(f"   ❌ VAPID public key not retrieved")
-    
-    # Return based on Android compatibility results
-    if android_compatibility_passed and tester.tests_passed >= tester.tests_run * 0.8:
-        print("🎉 Android compatibility fixes are working correctly!")
+    # Return based on authentication results
+    if authentication_passed and demo_login_success and tester.tests_passed >= tester.tests_run * 0.8:
+        print("\n🎉 Backend authentication system is working correctly!")
+        print("🎯 The credential error issue is NOT caused by backend authentication problems.")
         return 0
     else:
-        print("⚠️  Critical Android compatibility issues found - check logs above")
+        print("\n⚠️  Critical backend authentication issues found - check logs above")
+        print("🎯 Backend authentication problems may be causing credential errors on other devices.")
         return 1
 
 if __name__ == "__main__":
