@@ -30,7 +30,9 @@ const AdminDashboard = ({ user, onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [showAddUserForm, setShowAddUserForm] = useState(false);
   const [showEditAppointmentModal, setShowEditAppointmentModal] = useState(false);
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState(null);
+  const [editingUser, setEditingUser] = useState(null);
 
   useEffect(() => {
     if (user.role !== 'admin') {
