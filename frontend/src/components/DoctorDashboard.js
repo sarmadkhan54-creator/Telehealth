@@ -564,13 +564,13 @@ const DoctorDashboard = ({ user, onLogout }) => {
                         <Eye className="w-4 h-4" />
                         <span>View Details</span>
                       </button>
-                      <button
-                        onClick={() => callProvider(appointment)}
-                        className="btn-secondary flex items-center space-x-2"
-                      >
-                        <PhoneCall className="w-4 h-4" />
-                        <span>Call Provider</span>
-                      </button>
+                      <CallButton
+                        appointmentId={appointment.id}
+                        targetUser={appointment.provider}
+                        currentUser={user}
+                        size="medium"
+                        variant="secondary"
+                      />
                     </div>
                   </div>
                 </div>
