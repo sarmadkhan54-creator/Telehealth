@@ -989,7 +989,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     if (!confirmed) return;
 
     try {
-      await axios.delete(`${API}/appointments/${appointmentId}`);
+      await axios.delete(`${API}/appointments/${appointmentId}`, getAxiosConfig());
       alert('Appointment deleted successfully');
       fetchData(); // Refresh the appointments list
     } catch (error) {
