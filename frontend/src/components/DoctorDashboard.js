@@ -577,12 +577,14 @@ const DoctorDashboard = ({ user, onLogout }) => {
                         <Eye className="w-4 h-4" />
                         <span>View Details</span>
                       </button>
+                      
+                      {/* Doctors can call providers for any appointment */}
                       <CallButton
                         appointmentId={appointment.id}
                         targetUser={appointment.provider}
                         currentUser={user}
-                        size="medium"
-                        variant="secondary"
+                        size="small"
+                        variant="outline"
                       />
                     </div>
                   </div>
