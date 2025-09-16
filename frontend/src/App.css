@@ -43,55 +43,12 @@ body {
   /* Mobile navigation */
   .nav-header {
     padding: 1rem;
+    flex-wrap: wrap;
   }
   
   .nav-header .flex.items-center.justify-between {
     flex-wrap: wrap;
     gap: 1rem;
-  }
-  
-  /* Adjust logo and title on mobile */
-  .nav-header .flex.items-center.space-x-3 {
-    flex: 1;
-    min-width: 0;
-  }
-  
-  .nav-header .flex.items-center.space-x-4 {
-    flex-shrink: 0;
-    gap: 0.5rem;
-  }
-  
-  /* Make notification button more visible on mobile */
-  .nav-header button[title="Notification Settings"] {
-    min-width: 40px;
-    min-height: 40px;
-  }
-  
-  /* Hide user info text on very small screens */
-  @media (max-width: 480px) {
-    .nav-header .text-right {
-      display: none;
-    }
-    
-    .nav-header .flex.items-center.space-x-4 {
-      gap: 0.25rem;
-      justify-content: flex-end;
-    }
-    
-    .nav-header button {
-      padding: 0.5rem;
-      min-width: 44px;
-      min-height: 44px;
-      flex-shrink: 0;
-    }
-    
-    .nav-header button span:not(.sr-only) {
-      display: none;
-    }
-    
-    .nav-header button[title="Notification Settings"] {
-      display: flex !important;
-    }
   }
   
   /* Mobile dashboard adjustments */
@@ -107,7 +64,7 @@ body {
   
   /* Mobile form adjustments */
   .form-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
     gap: 1rem;
   }
   
@@ -129,13 +86,83 @@ body {
   }
   
   /* Mobile text sizing */
-  h1 { font-size: 1.5rem; }
-  h2 { font-size: 1.25rem; }
-  h3 { font-size: 1.1rem; }
+  h1 { font-size: 1.5rem !important; }
+  h2 { font-size: 1.25rem !important; }
+  h3 { font-size: 1.1rem !important; }
   
   /* Mobile spacing */
   .space-y-4 > * + * { margin-top: 1rem; }
   .space-y-6 > * + * { margin-top: 1.5rem; }
+  
+  /* Mobile table responsiveness */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table {
+    min-width: 600px;
+  }
+  
+  /* Mobile admin dashboard */
+  .admin-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    padding: 0 1rem;
+  }
+  
+  .admin-tabs button {
+    white-space: nowrap;
+    min-width: auto;
+    padding: 0.5rem 1rem;
+  }
+  
+  /* Mobile stats grid */
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Hide complex elements on very small screens */
+  @media (max-width: 480px) {
+    .nav-header .text-right {
+      display: none;
+    }
+    
+    /* Make buttons stack vertically */
+    .flex.space-x-2 {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .flex.space-x-2 > * {
+      margin-left: 0 !important;
+    }
+  }
+}
+
+/* Tablet specific adjustments */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .glass-card {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+  
+  /* Tablet form layouts */
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  /* Tablet navigation */
+  .nav-header {
+    padding: 1.5rem 2rem;
+  }
+  
+  /* Tablet modal sizing */
+  .modal-content {
+    max-width: 90vw;
+    margin: 2rem auto;
+  }
 }
 
 /* Tablet optimized layouts */
