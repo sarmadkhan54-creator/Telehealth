@@ -545,13 +545,20 @@ const DoctorDashboard = ({ user, onLogout }) => {
                             size="medium"
                             variant="primary"
                           />
-                          <button
-                            onClick={() => startVideoCall(appointment.id)}
-                            className="btn-secondary flex items-center space-x-2 text-xs"
-                          >
-                            <Video className="w-3 h-3" />
-                            <span>Join Meeting</span>
-                          </button>
+                        </>
+                      )}
+                      
+                      {appointment.status === 'pending' && (
+                        <button
+                          onClick={() => handleAcceptAppointment(appointment.id)}
+                          className="btn-primary flex items-center space-x-2"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                          <span>Accept</span>
+                        </button>
+                      )}
+                      
+                      {appointment.status === 'accepted' && (
                           <button
                             onClick={() => handleCompleteAppointment(appointment.id)}
                             className="btn-secondary flex items-center space-x-2"
