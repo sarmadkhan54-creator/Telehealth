@@ -822,7 +822,130 @@ const AdminDashboard = ({ user, onLogout }) => {
   };
 
   // Appointment management functions (Admin only)
-  const handleEditAppointment = async (appointmentId) => {
+  const EditUserModal = () => {
+    if (!editingUser) return null;
+
+    const handleChange = (e) => {
+      const { name, value, type, checked } = e.target;
+      setEditingUser(prev => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      }));
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="glass-card max-w-2xl w-full max-h-[90vh] overflow-y-auto mx-4">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-2xl font-bold text-gray-900">Edit User</h3>
+            <button
+              onClick={() => {
+                setShowEditUserModal(false);
+                setEditingUser(null);
+              }}
+              className="text-gray-500 hover:text-gray-700 text-2xl"
+            >
+              ×
+            </button>
+          </div>
+
+          <form onSubmit={handleUpdateUser} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="form-group">
+                <label className="form-label">Full Name *</label>
+                <input
+                  type="text"
+                  name="full_name"
+                  value={editingUser.full_name}
+                  onChange={handleChange}
+                  className="form-input"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Email *</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={editingUser.email}
+                  onChange={handleChange}
+                  className="form-input"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Phone</label>
+                <input
+                  type="text"
+                  name="phone"
+                  value={editingUser.phone}
+                  onChange={handleChange}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">District</label>
+                <input
+                  type="text"
+                  name="district"
+                  value={editingUser.district}
+                  onChange={handleChange}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Specialty</label>
+                <input
+                  type="text"
+                  name="specialty"
+                  value={editingUser.specialty}
+                  onChange={handleChange}
+                  className="form-input"
+                  placeholder="e.g., Cardiology, General Practice"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    name="is_active"
+                    checked={editingUser.is_active}
+                    onChange={handleChange}
+                    className="form-checkbox"
+                  />
+                  <span className="form-label">Active User</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-4 pt-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowEditUserModal(false);
+                  setEditingUser(null);
+                }}
+                className="btn-secondary"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="btn-primary"
+              >
+                Update User
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
     if (user.role !== 'admin') {
       alert('Access Denied: Only administrators can edit appointments');
       return;
