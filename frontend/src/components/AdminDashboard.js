@@ -733,8 +733,43 @@ const AdminDashboard = ({ user, onLogout }) => {
       alert('Access Denied: Only administrators can edit users');
       return;
     }
-    // TODO: Implement edit user functionality
-    alert('Edit user functionality - Coming soon!');
+    
+    const userToEdit = users.find(u => u.id === userId);
+    if (userToEdit) {
+      setEditingUser({
+        id: userToEdit.id,
+        full_name: userToEdit.full_name,
+        email: userToEdit.email,
+        phone: userToEdit.phone,
+        district: userToEdit.district,
+        specialty: userToEdit.specialty || '',
+        is_active: userToEdit.is_active
+      });
+      setShowEditUserModal(true);
+    }
+  };
+
+  const handleUpdateUser = async (e) => {
+    e.preventDefault();
+    
+    try {
+      await axios.put(`${API}/users/${editingUser.id}`, {
+        full_name: editingUser.full_name,
+        email: editingUser.email,
+        phone: editingUser.phone,
+        district: editingUser.district,
+        specialty: editingUser.specialty,
+        is_active: editingUser.is_active
+      });
+      
+      alert('User updated successfully');
+      setShowEditUserModal(false);
+      setEditingUser(null);
+      fetchData(); // Refresh the users list
+    } catch (error) {
+      console.error('Error updating user:', error);
+      alert(error.response?.data?.detail || 'Failed to update user');
+    }
   };
 
   const handleDeleteUser = async (userId, userName) => {
