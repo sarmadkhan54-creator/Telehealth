@@ -265,7 +265,7 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
       case 'calls':
         return notification.type === 'jitsi_call_invitation' || notification.type === 'video_call_invitation';
       case 'appointments':
-        return notification.type === 'emergency_appointment' || notification.type === 'appointment_accepted' || notification.type === 'appointment_updated';
+        return notification.type === 'emergency_appointment' || notification.type === 'new_appointment' || notification.type === 'appointment_accepted' || notification.type === 'appointment_updated';
       case 'unread':
         return !notification.isRead;
       default:
