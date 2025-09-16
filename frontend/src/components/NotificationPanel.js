@@ -446,15 +446,57 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
                         </div>
                       )}
 
-                      {/* Patient Info for Emergency Appointments */}
-                      {notification.type === 'emergency_appointment' && notification.data.patient && (
-                        <div className="mt-3 p-2 bg-red-50 rounded-lg">
-                          <p className="text-xs font-medium text-red-800">
+                      {/* Action Buttons for Appointments */}
+                      {(notification.type === 'emergency_appointment' || notification.type === 'new_appointment') && notification.data.appointment_id && (
+                        <div className="flex items-center space-x-2 mt-3">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startVideoCall(notification.data.appointment_id);
+                              markAsRead(notification.id);
+                            }}
+                            className="flex items-center space-x-1 px-3 py-1 bg-green-500 text-white text-xs rounded-full hover:bg-green-600 transition-colors"
+                          >
+                            <Phone className="w-3 h-3" />
+                            <span>Call Provider</span>
+                          </button>
+                          
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Accept appointment logic here
+                              markAsRead(notification.id);
+                            }}
+                            className="flex items-center space-x-1 px-3 py-1 bg-blue-500 text-white text-xs rounded-full hover:bg-blue-600 transition-colors"
+                          >
+                            <Check className="w-3 h-3" />
+                            <span>Accept</span>
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Patient Info for Appointments */}
+                      {(notification.type === 'emergency_appointment' || notification.type === 'new_appointment') && notification.data.patient && (
+                        <div className={`mt-3 p-2 rounded-lg ${
+                          notification.type === 'emergency_appointment' ? 'bg-red-50' : 'bg-blue-50'
+                        }`}>
+                          <p className={`text-xs font-medium ${
+                            notification.type === 'emergency_appointment' ? 'text-red-800' : 'text-blue-800'
+                          }`}>
                             Patient: {notification.data.patient.name} ({notification.data.patient.age}y, {notification.data.patient.gender})
                           </p>
-                          <p className="text-xs text-red-700">
+                          <p className={`text-xs ${
+                            notification.type === 'emergency_appointment' ? 'text-red-700' : 'text-blue-700'
+                          }`}>
                             Reason: {notification.data.patient.consultation_reason}
                           </p>
+                          {notification.data.provider_name && (
+                            <p className={`text-xs ${
+                              notification.type === 'emergency_appointment' ? 'text-red-600' : 'text-blue-600'
+                            }`}>
+                              Provider: {notification.data.provider_name} ({notification.data.provider_district})
+                            </p>
+                          )}
                         </div>
                       )}
                     </div>
