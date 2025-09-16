@@ -585,6 +585,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Jitsi Video Call System Integration"
     - "Comprehensive Authentication & Credential Error Investigation"
     - "Authentication Headers Verification"
     - "Database Connection & User Records Verification"
