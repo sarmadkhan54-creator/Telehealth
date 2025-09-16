@@ -32,10 +32,10 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // FOR DEBUGGING: Uncomment the next lines to force logout on app start
-    // localStorage.removeItem('authToken');
-    // localStorage.removeItem('userData');
-    // sessionStorage.clear();
+    // FOR DEBUGGING: Force clear storage on app start to prevent auto-login issues
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    sessionStorage.clear();
     
     const token = localStorage.getItem('authToken');
     const userData = localStorage.getItem('userData');
