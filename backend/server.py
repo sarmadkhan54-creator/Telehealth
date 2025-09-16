@@ -543,6 +543,56 @@ async def update_user_status(user_id: str, status_update: dict, current_user: Us
     action = "activated" if status_update.get("is_active", True) else "deactivated"
     return {"message": f"User {user_to_update['full_name']} {action} successfully"}
 
+@api_router.put("/users/{user_id}")
+async def update_user(user_id: str, user_update: dict, current_user: User = Depends(get_current_user)):
+    """Update user information (admin only)"""
+    # Only admins can update users
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Check if user exists
+    existing_user = await db.users.find_one({"id": user_id})
+    if not existing_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Prevent changing sensitive fields
+    allowed_fields = [
+        "full_name", "email", "phone", "district", "specialty", "is_active"
+    ]
+    
+    update_data = {}
+    for field, value in user_update.items():
+        if field in allowed_fields:
+            update_data[field] = value
+    
+    # Check for duplicate email if email is being updated
+    if "email" in update_data and update_data["email"] != existing_user["email"]:
+        email_exists = await db.users.find_one({
+            "email": update_data["email"],
+            "id": {"$ne": user_id}
+        })
+        if email_exists:
+            raise HTTPException(status_code=400, detail="Email already exists")
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No valid fields to update")
+    
+    # Add updated timestamp
+    update_data["updated_at"] = datetime.now(timezone.utc)
+    
+    # Update user
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": update_data}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Return updated user
+    updated_user = await db.users.find_one({"id": user_id})
+    return {k: v for k, v in updated_user.items() if k not in ["hashed_password", "_id"]}
+
 # Appointment endpoints
 @api_router.post("/appointments", response_model=Appointment)
 async def create_appointment(appointment_data: AppointmentCreate, current_user: User = Depends(get_current_user)):
