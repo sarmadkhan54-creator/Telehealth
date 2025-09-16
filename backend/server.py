@@ -1155,6 +1155,32 @@ async def health_check():
 async def root():
     return {"message": "MedConnect Telehealth API is running"}
 
+# Video Call WebSocket endpoint
+@app.websocket("/api/ws/video-call/{session_token}")
+async def video_call_websocket(websocket: WebSocket, session_token: str):
+    # Get user info from token (this should be passed somehow, for now use session_token as user_id)
+    user_id = session_token  # Simplified - in production, validate session_token and get user_id
+    user_name = f"User-{user_id[:8]}"  # Simplified username
+    
+    try:
+        await video_call_manager.join_session(session_token, user_id, websocket, user_name)
+        print(f"✅ Video call WebSocket connected: session={session_token}, user={user_id}")
+        
+        while True:
+            data = await websocket.receive_text()
+            message = json.loads(data)
+            print(f"📡 Video call message: {message}")
+            
+            # Relay WebRTC signaling messages
+            await video_call_manager.relay_message(session_token, user_id, message)
+            
+    except WebSocketDisconnect:
+        print(f"📡 Video call WebSocket disconnected: session={session_token}, user={user_id}")
+        video_call_manager.leave_session(session_token, user_id)
+    except Exception as e:
+        print(f"❌ Video call WebSocket error: {e}")
+        video_call_manager.leave_session(session_token, user_id)
+
 # Test WebSocket endpoint
 @app.websocket("/test-ws")
 async def test_websocket_endpoint(websocket: WebSocket):
