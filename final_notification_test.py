@@ -7,7 +7,7 @@ import time
 from datetime import datetime
 
 class FinalNotificationTester:
-    def __init__(self, base_url="https://telehealth-pwa.preview.emergentagent.com"):
+    def __init__(self, base_url="https://health-connect-20.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.ws_url = f"wss://telehealth-pwa.preview.emergentagent.com/api/ws"
