@@ -31,7 +31,6 @@ const DoctorDashboard = ({ user, onLogout }) => {
   const [noteText, setNoteText] = useState('');
   const [appointmentNotes, setAppointmentNotes] = useState([]);
   const [showNotificationPanel, setShowNotificationPanel] = useState(false);
-  const [notifications, setNotifications] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
