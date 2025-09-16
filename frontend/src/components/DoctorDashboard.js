@@ -798,6 +798,13 @@ const DoctorDashboard = ({ user, onLogout }) => {
           </div>
         </div>
       )}
+
+      {/* Notification Panel */}
+      <NotificationPanel
+        user={user}
+        isOpen={showNotificationPanel}
+        onClose={() => setShowNotificationPanel(false)}
+      />
     </div>
   );
 };
