@@ -56,8 +56,6 @@ const Dashboard = ({ user, onLogout }) => {
     
     return () => {
       clearInterval(refreshInterval);
-      document.removeEventListener('click', handleFirstInteraction);
-      document.removeEventListener('touchstart', handleFirstInteraction);
     };
   }, []);
 
