@@ -457,23 +457,34 @@ const Dashboard = ({ user, onLogout }) => {
 
   const handleJoinCall = async (appointmentId) => {
     try {
-      // Start WebRTC video call session (not Jitsi)
-      const response = await axios.post(`${API}/video-call/start/${appointmentId}`, {}, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+      // Get Jitsi room for this appointment
+      const response = await axios.get(`${API}/video-call/session/${appointmentId}`);
+      
+      // Extract room name and create a custom Jitsi URL with moderator disabled
+      const { jitsi_url } = response.data;
+      const roomName = jitsi_url.split('/').pop();
+      
+      // Create Jitsi URL with config to disable moderator requirement
+      const configuredJitsiUrl = `https://meet.jit.si/${roomName}#config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.requireDisplayName=false&config.enableWelcomePage=false&config.prejoinPageEnabled=false&config.enableModeratedDiscussion=false&config.disableModeratorIndicator=true&userInfo.displayName=${user.full_name}`;
+      
+      console.log(`Opening configured Jitsi meeting: ${configuredJitsiUrl}`);
+      
+      // Mobile-friendly approach: Use location.href for better mobile compatibility
+      if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        // On mobile devices, open in same tab for better reliability
+        window.location.href = configuredJitsiUrl;
+      } else {
+        // On desktop, try new window first, fallback to same tab
+        const newWindow = window.open(configuredJitsiUrl, '_blank', 'width=1200,height=800');
+        if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+          // Popup blocked, use same tab
+          window.location.href = configuredJitsiUrl;
         }
-      });
-      
-      const { session_token } = response.data;
-      
-      console.log(`Starting WebRTC video call with session: ${session_token}`);
-      
-      // Navigate to WebRTC VideoCall component
-      navigate(`/video-call/${session_token}`);
+      }
       
     } catch (error) {
-      console.error('Error starting video call:', error);
-      alert('Error starting video call. Please try again.');
+      console.error('Error joining video call:', error);
+      alert('Error joining video call. Please try again.');
     }
   };
 
