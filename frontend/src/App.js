@@ -88,8 +88,12 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center">
+        <div className="glass-card text-center max-w-md">
+          <div className="loading-spinner mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading Greenstar Health</h2>
+          <p className="text-gray-600">Please wait while we prepare your healthcare dashboard...</p>
+        </div>
       </div>
     );
   }
