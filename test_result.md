@@ -561,7 +561,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Video Call Notification Sound System Frontend Fix"
+    - "Admin Authentication System"
+    - "Admin User Management Endpoints" 
+    - "Admin CRUD Operations"
+    - "Authentication Headers Verification"
+    - "Video Call Notification System Backend"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
