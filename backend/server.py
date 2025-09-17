@@ -716,6 +716,24 @@ async def update_appointment(appointment_id: str, update_data: AppointmentUpdate
                     "appointment_id": appointment_id,
                     "patient_name": patient.get("name", "Unknown"),
                     "doctor_name": current_user.full_name,
+                    "doctor_specialty": current_user.specialty or "General Medicine",
+                    "appointment_type": appointment.get("appointment_type", "non_emergency"),
+                    "accepted_at": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+                await manager.send_personal_message(notification, provider_id)
+        
+        # If status changed to cancelled/rejected by doctor, notify provider
+        if update_dict.get("status") == "cancelled" and current_user.role == "doctor":
+            provider_id = appointment.get("provider_id")
+            if provider_id:
+                notification = {
+                    "type": "appointment_rejected",
+                    "appointment_id": appointment_id,
+                    "patient_name": patient.get("name", "Unknown"),
+                    "doctor_name": current_user.full_name,
+                    "appointment_type": appointment.get("appointment_type", "non_emergency"),
+                    "rejected_at": datetime.now(timezone.utc).isoformat(),
                     "timestamp": datetime.now(timezone.utc).isoformat()
                 }
                 await manager.send_personal_message(notification, provider_id)
