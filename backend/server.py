@@ -249,6 +249,11 @@ class PushNotificationPayload(BaseModel):
 # Push notification helper functions
 async def send_push_notification(user_id: str, payload: PushNotificationPayload):
     """Send push notification to a specific user."""
+    # Check if push notifications are enabled
+    if not globals().get('PUSH_NOTIFICATIONS_ENABLED', True):
+        print(f"Push notifications disabled - skipping notification for user {user_id}")
+        return False
+    
     try:
         # Get user's push subscriptions
         subscriptions = await db.push_subscriptions.find({"user_id": user_id, "active": True}).to_list(None)
