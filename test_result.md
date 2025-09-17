@@ -621,7 +621,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Review Request: Create Test Appointment and Verify Doctor Visibility"
+    - "Critical Deletion Fixes Implementation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
