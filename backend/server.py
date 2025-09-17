@@ -39,14 +39,10 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 
-# VAPID Keys for push notifications (in production, store these securely)
-VAPID_PRIVATE_KEY = """-----BEGIN EC PRIVATE KEY-----
-MHcCAQEEIKK8I4f3dR4hM+JR3kT9PVZsYr1GG2LBP1FJMDhj9cVDoAoGCCqGSM49
-AwEHoUQDQgAE9Gkaw4D3VWM5LHRrC4k8kGy8nJo9L0fP2T5K5aWqMxQ8vF8Vr4bN
-2mK3L8V9rJoX5F7gG3YtH8vKlX7N5pQ2cg==
------END EC PRIVATE KEY-----"""
-
-VAPID_PUBLIC_KEY = "BPRpGsOA91VjOSx0awuJPJBsvJyaPS9Hz9k+SuWlqjMUPLxfFa+GzdpiKvX8Vr4bN2mK3L8V9rJoX5F7gG3YtH8vKlX7N5pQ2cg"
+# Disable push notifications temporarily to fix ASN.1 parsing errors
+PUSH_NOTIFICATIONS_ENABLED = False
+VAPID_PUBLIC_KEY = None
+VAPID_PRIVATE_KEY = None
 
 VAPID_CLAIMS = {
     "sub": "mailto:admin@greenstar-health.com"
