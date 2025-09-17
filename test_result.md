@@ -621,7 +621,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Critical Deletion Fixes Implementation"
+    - "Comprehensive Login and Multi-Device Authentication Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
