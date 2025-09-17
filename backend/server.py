@@ -642,7 +642,7 @@ async def create_appointment(appointment_data: AppointmentCreate, current_user: 
 @api_router.get("/appointments", response_model=List[dict])
 async def get_appointments(current_user: User = Depends(get_current_user)):
     if current_user.role == "provider":
-        # Providers can ONLY see their own appointments
+        # Providers can ONLY see their own created appointments
         appointments = await db.appointments.find({"provider_id": current_user.id}).to_list(1000)
     elif current_user.role == "doctor":
         # Doctors can see ALL appointments (not just pending or their own)
