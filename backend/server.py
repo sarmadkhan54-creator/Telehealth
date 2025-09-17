@@ -1076,6 +1076,9 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
 @api_router.post("/push/subscribe")
 async def subscribe_to_push_notifications(subscription_data: UserPushSubscription, current_user: User = Depends(get_current_user)):
     """Subscribe user to push notifications."""
+    if not globals().get('PUSH_NOTIFICATIONS_ENABLED', True):
+        raise HTTPException(status_code=503, detail="Push notifications are temporarily disabled")
+    
     try:
         # Remove any existing subscriptions for this user to avoid duplicates
         await db.push_subscriptions.delete_many({"user_id": current_user.id})
