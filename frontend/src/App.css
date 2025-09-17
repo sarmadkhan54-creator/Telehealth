@@ -492,7 +492,71 @@ body {
   box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
 }
 
-/* Responsive design */
+/* Android tablet optimization (10-inch screens) */
+@media (min-width: 769px) and (max-width: 1280px) and (orientation: landscape) {
+  .App {
+    font-size: 16px;
+  }
+  
+  .dashboard-grid {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .appointment-card {
+    padding: 1.5rem;
+    min-height: 280px;
+  }
+  
+  .btn-primary, .btn-secondary {
+    padding: 12px 24px;
+    font-size: 16px;
+  }
+  
+  .form-input {
+    padding: 14px;
+    font-size: 16px;
+  }
+  
+  .notification-panel {
+    width: 90vw;
+    max-width: 800px;
+    height: 85vh;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) and (orientation: portrait) {
+  .App {
+    font-size: 15px;
+  }
+  
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .appointment-card {
+    padding: 1.25rem;
+    min-height: 250px;
+  }
+  
+  .btn-primary, .btn-secondary {
+    padding: 10px 20px;
+    font-size: 15px;
+  }
+  
+  .form-input {
+    padding: 12px;
+    font-size: 15px;
+  }
+  
+  .header-controls {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
+
+/* Mobile optimization */
 @media (max-width: 768px) {
   .glass-card {
     padding: 1.5rem;
