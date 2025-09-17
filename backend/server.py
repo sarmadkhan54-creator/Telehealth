@@ -1122,6 +1122,9 @@ async def get_vapid_public_key():
 @api_router.post("/push/test")
 async def send_test_push_notification(current_user: User = Depends(get_current_user)):
     """Send a test push notification to the current user."""
+    if not globals().get('PUSH_NOTIFICATIONS_ENABLED', True):
+        return {"message": "Push notifications are temporarily disabled", "success": False}
+    
     try:
         payload = PushNotificationPayload(
             title="Test Notification",
