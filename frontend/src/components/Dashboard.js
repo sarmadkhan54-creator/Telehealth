@@ -544,9 +544,9 @@ const Dashboard = ({ user, onLogout }) => {
             >
               <Bell className="w-4 h-4" />
               <span className="hidden sm:inline">Notifications</span>
-              {notifications.filter(n => !n.isRead).length > 0 && (
+              {unreadNotifications > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1 py-0.5 rounded-full min-w-[16px] h-4 flex items-center justify-center">
-                  {notifications.filter(n => !n.isRead).length}
+                  {unreadNotifications}
                 </span>
               )}
             </button>
