@@ -1012,12 +1012,36 @@ const AdminDashboard = ({ user, onLogout }) => {
     if (!confirmed) return;
 
     try {
-      await axios.delete(`${API}/appointments/${appointmentId}`, getAxiosConfig());
-      alert('Appointment deleted successfully');
-      fetchData(); // Refresh the appointments list
+      console.log('Attempting to delete appointment:', appointmentId);
+      
+      const response = await axios.delete(`${API}/appointments/${appointmentId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('Delete appointment response:', response.data);
+      
+      // Force immediate UI update by filtering out the deleted appointment
+      setAppointments(prevAppointments => {
+        const updatedAppointments = prevAppointments.filter(a => a.id !== appointmentId);
+        console.log('Updated appointments list:', updatedAppointments.length, 'appointments remaining');
+        return updatedAppointments;
+      });
+      
+      alert(`Appointment for "${patientName}" deleted successfully`);
+      
+      // Force a complete data refresh after a short delay
+      setTimeout(async () => {
+        console.log('Refreshing appointment data after deletion...');
+        await fetchData();
+      }, 500);
+      
     } catch (error) {
       console.error('Error deleting appointment:', error);
-      alert(error.response?.data?.detail || 'Failed to delete appointment');
+      console.error('Error details:', error.response?.data);
+      alert(error.response?.data?.detail || 'Failed to delete appointment. Please try again.');
     }
   };
 
