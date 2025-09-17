@@ -798,18 +798,31 @@ const AdminDashboard = ({ user, onLogout }) => {
     if (!confirmed) return;
 
     try {
-      const response = await axios.delete(`${API}/users/${userId}`, getAxiosConfig());
+      console.log('Attempting to delete user:', userId);
+      
+      const response = await axios.delete(`${API}/users/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
       console.log('Delete response:', response.data);
       
       // Force immediate UI update by filtering out the deleted user
-      setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
+      setUsers(prevUsers => {
+        const updatedUsers = prevUsers.filter(u => u.id !== userId);
+        console.log('Updated users list:', updatedUsers.length, 'users remaining');
+        return updatedUsers;
+      });
       
-      alert('User deleted successfully');
+      alert(`User "${userName}" deleted successfully`);
       
-      // Also refresh data to ensure synchronization
-      setTimeout(() => {
-        fetchData();
-      }, 1000);
+      // Force a complete data refresh after a short delay
+      setTimeout(async () => {
+        console.log('Refreshing user data after deletion...');
+        await fetchData();
+      }, 500);
       
     } catch (error) {
       console.error('Error deleting user:', error);
