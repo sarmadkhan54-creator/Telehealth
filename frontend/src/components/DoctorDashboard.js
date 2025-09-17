@@ -299,9 +299,9 @@ const DoctorDashboard = ({ user, onLogout }) => {
               title="Notifications"
             >
               <Bell className="w-6 h-6 text-gray-600" />
-              {notifications.filter(n => !n.isRead).length > 0 && (
+              {unreadNotifications > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1 py-0.5 rounded-full min-w-[16px] h-4 flex items-center justify-center">
-                  {notifications.filter(n => !n.isRead).length}
+                  {unreadNotifications}
                 </span>
               )}
               <span className="hidden sm:inline">Notifications</span>
