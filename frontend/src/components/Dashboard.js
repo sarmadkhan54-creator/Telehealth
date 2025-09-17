@@ -980,7 +980,7 @@ const Dashboard = ({ user, onLogout }) => {
               {(selectedAppointment.status === 'pending' || selectedAppointment.status === 'accepted') && (
                 <button
                   onClick={() => {
-                    handleCancelAppointment(selectedAppointment.id, selectedAppointment.patient?.name);
+                    handleCancelAppointment(selectedAppointment.id);
                     setShowAppointmentModal(false);
                   }}
                   className="btn-secondary flex items-center space-x-2 text-orange-600 hover:text-orange-800"
