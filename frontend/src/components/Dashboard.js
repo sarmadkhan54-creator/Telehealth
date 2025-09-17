@@ -703,7 +703,7 @@ const Dashboard = ({ user, onLogout }) => {
                       )}
                     </div>
 
-                    {/* Provider Actions - Can only accept calls, not initiate */}
+                    {/* Provider Actions - Can accept calls and cancel appointments */}
                     <div className="ml-4 flex flex-col space-y-2">
                       {appointment.status === 'accepted' && (
                         <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
@@ -711,6 +711,28 @@ const Dashboard = ({ user, onLogout }) => {
                           <p className="text-sm text-green-800 font-medium mb-1">Ready for Video Call</p>
                           <p className="text-xs text-green-600">Waiting for Dr. {appointment.doctor?.full_name} to call</p>
                         </div>
+                      )}
+                      
+                      {/* Cancel appointment button for pending appointments */}
+                      {appointment.status === 'pending' && (
+                        <button
+                          onClick={() => handleCancelAppointment(appointment.id)}
+                          className="btn-danger flex items-center space-x-2"
+                        >
+                          <X className="w-4 h-4" />
+                          <span>Cancel</span>
+                        </button>
+                      )}
+                      
+                      {/* Cancel appointment button for accepted appointments */}
+                      {appointment.status === 'accepted' && (
+                        <button
+                          onClick={() => handleCancelAppointment(appointment.id)}
+                          className="btn-secondary flex items-center space-x-2 text-red-600 hover:bg-red-50"
+                        >
+                          <X className="w-4 h-4" />
+                          <span>Cancel Appointment</span>
+                        </button>
                       )}
 
                       <button
