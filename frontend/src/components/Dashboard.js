@@ -17,6 +17,7 @@ const Dashboard = ({ user, onLogout }) => {
   const [noteText, setNoteText] = useState('');
   const [appointmentNotes, setAppointmentNotes] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [showVideoCallInvitation, setShowVideoCallInvitation] = useState(false);
   const [videoCallInvitation, setVideoCallInvitation] = useState(null);
   const [isRinging, setIsRinging] = useState(false);
