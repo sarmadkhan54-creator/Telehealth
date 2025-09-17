@@ -131,6 +131,18 @@ const Dashboard = ({ user, onLogout }) => {
               setVideoCallInvitation(null);
             }, 30000);
             
+            // Add notification to local state
+            const newNotification = {
+              id: Date.now(),
+              type: notification.type,
+              title: 'Incoming Video Call',
+              message: `${notification.caller} is inviting you to a video consultation`,
+              timestamp: new Date().toISOString(),
+              isRead: false
+            };
+            setNotifications(prev => [newNotification, ...prev]);
+            setUnreadNotifications(prev => prev + 1);
+
             // Send browser notification if permission granted
             if (Notification.permission === 'granted') {
               const browserNotification = new Notification('📞 Incoming Video Call', {
