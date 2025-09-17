@@ -52,7 +52,20 @@ const DoctorDashboard = ({ user, onLogout }) => {
     
     ws.onmessage = (event) => {
       const notification = JSON.parse(event.data);
-      setNotifications(prev => [notification, ...prev.slice(0, 4)]);
+      // Create comprehensive notification object
+      const newNotification = {
+        id: Date.now(),
+        type: notification.type,
+        title: getNotificationTitle(notification),
+        message: getNotificationMessage(notification),
+        timestamp: new Date(),
+        data: notification,
+        isRead: false,
+        priority: notification.type === 'emergency_appointment' ? 'high' : 'normal'
+      };
+      
+      setNotifications(prev => [newNotification, ...prev.slice(0, 9)]);
+      setUnreadNotifications(prev => prev + 1);
       
       // Auto-refresh appointments when receiving notifications
       if (notification.type === 'emergency_appointment' || 
