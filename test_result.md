@@ -597,6 +597,18 @@ frontend:
       - working: true
         agent: "testing"
         comment: "🎯 COMPREHENSIVE BIDIRECTIONAL VIDEO CALL NOTIFICATION TESTING COMPLETED: Successfully tested the complete bidirectional video call notification system as requested in the review. 🎉 EXCELLENT RESULTS: 100% success rate (13/13 tests passed). ✅ CRITICAL FEATURES VERIFIED: 1) Complete Bidirectional Flow: Doctor starts video call → Provider receives WebSocket notification ✅, Provider starts video call → Doctor receives WebSocket notification ✅, Both directions working perfectly with proper session tokens, 2) WebSocket Notification Testing: WebSocket connections to /api/ws/{user_id} functional for both doctor and provider roles ✅, jitsi_call_invitation message delivery working ✅, Notification payload includes jitsi_url, caller info, appointment details ✅, 3) Video Call Session Management: GET /api/video-call/session/{appointment_id} returns SAME Jitsi room for both users ✅, Both doctor and provider get identical jitsi_url for same appointment ✅, Session creation and retrieval workflow working perfectly ✅, 4) Push Notification Integration: Video call start triggers push notifications ✅, Notification payload correct for sound notifications ✅, Both emergency and regular appointment types working ✅, 5) Real Appointment Testing: Created test appointments with both doctor and provider assigned ✅, Complete workflow tested: appointment creation → doctor assignment → video call initiation → provider notification ✅. 🔔 BACKEND NOTIFICATION SYSTEM: FULLY OPERATIONAL - All backend components (WebSocket connections, notification delivery, session management, push notifications) working correctly. The bidirectional video call notification system is ready for production use. Any frontend notification issues are separate from the backend system which is delivering all required notification data correctly."
+
+  - task: "Authentication Persistence Fix - Multi-Device Login Issue"
+    implemented: false
+    working: false
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "🚨 CRITICAL AUTHENTICATION PERSISTENCE ISSUE IDENTIFIED: Root cause of 'credential error when users try to login from other devices' found in App.js lines 36-38. The app intentionally clears localStorage on every app start with: localStorage.removeItem('authToken'), localStorage.removeItem('userData'), sessionStorage.clear(). This prevents authentication persistence across page refreshes and browser sessions, causing users to be logged out every time they refresh the page or navigate back to the app. COMPREHENSIVE TESTING RESULTS: ✅ All 3 user types (demo_provider, demo_doctor, demo_admin) login successfully, ✅ Role-based dashboards working correctly, ✅ Error handling working (invalid credentials properly rejected), ✅ Session tokens stored and cleared correctly, ✅ Multi-device simulation successful, ❌ Authentication lost after page refresh due to intentional localStorage clearing, ❌ Token expiration handling not working properly. URGENT FIX REQUIRED: Remove or modify the localStorage clearing code in App.js useEffect to restore proper authentication persistence. This is preventing users from staying logged in and is the primary cause of multi-device login issues."
   
   - task: "Real-Time WebSocket Notifications"
     implemented: true
