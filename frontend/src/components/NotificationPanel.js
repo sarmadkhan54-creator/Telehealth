@@ -50,44 +50,69 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
           const notification = JSON.parse(event.data);
           console.log('📨 Received notification:', notification);
           
-          // Add notification to the panel
+          // Validate notification data
+          if (!notification || !notification.type) {
+            console.warn('Invalid notification received:', notification);
+            return;
+          }
+          
+          // Add notification to the panel with safe defaults
           const newNotification = {
             id: Date.now(),
-            type: notification.type,
-            title: getNotificationTitle(notification),
-            message: getNotificationMessage(notification),
+            type: notification.type || 'unknown',
+            title: getNotificationTitle(notification) || 'New Notification',
+            message: getNotificationMessage(notification) || 'You have a new notification',
             timestamp: new Date(),
-            data: notification,
+            data: notification || {},
             isRead: false,
             priority: notification.type === 'emergency_appointment' ? 'high' : 
                      notification.type === 'jitsi_call_invitation' ? 'urgent' : 'normal'
           };
 
-          setNotifications(prev => [newNotification, ...prev]);
+          setNotifications(prev => {
+            try {
+              return [newNotification, ...prev];
+            } catch (error) {
+              console.error('Error updating notifications state:', error);
+              return prev;
+            }
+          });
 
-          // Show browser notification if permission granted
-          if (Notification.permission === 'granted') {
-            const browserNotification = new Notification(newNotification.title, {
-              body: newNotification.message,
-              icon: '/icons/icon-192x192.png',
-              badge: '/icons/badge-72x72.png',
-              tag: notification.type,
-              requireInteraction: notification.type === 'jitsi_call_invitation'
-            });
+          // Show browser notification if permission granted and supported
+          try {
+            if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+              const browserNotification = new Notification(newNotification.title, {
+                body: newNotification.message,
+                icon: '/icons/icon-192x192.png',
+                badge: '/icons/badge-72x72.png',
+                tag: notification.type,
+                requireInteraction: notification.type === 'jitsi_call_invitation'
+              });
 
-            browserNotification.onclick = () => {
-              handleNotificationClick(newNotification);
-              browserNotification.close();
-            };
+              browserNotification.onclick = () => {
+                try {
+                  handleNotificationClick(newNotification);
+                  browserNotification.close();
+                } catch (error) {
+                  console.error('Error handling notification click:', error);
+                }
+              };
+            }
+          } catch (error) {
+            console.error('Error creating browser notification:', error);
           }
 
           // Play notification sound for urgent notifications
-          if (notification.type === 'jitsi_call_invitation' || notification.type === 'emergency_appointment') {
-            playNotificationSound();
+          try {
+            if (notification.type === 'jitsi_call_invitation' || notification.type === 'emergency_appointment') {
+              playNotificationSound();
+            }
+          } catch (error) {
+            console.error('Error playing notification sound:', error);
           }
 
         } catch (error) {
-          console.error('Error parsing notification:', error);
+          console.error('Error processing notification:', error);
         }
       };
 
