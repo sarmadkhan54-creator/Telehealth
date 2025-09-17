@@ -1112,6 +1112,8 @@ async def unsubscribe_from_push_notifications(current_user: User = Depends(get_c
 @api_router.get("/push/vapid-key")
 async def get_vapid_public_key():
     """Get VAPID public key for push notification subscription."""
+    if not globals().get('PUSH_NOTIFICATIONS_ENABLED', True):
+        raise HTTPException(status_code=503, detail="Push notifications are temporarily disabled")
     return {"vapid_public_key": VAPID_PUBLIC_KEY}
 
 @api_router.post("/push/test")
