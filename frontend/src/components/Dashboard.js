@@ -750,7 +750,7 @@ const Dashboard = ({ user, onLogout }) => {
                       {(appointment.status === 'pending' || appointment.status === 'accepted') && (
                         <>
                           <button
-                            onClick={() => handleCancelAppointment(appointment.id, appointment.patient?.name)}
+                            onClick={() => handleCancelAppointment(appointment.id)}
                             className="btn-secondary flex items-center space-x-2 text-orange-600 hover:text-orange-800"
                           >
                             <X className="w-4 h-4" />
