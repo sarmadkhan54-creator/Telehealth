@@ -404,19 +404,23 @@ const Dashboard = ({ user, onLogout }) => {
     return new Date(dateString).toLocaleString();
   };
 
-  const handleCancelAppointment = async (appointmentId, patientName) => {
-    const confirmed = window.confirm(`Are you sure you want to cancel the appointment for ${patientName}?`);
+  const handleCancelAppointment = async (appointmentId) => {
+    const confirmed = window.confirm('Are you sure you want to cancel this appointment? This action cannot be undone.');
     if (!confirmed) return;
 
     try {
-      await axios.put(`${API}/appointments/${appointmentId}`, {
-        status: 'cancelled'
+      await axios.delete(`${API}/appointments/${appointmentId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
       });
+
       alert('Appointment cancelled successfully');
-      fetchAppointments();
+      fetchAppointments(); // Refresh appointments list
+      
     } catch (error) {
       console.error('Error cancelling appointment:', error);
-      alert('Error cancelling appointment');
+      alert(error.response?.data?.detail || 'Error cancelling appointment. Please try again.');
     }
   };
 
