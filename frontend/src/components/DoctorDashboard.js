@@ -34,6 +34,36 @@ const DoctorDashboard = ({ user, onLogout }) => {
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const navigate = useNavigate();
 
+  const getNotificationTitle = (notification) => {
+    switch (notification.type) {
+      case 'emergency_appointment':
+        return '🚨 Emergency Appointment';
+      case 'new_appointment':
+        return '📅 New Appointment';
+      case 'appointment_accepted':
+        return '✅ Appointment Accepted';
+      case 'jitsi_call_invitation':
+        return '📞 Incoming Video Call';
+      default:
+        return '📨 New Notification';
+    }
+  };
+
+  const getNotificationMessage = (notification) => {
+    switch (notification.type) {
+      case 'emergency_appointment':
+        return `Emergency consultation for ${notification.patient_name} from ${notification.provider_name}`;
+      case 'new_appointment':
+        return `New consultation for ${notification.patient_name} from ${notification.provider_name}`;
+      case 'appointment_accepted':
+        return `Dr. ${notification.doctor_name} accepted appointment for ${notification.patient_name}`;
+      case 'jitsi_call_invitation':
+        return `${notification.caller} is calling you for patient consultation`;
+      default:
+        return 'New notification received';
+    }
+  };
+
   useEffect(() => {
     fetchAppointments();
     setupWebSocket();
