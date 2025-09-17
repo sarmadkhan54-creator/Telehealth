@@ -32,15 +32,29 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // FOR DEBUGGING: Force clear storage on app start to prevent auto-login issues
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
-    sessionStorage.clear();
+    // Check for existing authentication on app start
+    const checkAuthStatus = () => {
+      const token = localStorage.getItem('authToken');
+      const userData = localStorage.getItem('userData');
+      
+      if (token && userData) {
+        try {
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
+          console.log('🔐 Auto-login successful:', parsedUser.username);
+        } catch (error) {
+          console.error('Error parsing stored user data:', error);
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('userData');
+        }
+      } else {
+        console.log('🚪 No stored credentials - showing login page');
+      }
+      
+      setLoading(false);
+    };
     
-    // Set loading to false immediately - no dependencies needed
-    setLoading(false);
-    
-    console.log('🚪 App loaded - showing login page');
+    checkAuthStatus();
     
     // Failsafe: Ensure loading is set to false after maximum 2 seconds
     const failsafeTimeout = setTimeout(() => {
