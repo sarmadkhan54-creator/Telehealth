@@ -4113,306 +4113,13 @@ def main():
         print("🎯 Backend authentication problems may be causing credential errors on other devices.")
         return 1
 
-    def test_critical_deletion_fixes(self):
-        """🎯 TEST ALL CRITICAL DELETION FIXES IMPLEMENTED"""
-        print("\n🎯 TESTING ALL CRITICAL DELETION FIXES IMPLEMENTED")
-        print("=" * 80)
-        
-        all_success = True
-        
-        # Test 1: Admin User Deletion Fix
-        print("\n1️⃣ Testing Admin User Deletion Fix")
-        print("-" * 50)
-        
-        if 'admin' not in self.tokens:
-            print("❌ No admin token available")
-            return False
-        
-        # Create a test user to delete
-        test_user_data = {
-            "username": f"delete_test_{datetime.now().strftime('%H%M%S')}",
-            "email": f"delete_test_{datetime.now().strftime('%H%M%S')}@example.com",
-            "password": "TestPass123!",
-            "phone": "+1234567890",
-            "full_name": "User For Deletion Test",
-            "role": "provider",
-            "district": "Test District"
-        }
-        
-        success, response = self.run_test(
-            "Create User for Deletion Test",
-            "POST",
-            "admin/create-user",
-            200,
-            data=test_user_data,
-            token=self.tokens['admin']
-        )
-        
-        if not success:
-            print("❌ Could not create test user for deletion")
-            return False
-        
-        test_user_id = response.get('id')
-        print(f"   ✅ Created test user ID: {test_user_id}")
-        
-        # Test DELETE /api/users/{user_id} endpoint with admin authentication
-        success, response = self.run_test(
-            "DELETE User with Admin Auth",
-            "DELETE",
-            f"users/{test_user_id}",
-            200,
-            token=self.tokens['admin']
-        )
-        
-        if success:
-            print("   ✅ Admin user deletion endpoint working")
-            print(f"   Response: {response.get('message', 'User deleted')}")
-        else:
-            print("   ❌ Admin user deletion failed")
-            all_success = False
-        
-        # Verify user is actually deleted from database (not just marked)
-        success, response = self.run_test(
-            "Verify User Actually Deleted",
-            "GET",
-            "users",
-            200,
-            token=self.tokens['admin']
-        )
-        
-        if success:
-            user_exists = any(user.get('id') == test_user_id for user in response)
-            if not user_exists:
-                print("   ✅ User actually deleted from database (not just marked)")
-            else:
-                print("   ❌ User still exists in database - not properly deleted")
-                all_success = False
-        
-        # Test 2: Admin Appointment Deletion Fix
-        print("\n2️⃣ Testing Admin Appointment Deletion Fix")
-        print("-" * 50)
-        
-        # Create a test appointment to delete
-        if 'provider' not in self.tokens:
-            print("❌ No provider token available for appointment creation")
-            return False
-        
-        appointment_data = {
-            "patient": {
-                "name": "Delete Test Patient",
-                "age": 30,
-                "gender": "Female",
-                "vitals": {
-                    "blood_pressure": "110/70",
-                    "heart_rate": 68,
-                    "temperature": 98.4
-                },
-                "consultation_reason": "Test appointment for admin deletion"
-            },
-            "appointment_type": "non_emergency",
-            "consultation_notes": "Test appointment for admin deletion"
-        }
-        
-        success, response = self.run_test(
-            "Create Appointment for Admin Deletion Test",
-            "POST",
-            "appointments",
-            200,
-            data=appointment_data,
-            token=self.tokens['provider']
-        )
-        
-        if not success:
-            print("❌ Could not create test appointment for admin deletion")
-            return False
-        
-        test_appointment_id = response.get('id')
-        print(f"   ✅ Created test appointment ID: {test_appointment_id}")
-        
-        # Test DELETE /api/appointments/{appointment_id} endpoint with admin
-        success, response = self.run_test(
-            "DELETE Appointment with Admin Auth",
-            "DELETE",
-            f"appointments/{test_appointment_id}",
-            200,
-            token=self.tokens['admin']
-        )
-        
-        if success:
-            print("   ✅ Admin appointment deletion endpoint working")
-            print(f"   Response: {response.get('message', 'Appointment deleted')}")
-        else:
-            print("   ❌ Admin appointment deletion failed")
-            all_success = False
-        
-        # Verify appointment and related data are properly deleted
-        success, response = self.run_test(
-            "Verify Appointment Actually Deleted",
-            "GET",
-            "appointments",
-            200,
-            token=self.tokens['admin']
-        )
-        
-        if success:
-            appointment_exists = any(apt.get('id') == test_appointment_id for apt in response)
-            if not appointment_exists:
-                print("   ✅ Appointment actually deleted from database")
-            else:
-                print("   ❌ Appointment still exists - not properly deleted")
-                all_success = False
-        
-        # Test 3: Provider Appointment Cancellation
-        print("\n3️⃣ Testing Provider Appointment Cancellation")
-        print("-" * 50)
-        
-        # Create another test appointment for provider deletion
-        appointment_data = {
-            "patient": {
-                "name": "Provider Delete Test Patient",
-                "age": 25,
-                "gender": "Male",
-                "vitals": {
-                    "blood_pressure": "115/75",
-                    "heart_rate": 70,
-                    "temperature": 98.2
-                },
-                "consultation_reason": "Test appointment for provider deletion"
-            },
-            "appointment_type": "non_emergency",
-            "consultation_notes": "Test appointment for provider deletion"
-        }
-        
-        success, response = self.run_test(
-            "Create Appointment for Provider Deletion Test",
-            "POST",
-            "appointments",
-            200,
-            data=appointment_data,
-            token=self.tokens['provider']
-        )
-        
-        if not success:
-            print("❌ Could not create test appointment for provider deletion")
-            return False
-        
-        provider_test_appointment_id = response.get('id')
-        print(f"   ✅ Created provider test appointment ID: {provider_test_appointment_id}")
-        
-        # Test provider can delete their own appointments
-        success, response = self.run_test(
-            "Provider DELETE Own Appointment",
-            "DELETE",
-            f"appointments/{provider_test_appointment_id}",
-            200,
-            token=self.tokens['provider']
-        )
-        
-        if success:
-            print("   ✅ Provider can delete their own appointments")
-            print(f"   Response: {response.get('message', 'Appointment deleted')}")
-        else:
-            print("   ❌ Provider cannot delete their own appointments")
-            all_success = False
-        
-        # Test 4: Database Cleanup Verification
-        print("\n4️⃣ Testing Database Cleanup Verification")
-        print("-" * 50)
-        
-        # Get current state of appointments
-        success, response = self.run_test(
-            "Get All Appointments for Cleanup Check",
-            "GET",
-            "appointments",
-            200,
-            token=self.tokens['admin']
-        )
-        
-        if success:
-            appointments = response
-            print(f"   ✅ Current appointments in database: {len(appointments)}")
-            
-            # Check for any old test appointments that should have been cleaned up
-            test_appointments = [apt for apt in appointments if 'test' in apt.get('patient', {}).get('name', '').lower()]
-            if test_appointments:
-                print(f"   ⚠️  Found {len(test_appointments)} test appointments still in database")
-                for apt in test_appointments[:3]:  # Show first 3
-                    print(f"      - {apt.get('patient', {}).get('name', 'Unknown')} (ID: {apt.get('id', 'Unknown')[:8]}...)")
-            else:
-                print("   ✅ No old test appointments found - cleanup working properly")
-        
-        # Test 5: Backend Error Handling
-        print("\n5️⃣ Testing Backend Error Handling for Deletion Operations")
-        print("-" * 50)
-        
-        # Test deletion with non-existent user ID
-        fake_user_id = "non-existent-user-id-12345"
-        success, response = self.run_test(
-            "Delete Non-existent User (Should Return 404)",
-            "DELETE",
-            f"users/{fake_user_id}",
-            404,
-            token=self.tokens['admin']
-        )
-        
-        if success:
-            print("   ✅ Non-existent user deletion properly returns 404")
-        else:
-            print("   ❌ Non-existent user deletion error handling failed")
-            all_success = False
-        
-        # Test deletion with non-existent appointment ID
-        fake_appointment_id = "non-existent-appointment-id-12345"
-        success, response = self.run_test(
-            "Delete Non-existent Appointment (Should Return 404)",
-            "DELETE",
-            f"appointments/{fake_appointment_id}",
-            404,
-            token=self.tokens['admin']
-        )
-        
-        if success:
-            print("   ✅ Non-existent appointment deletion properly returns 404")
-        else:
-            print("   ❌ Non-existent appointment deletion error handling failed")
-            all_success = False
-        
-        # Test deletion without proper authorization
-        success, response = self.run_test(
-            "Delete User Without Token (Should Return 403)",
-            "DELETE",
-            f"users/{self.users['provider']['id']}",
-            403,
-            token=None
-        )
-        
-        if success:
-            print("   ✅ Deletion without token properly returns 403")
-        else:
-            print("   ❌ Deletion without token error handling failed")
-            all_success = False
-        
-        # Test deletion with wrong role permissions
-        if 'provider' in self.tokens:
-            success, response = self.run_test(
-                "Provider Try Delete User (Should Return 403)",
-                "DELETE",
-                f"users/{self.users['doctor']['id']}",
-                403,
-                token=self.tokens['provider']
-            )
-            
-            if success:
-                print("   ✅ Wrong role deletion properly returns 403")
-            else:
-                print("   ❌ Wrong role deletion error handling failed")
-                all_success = False
-        
-        return all_success
-
 if __name__ == "__main__":
     # Run the critical deletion fixes test as requested in review
     tester = MedConnectAPITester()
+    
+    print("🎯 CRITICAL DELETION FIXES TESTING")
+    print("=" * 80)
+    print("Testing critical bug fixes for admin deletion and appointment cleanup functionality")
     
     # First login to get tokens
     if not tester.test_login_all_roles():
@@ -4432,3 +4139,364 @@ if __name__ == "__main__":
         print("\n❌ CRITICAL DELETION FIXES TEST FAILED!")
         print("⚠️  Some deletion operations need attention")
         sys.exit(1)
+
+    def test_critical_deletion_fixes(self):
+        """🎯 CRITICAL DELETION FIXES TESTING - Test all deletion endpoints as requested in review"""
+        print("\n🎯 CRITICAL DELETION FIXES TESTING")
+        print("=" * 80)
+        print("Testing critical bug fixes for admin deletion and appointment cleanup functionality")
+        
+        all_success = True
+        
+        # Test 1: Admin User Deletion UI Refresh Fix
+        print("\n1️⃣ Testing Admin User Deletion UI Refresh Fix")
+        print("-" * 60)
+        
+        if 'admin' not in self.tokens:
+            print("❌ No admin token available for user deletion testing")
+            return False
+        
+        # Create a test user to delete
+        test_user_data = {
+            "username": f"delete_test_{datetime.now().strftime('%H%M%S')}",
+            "email": f"delete_test_{datetime.now().strftime('%H%M%S')}@example.com",
+            "password": "TestPass123!",
+            "phone": "+1234567890",
+            "full_name": "Test User for Deletion",
+            "role": "provider",
+            "district": "Test District"
+        }
+        
+        success, response = self.run_test(
+            "Create Test User for Deletion",
+            "POST",
+            "admin/create-user",
+            200,
+            data=test_user_data,
+            token=self.tokens['admin']
+        )
+        
+        if not success:
+            print("❌ Could not create test user for deletion")
+            all_success = False
+        else:
+            test_user_id = response.get('id')
+            print(f"   ✅ Created test user for deletion: {test_user_id}")
+            
+            # Test DELETE /api/users/{user_id} with admin credentials
+            success, response = self.run_test(
+                "DELETE /api/users/{user_id} - Admin User Deletion",
+                "DELETE",
+                f"users/{test_user_id}",
+                200,
+                token=self.tokens['admin']
+            )
+            
+            if success:
+                print("   ✅ Admin user deletion endpoint working")
+                print(f"   Response: {response.get('message', 'No message')}")
+                
+                # Verify user is actually deleted from database
+                success_verify, verify_response = self.run_test(
+                    "Verify User Actually Deleted from Database",
+                    "GET",
+                    "users",
+                    200,
+                    token=self.tokens['admin']
+                )
+                
+                if success_verify:
+                    users_list = verify_response
+                    deleted_user_found = any(user.get('id') == test_user_id for user in users_list)
+                    
+                    if not deleted_user_found:
+                        print("   ✅ User actually deleted from database (not just marked as deleted)")
+                    else:
+                        print("   ❌ User still exists in database - deletion not permanent")
+                        all_success = False
+                else:
+                    print("   ❌ Could not verify user deletion from database")
+                    all_success = False
+            else:
+                print("   ❌ Admin user deletion failed")
+                all_success = False
+        
+        # Test 2: Admin Appointment Deletion UI Refresh Fix
+        print("\n2️⃣ Testing Admin Appointment Deletion UI Refresh Fix")
+        print("-" * 60)
+        
+        # Create a test appointment to delete
+        if 'provider' in self.tokens:
+            appointment_data = {
+                "patient": {
+                    "name": "Delete Test Patient",
+                    "age": 30,
+                    "gender": "Female",
+                    "vitals": {
+                        "blood_pressure": "110/70",
+                        "heart_rate": 68,
+                        "temperature": 98.4
+                    },
+                    "consultation_reason": "Test appointment for admin deletion"
+                },
+                "appointment_type": "non_emergency",
+                "consultation_notes": "Test appointment for deletion"
+            }
+            
+            success, response = self.run_test(
+                "Create Test Appointment for Admin Deletion",
+                "POST",
+                "appointments",
+                200,
+                data=appointment_data,
+                token=self.tokens['provider']
+            )
+            
+            if success:
+                test_appointment_id = response.get('id')
+                print(f"   ✅ Created test appointment for deletion: {test_appointment_id}")
+                
+                # Test DELETE /api/appointments/{appointment_id} with admin credentials
+                success, response = self.run_test(
+                    "DELETE /api/appointments/{appointment_id} - Admin Appointment Deletion",
+                    "DELETE",
+                    f"appointments/{test_appointment_id}",
+                    200,
+                    token=self.tokens['admin']
+                )
+                
+                if success:
+                    print("   ✅ Admin appointment deletion endpoint working")
+                    print(f"   Response: {response.get('message', 'No message')}")
+                    
+                    # Verify appointment and related data are actually deleted
+                    success_verify, verify_response = self.run_test(
+                        "Verify Appointment Actually Deleted from Database",
+                        "GET",
+                        "appointments",
+                        200,
+                        token=self.tokens['admin']
+                    )
+                    
+                    if success_verify:
+                        appointments_list = verify_response
+                        deleted_appointment_found = any(apt.get('id') == test_appointment_id for apt in appointments_list)
+                        
+                        if not deleted_appointment_found:
+                            print("   ✅ Appointment actually deleted from database")
+                        else:
+                            print("   ❌ Appointment still exists in database - deletion not permanent")
+                            all_success = False
+                    else:
+                        print("   ❌ Could not verify appointment deletion from database")
+                        all_success = False
+                else:
+                    print("   ❌ Admin appointment deletion failed")
+                    all_success = False
+            else:
+                print("   ❌ Could not create test appointment for deletion")
+                all_success = False
+        
+        # Test 3: Provider Appointment Cancellation Fix
+        print("\n3️⃣ Testing Provider Appointment Cancellation Fix")
+        print("-" * 60)
+        
+        if 'provider' in self.tokens:
+            # Create another test appointment for provider cancellation
+            appointment_data = {
+                "patient": {
+                    "name": "Provider Cancel Test Patient",
+                    "age": 25,
+                    "gender": "Male",
+                    "vitals": {
+                        "blood_pressure": "115/75",
+                        "heart_rate": 70,
+                        "temperature": 98.2
+                    },
+                    "consultation_reason": "Test appointment for provider cancellation"
+                },
+                "appointment_type": "non_emergency",
+                "consultation_notes": "Test appointment for provider cancellation"
+            }
+            
+            success, response = self.run_test(
+                "Create Test Appointment for Provider Cancellation",
+                "POST",
+                "appointments",
+                200,
+                data=appointment_data,
+                token=self.tokens['provider']
+            )
+            
+            if success:
+                provider_test_appointment_id = response.get('id')
+                print(f"   ✅ Created test appointment for provider cancellation: {provider_test_appointment_id}")
+                
+                # Test DELETE /api/appointments/{appointment_id} with provider credentials
+                success, response = self.run_test(
+                    "DELETE /api/appointments/{appointment_id} - Provider Appointment Cancellation",
+                    "DELETE",
+                    f"appointments/{provider_test_appointment_id}",
+                    200,
+                    token=self.tokens['provider']
+                )
+                
+                if success:
+                    print("   ✅ Provider appointment cancellation endpoint working")
+                    print(f"   Response: {response.get('message', 'No message')}")
+                    
+                    # Verify proper role-based permissions
+                    print("   ✅ Provider can cancel their own appointments with proper permissions")
+                else:
+                    print("   ❌ Provider appointment cancellation failed")
+                    all_success = False
+            else:
+                print("   ❌ Could not create test appointment for provider cancellation")
+                all_success = False
+        
+        # Test 4: Clean All Appointments Endpoint
+        print("\n4️⃣ Testing Clean All Appointments Endpoint")
+        print("-" * 60)
+        
+        # First, get current appointment count
+        success, response = self.run_test(
+            "Get Current Appointments Count",
+            "GET",
+            "appointments",
+            200,
+            token=self.tokens['admin']
+        )
+        
+        if success:
+            current_appointments_count = len(response)
+            print(f"   Current appointments in database: {current_appointments_count}")
+            
+            # Test DELETE /admin/appointments/cleanup with admin credentials
+            success, response = self.run_test(
+                "DELETE /admin/appointments/cleanup - Clean All Appointments",
+                "DELETE",
+                "admin/appointments/cleanup",
+                200,
+                token=self.tokens['admin']
+            )
+            
+            if success:
+                print("   ✅ Clean all appointments endpoint working")
+                print(f"   Response: {response.get('message', 'No message')}")
+                
+                deleted_info = response.get('deleted', {})
+                print(f"   Deleted appointments: {deleted_info.get('appointments', 0)}")
+                print(f"   Deleted notes: {deleted_info.get('notes', 0)}")
+                print(f"   Deleted patients: {deleted_info.get('patients', 0)}")
+                
+                # Verify all appointments, notes, and patient data are removed
+                success_verify, verify_response = self.run_test(
+                    "Verify All Appointments Cleaned Up",
+                    "GET",
+                    "appointments",
+                    200,
+                    token=self.tokens['admin']
+                )
+                
+                if success_verify:
+                    remaining_appointments = len(verify_response)
+                    if remaining_appointments == 0:
+                        print("   ✅ All appointments properly removed from database")
+                    else:
+                        print(f"   ❌ {remaining_appointments} appointments still remain in database")
+                        all_success = False
+                else:
+                    print("   ❌ Could not verify appointment cleanup")
+                    all_success = False
+            else:
+                print("   ❌ Clean all appointments endpoint failed")
+                all_success = False
+        else:
+            print("   ❌ Could not get current appointments count")
+            all_success = False
+        
+        # Test 5: Test proper authentication and authorization for all endpoints
+        print("\n5️⃣ Testing Authentication and Authorization for Deletion Endpoints")
+        print("-" * 60)
+        
+        # Test non-admin access to cleanup endpoint (should fail)
+        if 'provider' in self.tokens:
+            success, response = self.run_test(
+                "Clean All Appointments (Provider - Should Fail)",
+                "DELETE",
+                "admin/appointments/cleanup",
+                403,
+                token=self.tokens['provider']
+            )
+            
+            if success:
+                print("   ✅ Provider correctly denied access to cleanup endpoint")
+            else:
+                print("   ❌ Provider unexpectedly allowed access to cleanup endpoint")
+                all_success = False
+        
+        if 'doctor' in self.tokens:
+            success, response = self.run_test(
+                "Clean All Appointments (Doctor - Should Fail)",
+                "DELETE",
+                "admin/appointments/cleanup",
+                403,
+                token=self.tokens['doctor']
+            )
+            
+            if success:
+                print("   ✅ Doctor correctly denied access to cleanup endpoint")
+            else:
+                print("   ❌ Doctor unexpectedly allowed access to cleanup endpoint")
+                all_success = False
+        
+        # Test 6: Test error responses for invalid requests
+        print("\n6️⃣ Testing Error Responses for Invalid Requests")
+        print("-" * 60)
+        
+        # Test deletion with non-existent user ID
+        success, response = self.run_test(
+            "Delete Non-existent User (Should Return 404)",
+            "DELETE",
+            "users/non-existent-user-id-12345",
+            404,
+            token=self.tokens['admin']
+        )
+        
+        if success:
+            print("   ✅ Non-existent user deletion returns proper 404 error")
+        else:
+            print("   ❌ Non-existent user deletion does not return proper error")
+            all_success = False
+        
+        # Test deletion with non-existent appointment ID
+        success, response = self.run_test(
+            "Delete Non-existent Appointment (Should Return 404)",
+            "DELETE",
+            "appointments/non-existent-appointment-id-12345",
+            404,
+            token=self.tokens['admin']
+        )
+        
+        if success:
+            print("   ✅ Non-existent appointment deletion returns proper 404 error")
+        else:
+            print("   ❌ Non-existent appointment deletion does not return proper error")
+            all_success = False
+        
+        # Test deletion without proper token
+        success, response = self.run_test(
+            "Delete User Without Token (Should Return 403)",
+            "DELETE",
+            "users/some-user-id",
+            403,
+            token=None
+        )
+        
+        if success:
+            print("   ✅ Deletion without token returns proper 403 error")
+        else:
+            print("   ❌ Deletion without token does not return proper error")
+            all_success = False
+        
+        return all_success
