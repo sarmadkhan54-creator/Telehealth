@@ -224,6 +224,7 @@ const Dashboard = ({ user, onLogout }) => {
           // Clear existing timeout if any
           if (reconnectTimeout) {
             clearTimeout(reconnectTimeout);
+            setReconnectTimeout(null);
           }
           
           // Implement exponential backoff reconnection
@@ -231,10 +232,11 @@ const Dashboard = ({ user, onLogout }) => {
             const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000); // Max 30 seconds
             console.log(`🔄 Provider WebSocket reconnecting in ${delay}ms (attempt ${reconnectAttempts + 1}/${maxReconnectAttempts})`);
             
-            reconnectTimeout = setTimeout(() => {
+            const newTimeout = setTimeout(() => {
               reconnectAttempts++;
               connectWebSocket();
             }, delay);
+            setReconnectTimeout(newTimeout);
           } else {
             console.error('❌ Provider WebSocket max reconnection attempts reached');
           }
