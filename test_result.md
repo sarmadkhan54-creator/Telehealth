@@ -737,13 +737,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Admin User Deletion UI Refresh Fix"
-    - "Admin Appointment Deletion UI Refresh Fix"
-    - "NotificationPanel Crash Prevention"
-    - "Provider Appointment Cancellation Fix"
-    - "Clean All Appointments Endpoint"
-    - "Admin Cleanup UI Button"
-  stuck_tasks: []
+    - "Provider and Doctor Dashboard Real-time Updates"
+  stuck_tasks: 
+    - "Authentication Persistence Fix - Multi-Device Login Issue"
   test_all: false
   test_priority: "critical_first"
 
