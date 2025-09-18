@@ -1207,6 +1207,29 @@ async def test_websocket_message(current_user: User = Depends(get_current_user))
         "test_message": test_message
     }
 
+# CRITICAL: WebSocket endpoint for real-time notifications - MUST NOT BE REMOVED
+@app.websocket("/api/ws/{user_id}")
+async def websocket_endpoint(websocket: WebSocket, user_id: str):
+    print(f"🔌 WebSocket connection attempt from user {user_id}")
+    await manager.connect(websocket, user_id)
+    print(f"✅ User {user_id} connected to WebSocket")
+    
+    try:
+        while True:
+            data = await websocket.receive_text()
+            message = json.loads(data)
+            
+            # Handle different message types
+            if message.get("type") == "ping":
+                await websocket.send_text(json.dumps({"type": "pong"}))
+                print(f"🏓 Ping/Pong with user {user_id}")
+            elif message.get("type") == "heartbeat_response":
+                print(f"💓 Heartbeat response from user {user_id}")
+                
+    except WebSocketDisconnect:
+        print(f"🔌 User {user_id} disconnected from WebSocket")
+        manager.disconnect(user_id)
+
 # Push notification endpoints
 @api_router.post("/push/subscribe")
 async def subscribe_to_push_notifications(subscription_data: UserPushSubscription, current_user: User = Depends(get_current_user)):
