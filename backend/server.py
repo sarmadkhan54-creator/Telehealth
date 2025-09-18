@@ -1276,7 +1276,7 @@ async def get_call_status(appointment_id: str, current_user: User = Depends(get_
             "appointment_id": appointment_id
         }
 
-@api_router.post("/video-call/end/{room_name}")
+@api_router.post("/video-call/session-end/{room_name}")
 async def end_jitsi_call(room_name: str, current_user: User = Depends(get_current_user)):
     """End a Jitsi video call session"""
     jitsi_session = await db.jitsi_sessions.find_one({"room_name": room_name})
