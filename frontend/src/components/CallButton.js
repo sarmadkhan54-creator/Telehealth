@@ -177,16 +177,16 @@ const CallButton = ({
     };
 
     const variantClasses = {
-      primary: isCalling 
+      primary: (isCalling || isAutoRedialing)
         ? "bg-green-600 text-white animate-pulse" 
         : "bg-green-500 text-white hover:bg-green-600 active:bg-green-700",
-      secondary: isCalling 
+      secondary: (isCalling || isAutoRedialing)
         ? "bg-blue-600 text-white animate-pulse" 
         : "bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700",
-      outline: isCalling 
+      outline: (isCalling || isAutoRedialing)
         ? "border-2 border-green-600 text-green-600 animate-pulse" 
         : "border-2 border-green-500 text-green-500 hover:bg-green-50 active:bg-green-100",
-      ghost: isCalling 
+      ghost: (isCalling || isAutoRedialing)
         ? "text-green-600 animate-pulse" 
         : "text-green-500 hover:bg-green-50 active:bg-green-100"
     };
@@ -198,6 +198,9 @@ const CallButton = ({
     if (isCalling) {
       return <PhoneCall className={`${size === 'small' ? 'w-3 h-3' : size === 'large' ? 'w-6 h-6' : 'w-4 h-4'} animate-bounce`} />;
     }
+    if (isAutoRedialing) {
+      return <Phone className={`${size === 'small' ? 'w-3 h-3' : size === 'large' ? 'w-6 h-6' : 'w-4 h-4'} animate-pulse`} />;
+    }
     return <Phone className={`${size === 'small' ? 'w-3 h-3' : size === 'large' ? 'w-6 h-6' : 'w-4 h-4'}`} />;
   };
 
@@ -205,31 +208,62 @@ const CallButton = ({
     if (isCalling) {
       return 'Calling...';
     }
+    if (isAutoRedialing && nextRetryIn > 0) {
+      return `Retry in ${nextRetryIn}s`;
+    }
     if (callAttempts > 0) {
-      return `Call Again (${callAttempts})`;
+      return `Call Again (${callAttempts}/${maxRetries})`;
     }
     return 'Call';
   };
 
   return (
-    <button
-      onClick={initiateCall}
-      disabled={isCalling}
-      className={getButtonClasses()}
-      title={`Call ${targetUser?.full_name || 'participant'}`}
-    >
-      {getIcon()}
-      <span>{getButtonText()}</span>
+    <div className="flex flex-col items-center space-y-2">
+      <button
+        onClick={isCalling || isAutoRedialing ? null : initiateCall}
+        disabled={isCalling || isAutoRedialing}
+        className={getButtonClasses()}
+        title={`Call ${targetUser?.full_name || 'participant'}`}
+      >
+        {getIcon()}
+        <span>{getButtonText()}</span>
+        
+        {callAttempts > 0 && !isAutoRedialing && (
+          <span className={`ml-1 px-1.5 py-0.5 text-xs bg-opacity-20 bg-white rounded-full ${
+            size === 'small' ? 'text-xs' : 'text-xs'
+          }`}>
+            {callAttempts}
+          </span>
+        )}
+      </button>
       
-      {callAttempts > 0 && (
-        <span className={`ml-1 px-1.5 py-0.5 text-xs bg-opacity-20 bg-white rounded-full ${
-          size === 'small' ? 'text-xs' : 'text-xs'
-        }`}>
-          {callAttempts}
-        </span>
+      {isAutoRedialing && (
+        <button
+          onClick={cancelAutoRedial}
+          className="text-xs text-red-500 hover:text-red-700 underline"
+        >
+          Cancel Auto-Redial
+        </button>
       )}
-    </button>
+      
+      {callAttempts >= maxRetries && (
+        <div className="text-xs text-orange-600 text-center">
+          <p>Max attempts reached</p>
+          <button
+            onClick={() => {
+              setCallAttempts(0);
+              setIsAutoRedialing(false);
+              setNextRetryIn(0);
+            }}
+            className="text-blue-500 hover:text-blue-700 underline"
+          >
+            Reset
+          </button>
+        </div>
+      )}
+    </div>
   );
+};
 };
 
 export default CallButton;
