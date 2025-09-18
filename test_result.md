@@ -704,10 +704,15 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Comprehensive Login and Multi-Device Authentication Testing"
+    - "Admin User Deletion UI Refresh Fix"
+    - "Admin Appointment Deletion UI Refresh Fix"
+    - "NotificationPanel Crash Prevention"
+    - "Provider Appointment Cancellation Fix"
+    - "Clean All Appointments Endpoint"
+    - "Admin Cleanup UI Button"
   stuck_tasks: []
   test_all: false
-  test_priority: "high_first"
+  test_priority: "critical_first"
 
 agent_communication:
   - agent: "main"
