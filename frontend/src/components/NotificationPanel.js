@@ -25,19 +25,19 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
   }, [isOpen, user.id]);
 
   const setupNotificationWebSocket = () => {
-    let wsUrl;
-    if (BACKEND_URL.startsWith('https://')) {
-      wsUrl = BACKEND_URL.replace('https://', 'wss://') + `/api/ws/${user.id}`;
-    } else if (BACKEND_URL.startsWith('http://')) {
-      wsUrl = BACKEND_URL.replace('http://', 'ws://') + `/api/ws/${user.id}`;
-    } else {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      wsUrl = `${protocol}//${window.location.host}/api/ws/${user.id}`;
-    }
-
-    console.log(`🔔 Connecting to notification WebSocket: ${wsUrl}`);
-
     try {
+      let wsUrl;
+      if (BACKEND_URL.startsWith('https://')) {
+        wsUrl = BACKEND_URL.replace('https://', 'wss://') + `/api/ws/${user.id}`;
+      } else if (BACKEND_URL.startsWith('http://')) {
+        wsUrl = BACKEND_URL.replace('http://', 'ws://') + `/api/ws/${user.id}`;
+      } else {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        wsUrl = `${protocol}//${window.location.host}/api/ws/${user.id}`;
+      }
+
+      console.log(`🔔 Connecting to notification WebSocket: ${wsUrl}`);
+
       const websocket = new WebSocket(wsUrl);
       
       websocket.onopen = () => {
@@ -50,20 +50,20 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
           const notification = JSON.parse(event.data);
           console.log('📨 Received notification:', notification);
           
-          // Validate notification data
-          if (!notification || !notification.type) {
+          // Validate notification data with safe defaults
+          if (!notification || typeof notification !== 'object') {
             console.warn('Invalid notification received:', notification);
             return;
           }
           
-          // Add notification to the panel with safe defaults
+          // Add notification to the panel with comprehensive safe defaults
           const newNotification = {
-            id: Date.now(),
-            type: notification.type || 'unknown',
+            id: Date.now() + Math.random(), // Ensure unique ID
+            type: (notification.type && typeof notification.type === 'string') ? notification.type : 'unknown',
             title: getNotificationTitle(notification) || 'New Notification',
             message: getNotificationMessage(notification) || 'You have a new notification',
             timestamp: new Date(),
-            data: notification || {},
+            data: (notification && typeof notification === 'object') ? notification : {},
             isRead: false,
             priority: notification.type === 'emergency_appointment' ? 'high' : 
                      notification.type === 'jitsi_call_invitation' ? 'urgent' : 'normal'
@@ -71,21 +71,39 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
 
           setNotifications(prev => {
             try {
-              return [newNotification, ...prev];
+              // Ensure prev is always an array
+              const prevArray = Array.isArray(prev) ? prev : [];
+              const updatedNotifications = [newNotification, ...prevArray];
+              
+              // Limit to 50 notifications to prevent memory issues
+              const limitedNotifications = updatedNotifications.slice(0, 50);
+              
+              // Save to localStorage with error handling
+              try {
+                saveNotifications(limitedNotifications);
+              } catch (saveError) {
+                console.error('Error saving notifications:', saveError);
+              }
+              
+              return limitedNotifications;
             } catch (error) {
               console.error('Error updating notifications state:', error);
-              return prev;
+              return Array.isArray(prev) ? prev : [];
             }
           });
 
           // Show browser notification if permission granted and supported
           try {
-            if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+            if (typeof Notification !== 'undefined' && 
+                Notification.permission === 'granted' && 
+                newNotification.title && 
+                newNotification.message) {
+              
               const browserNotification = new Notification(newNotification.title, {
-                body: newNotification.message,
+                body: newNotification.message.substring(0, 100), // Limit body length
                 icon: '/icons/icon-192x192.png',
                 badge: '/icons/badge-72x72.png',
-                tag: notification.type,
+                tag: notification.type || 'default',
                 requireInteraction: notification.type === 'jitsi_call_invitation'
               });
 
@@ -97,6 +115,15 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
                   console.error('Error handling notification click:', error);
                 }
               };
+              
+              // Auto-close notification after 10 seconds
+              setTimeout(() => {
+                try {
+                  browserNotification.close();
+                } catch (error) {
+                  console.error('Error closing notification:', error);
+                }
+              }, 10000);
             }
           } catch (error) {
             console.error('Error creating browser notification:', error);
@@ -122,12 +149,24 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
 
       websocket.onclose = () => {
         console.log('🔌 Notification WebSocket disconnected, attempting to reconnect...');
-        setTimeout(setupNotificationWebSocket, 5000);
+        setTimeout(() => {
+          try {
+            setupNotificationWebSocket();
+          } catch (error) {
+            console.error('Error reconnecting WebSocket:', error);
+          }
+        }, 5000);
       };
 
     } catch (error) {
       console.error('❌ Error setting up notification WebSocket:', error);
-      setTimeout(setupNotificationWebSocket, 5000);
+      setTimeout(() => {
+        try {
+          setupNotificationWebSocket();
+        } catch (retryError) {
+          console.error('Error retrying WebSocket setup:', retryError);
+        }
+      }, 5000);
     }
   };
 
