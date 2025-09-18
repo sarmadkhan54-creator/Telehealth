@@ -27,6 +27,24 @@ axios.interceptors.request.use(
   }
 );
 
+// Axios response interceptor to handle authentication errors
+axios.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      console.log('🔐 Token expired or invalid - redirecting to login');
+      // Clear authentication data
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userData');
+      // Reload page to trigger login
+      window.location.reload();
+    }
+    return Promise.reject(error);
+  }
+);
+
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
