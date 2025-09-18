@@ -860,6 +860,31 @@ async def delete_appointment(appointment_id: str, current_user: User = Depends(g
     
     return {"message": "Appointment deleted successfully"}
 
+@api_router.delete("/admin/appointments/cleanup")
+async def cleanup_all_appointments(current_user: User = Depends(get_current_user)):
+    """Clean up all appointments - Admin only"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Only administrators can perform cleanup operations")
+    
+    # Count existing data
+    appointments_count = await db.appointments.count_documents({})
+    notes_count = await db.appointment_notes.count_documents({})
+    patients_count = await db.patients.count_documents({})
+    
+    # Delete all appointments and related data
+    await db.appointments.delete_many({})
+    await db.appointment_notes.delete_many({})
+    await db.patients.delete_many({})
+    
+    return {
+        "message": "All appointments cleaned up successfully",
+        "deleted": {
+            "appointments": appointments_count,
+            "notes": notes_count,  
+            "patients": patients_count
+        }
+    }
+
 @api_router.get("/appointments/{appointment_id}")
 async def get_appointment_details(appointment_id: str, current_user: User = Depends(get_current_user)):
     """Get detailed appointment information"""
