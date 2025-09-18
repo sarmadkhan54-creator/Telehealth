@@ -254,29 +254,6 @@ const Dashboard = ({ user, onLogout }) => {
 
     connectWebSocket();
   };
-        
-        // Try to reconnect after 5 seconds
-        const reconnectTimeout = setTimeout(() => {
-          console.log('🔄 Attempting WebSocket reconnection...');
-          setupWebSocket();
-        }, 5000);
-      };
-
-      // Request notification permission for mobile
-      if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission().then(permission => {
-          console.log('📱 Notification permission:', permission);
-        });
-      }
-
-      return () => ws.close();
-      
-    } catch (error) {
-      console.error('❌ Error setting up WebSocket:', error);
-      // Retry after 5 seconds
-      setTimeout(setupWebSocket, 5000);
-    }
-  };
 
   const playRingingSound = async () => {
     try {
