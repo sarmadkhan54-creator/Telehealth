@@ -1039,16 +1039,23 @@ const AdminDashboard = ({ user, onLogout }) => {
       
       alert(`Appointment for "${patientName}" deleted successfully`);
       
-      // Force a complete data refresh after a short delay
+      // Force multiple refresh attempts to ensure UI updates
       setTimeout(async () => {
-        console.log('Refreshing appointment data after deletion...');
+        console.log('First refresh after appointment deletion...');
         await fetchData();
-      }, 500);
+      }, 100);
+      
+      setTimeout(async () => {
+        console.log('Second refresh after appointment deletion...');
+        await fetchData();
+      }, 1000);
       
     } catch (error) {
       console.error('Error deleting appointment:', error);
       console.error('Error details:', error.response?.data);
       alert(error.response?.data?.detail || 'Failed to delete appointment. Please try again.');
+      // Refresh data even on error to check current state
+      await fetchData();
     }
   };
 
