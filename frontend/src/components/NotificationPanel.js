@@ -187,7 +187,31 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
   };
 
   const saveNotifications = (notifications) => {
-    localStorage.setItem(`notifications_${user.id}`, JSON.stringify(notifications));
+    try {
+      if (!Array.isArray(notifications)) {
+        console.warn('Invalid notifications array for saving:', notifications);
+        return;
+      }
+      
+      // Limit storage size and clean up old notifications
+      const notificationsToSave = notifications
+        .slice(0, 50) // Keep only latest 50
+        .map(n => ({
+          ...n,
+          timestamp: n.timestamp instanceof Date ? n.timestamp.toISOString() : n.timestamp
+        }));
+      
+      const storageKey = `notifications_${user.id}`;
+      localStorage.setItem(storageKey, JSON.stringify(notificationsToSave));
+    } catch (error) {
+      console.error('Error saving notifications to localStorage:', error);
+      // Clear corrupted data
+      try {
+        localStorage.removeItem(`notifications_${user.id}`);
+      } catch (clearError) {
+        console.error('Error clearing corrupted notifications:', clearError);
+      }
+    }
   };
 
   const getNotificationTitle = (notification) => {
