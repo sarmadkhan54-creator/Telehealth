@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Phone, PhoneCall, PhoneOff } from 'lucide-react';
 
 const CallButton = ({ 
@@ -6,18 +6,85 @@ const CallButton = ({
   targetUser, 
   currentUser, 
   size = 'medium',
-  variant = 'primary' 
+  variant = 'primary',
+  maxRetries = 3,
+  retryDelay = 30000 // 30 seconds between retries
 }) => {
   const [isCalling, setIsCalling] = useState(false);
   const [callAttempts, setCallAttempts] = useState(0);
+  const [isAutoRedialing, setIsAutoRedialing] = useState(false);
+  const [nextRetryIn, setNextRetryIn] = useState(0);
+  const retryTimeoutRef = useRef(null);
+  const countdownIntervalRef = useRef(null);
 
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
   const API = `${BACKEND_URL}/api`;
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+      }
+    };
+  }, []);
+
+  const startRetryCountdown = (delay) => {
+    setNextRetryIn(Math.floor(delay / 1000));
+    
+    countdownIntervalRef.current = setInterval(() => {
+      setNextRetryIn(prev => {
+        if (prev <= 1) {
+          clearInterval(countdownIntervalRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const scheduleAutoRedial = () => {
+    if (callAttempts < maxRetries) {
+      setIsAutoRedialing(true);
+      startRetryCountdown(retryDelay);
+      
+      retryTimeoutRef.current = setTimeout(() => {
+        setIsAutoRedialing(false);
+        setNextRetryIn(0);
+        initiateCall(); // Automatically redial
+      }, retryDelay);
+      
+      console.log(`📞 Auto-redial scheduled in ${retryDelay/1000} seconds (attempt ${callAttempts + 1}/${maxRetries})`);
+    } else {
+      console.log(`📞 Maximum retry attempts (${maxRetries}) reached for appointment ${appointmentId}`);
+      alert(`Call attempts exhausted. Please try again later or contact the ${targetUser?.full_name || 'participant'} directly.`);
+    }
+  };
+
+  const cancelAutoRedial = () => {
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    setIsAutoRedialing(false);
+    setNextRetryIn(0);
+    console.log('📞 Auto-redial cancelled');
+  };
 
   const initiateCall = async () => {
     try {
       setIsCalling(true);
       setCallAttempts(prev => prev + 1);
+
+      // Cancel any pending auto-redial
+      cancelAutoRedial();
 
       // Get or create Jitsi session for this appointment
       const response = await fetch(`${API}/video-call/session/${appointmentId}`, {
@@ -29,19 +96,44 @@ const CallButton = ({
       if (response.ok) {
         const data = await response.json();
         
-        // Configure Jitsi URL to disable moderator requirement
-        const configuredJitsiUrl = `${data.jitsi_url}#config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.requireDisplayName=false&config.enableWelcomePage=false&config.prejoinPageEnabled=false&config.enableModeratedDiscussion=false&config.disableModeratorIndicator=true&userInfo.displayName=${currentUser.full_name}`;
+        // Configure Jitsi URL to disable moderator requirement and enable better call handling
+        const configuredJitsiUrl = `${data.jitsi_url}#config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.requireDisplayName=false&config.enableWelcomePage=false&config.prejoinPageEnabled=false&config.enableModeratedDiscussion=false&config.disableModeratorIndicator=true&config.callStatsID=greenstar&config.enableCallEndFeedback=true&userInfo.displayName=${currentUser.full_name}`;
         
         // Open video call
+        let callWindow;
         if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-          // On mobile devices, open in same tab for better reliability
+          // On mobile devices, open in same tab
           window.location.href = configuredJitsiUrl;
         } else {
-          // On desktop, try new window first, fallback to same tab
-          const newWindow = window.open(configuredJitsiUrl, '_blank', 'width=1200,height=800');
-          if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+          // On desktop, open in new window and monitor for call end
+          callWindow = window.open(configuredJitsiUrl, `jitsi_call_${appointmentId}`, 'width=1200,height=800');
+          
+          if (!callWindow || callWindow.closed || typeof callWindow.closed == 'undefined') {
             // Popup blocked, use same tab
             window.location.href = configuredJitsiUrl;
+          } else {
+            // Monitor call window for closure (call ended)
+            const checkCallStatus = setInterval(() => {
+              try {
+                if (callWindow.closed) {
+                  clearInterval(checkCallStatus);
+                  console.log('📞 Call window closed - call ended');
+                  
+                  // Schedule auto-redial if within retry limits
+                  if (callAttempts < maxRetries) {
+                    scheduleAutoRedial();
+                  }
+                }
+              } catch (error) {
+                // Window access might be restricted, but closure detection might still work
+                console.log('Call window monitoring limited due to cross-origin restrictions');
+              }
+            }, 1000);
+            
+            // Stop monitoring after 5 minutes (assume call is stable)
+            setTimeout(() => {
+              clearInterval(checkCallStatus);
+            }, 300000);
           }
         }
 
@@ -56,12 +148,22 @@ const CallButton = ({
         console.error('Failed to get video call session');
         alert('Error starting video call. Please try again.');
         setIsCalling(false);
+        
+        // Schedule retry for session failures too
+        if (callAttempts < maxRetries) {
+          scheduleAutoRedial();
+        }
       }
 
     } catch (error) {
       console.error('Error initiating call:', error);
       alert('Error starting video call. Please try again.');
       setIsCalling(false);
+      
+      // Schedule retry for network failures
+      if (callAttempts < maxRetries) {
+        scheduleAutoRedial();
+      }
     }
   };
 
