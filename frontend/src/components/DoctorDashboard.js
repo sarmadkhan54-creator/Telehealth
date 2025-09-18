@@ -154,13 +154,36 @@ const DoctorDashboard = ({ user, onLogout }) => {
 
   const handleAcceptAppointment = async (appointmentId) => {
     try {
-      await axios.put(`${API}/appointments/${appointmentId}`, {
+      console.log('Accepting appointment:', appointmentId);
+      
+      const response = await axios.put(`${API}/appointments/${appointmentId}`, {
         status: 'accepted',
         doctor_id: user.id
       });
-      fetchAppointments();
+      
+      console.log('Appointment accepted successfully:', response.data);
+      
+      // Show success message
+      alert('Appointment accepted successfully!');
+      
+      // Force multiple refresh attempts to ensure UI updates
+      setTimeout(async () => {
+        console.log('First refresh after appointment acceptance...');
+        await fetchAppointments();
+      }, 100);
+      
+      setTimeout(async () => {
+        console.log('Second refresh after appointment acceptance...');
+        await fetchAppointments();
+      }, 1000);
+      
     } catch (error) {
       console.error('Error accepting appointment:', error);
+      const errorMessage = error.response?.data?.detail || 'Error accepting appointment. Please try again.';
+      alert(errorMessage);
+      
+      // Refresh appointments even on error to check current state
+      await fetchAppointments();
     }
   };
 
