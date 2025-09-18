@@ -66,7 +66,6 @@ const DoctorDashboard = ({ user, onLogout }) => {
 
   useEffect(() => {
     fetchAppointments();
-    setupWebSocket();
     
     // Set up auto-refresh interval as fallback
     const refreshInterval = setInterval(fetchAppointments, 30000); // Refresh every 30 seconds
