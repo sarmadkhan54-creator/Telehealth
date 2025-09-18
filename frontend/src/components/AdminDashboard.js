@@ -818,15 +818,22 @@ const AdminDashboard = ({ user, onLogout }) => {
       
       alert(`User "${userName}" deleted successfully`);
       
-      // Force a complete data refresh after a short delay
+      // Force multiple refresh attempts to ensure UI updates
       setTimeout(async () => {
-        console.log('Refreshing user data after deletion...');
+        console.log('First refresh after user deletion...');
         await fetchData();
-      }, 500);
+      }, 100);
+      
+      setTimeout(async () => {
+        console.log('Second refresh after user deletion...');
+        await fetchData();
+      }, 1000);
       
     } catch (error) {
       console.error('Error deleting user:', error);
       alert(error.response?.data?.detail || 'Failed to delete user');
+      // Refresh data even on error to check current state
+      await fetchData();
     }
   };
 
