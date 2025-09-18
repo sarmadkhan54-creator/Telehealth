@@ -169,8 +169,104 @@ class VideoCallManager:
                         except:
                             pass
 
+# Call monitoring and auto-redial system
+class CallSession:
+    def __init__(self, appointment_id: str, caller_id: str, provider_id: str):
+        self.appointment_id = appointment_id
+        self.caller_id = caller_id
+        self.provider_id = provider_id
+        self.start_time = datetime.now(timezone.utc)
+        self.end_time = None
+        self.status = "active"  # active, ended, completed
+        self.retry_count = 0
+        self.max_retries = 3
+        
+class CallManager:
+    def __init__(self):
+        self.active_calls: Dict[str, CallSession] = {}  # appointment_id -> CallSession
+        self.retry_delay = 30  # seconds between retries
+    
+    def start_call(self, appointment_id: str, caller_id: str, provider_id: str):
+        """Record that a call has started"""
+        call_session = CallSession(appointment_id, caller_id, provider_id)
+        self.active_calls[appointment_id] = call_session
+        print(f"📞 Call session started: {appointment_id} between {caller_id} and {provider_id}")
+        
+        # Schedule call monitoring
+        asyncio.create_task(self.monitor_call(appointment_id))
+        
+        return call_session
+    
+    def end_call(self, appointment_id: str, reason: str = "normal"):
+        """Mark a call as ended"""
+        if appointment_id in self.active_calls:
+            call_session = self.active_calls[appointment_id]
+            call_session.end_time = datetime.now(timezone.utc)
+            call_session.status = "ended"
+            
+            call_duration = (call_session.end_time - call_session.start_time).total_seconds()
+            print(f"📞 Call ended: {appointment_id}, duration: {call_duration}s, reason: {reason}")
+            
+            # If call ended too quickly (less than 2 minutes), schedule auto-redial
+            if call_duration < 120 and call_session.retry_count < call_session.max_retries:
+                print(f"⏰ Call ended too quickly ({call_duration}s), scheduling auto-redial")
+                asyncio.create_task(self.schedule_redial(appointment_id))
+            else:
+                # Remove from active calls
+                del self.active_calls[appointment_id]
+    
+    async def monitor_call(self, appointment_id: str):
+        """Monitor call session and detect if it becomes inactive"""
+        await asyncio.sleep(300)  # Wait 5 minutes
+        
+        if appointment_id in self.active_calls:
+            call_session = self.active_calls[appointment_id]
+            if call_session.status == "active":
+                # Call has been active for 5+ minutes, assume it's legitimate
+                print(f"📞 Call {appointment_id} marked as stable after 5 minutes")
+                call_session.status = "stable"
+    
+    async def schedule_redial(self, appointment_id: str):
+        """Schedule automatic redialing after call ends prematurely"""
+        if appointment_id not in self.active_calls:
+            return
+            
+        call_session = self.active_calls[appointment_id]
+        call_session.retry_count += 1
+        
+        print(f"🔄 Auto-redial scheduled for {appointment_id} (attempt {call_session.retry_count}/{call_session.max_retries})")
+        
+        # Wait for retry delay
+        await asyncio.sleep(self.retry_delay)
+        
+        # Send redial notification to provider
+        redial_notification = {
+            "type": "jitsi_call_invitation",
+            "title": f"Incoming Call (Retry {call_session.retry_count})",
+            "message": f"Doctor is calling again - Please answer",
+            "appointment_id": appointment_id,
+            "caller": call_session.caller_id,
+            "caller_role": "doctor",
+            "retry_attempt": call_session.retry_count,
+            "max_retries": call_session.max_retries,
+            "jitsi_url": f"https://meet.jit.si/greenstar-{appointment_id}",
+            "room_name": f"greenstar-{appointment_id}"
+        }
+        
+        # Send notification to provider
+        await manager.send_personal_message(redial_notification, call_session.provider_id)
+        print(f"📨 Auto-redial notification sent to provider {call_session.provider_id}")
+        
+        # Update call session for new attempt
+        call_session.start_time = datetime.now(timezone.utc)
+        call_session.status = "active"
+        
+        # Monitor the new call attempt
+        asyncio.create_task(self.monitor_call(appointment_id))
+
 manager = ConnectionManager()
 video_call_manager = VideoCallManager()
+call_manager = CallManager()
 
 # WebSocket heartbeat task
 async def websocket_heartbeat():
