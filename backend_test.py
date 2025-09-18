@@ -4307,6 +4307,404 @@ class MedConnectAPITester:
         
         return all_success
 
+    def test_critical_dashboard_issues(self):
+        """🎯 CRITICAL DASHBOARD ISSUES TESTING - Focus on user reported problems"""
+        print("\n🎯 CRITICAL DASHBOARD ISSUES TESTING")
+        print("=" * 80)
+        print("Testing specific issues reported by user:")
+        print("- Appointments and buttons not working properly")
+        print("- Nothing working on dashboards despite previous testing")
+        print("- Data retrieval and persistence issues")
+        print("- Button/action functionality on backend side")
+        print("=" * 80)
+        
+        all_success = True
+        
+        # CRITICAL TEST 1: Appointment Data Retrieval for All Roles
+        print("\n1️⃣ CRITICAL TEST: Appointment Data Retrieval for All User Roles")
+        print("-" * 70)
+        
+        # Test Provider appointment retrieval
+        if 'provider' in self.tokens:
+            success, response = self.run_test(
+                "GET /api/appointments (Provider Role)",
+                "GET",
+                "appointments",
+                200,
+                token=self.tokens['provider']
+            )
+            
+            if success:
+                provider_appointments = response
+                print(f"   ✅ Provider can retrieve appointments: {len(provider_appointments)} found")
+                
+                # Check if appointments have proper structure
+                if provider_appointments:
+                    sample_apt = provider_appointments[0]
+                    required_fields = ['id', 'patient_id', 'provider_id', 'status', 'appointment_type']
+                    missing_fields = [field for field in required_fields if field not in sample_apt]
+                    
+                    if not missing_fields:
+                        print("   ✅ Appointment data structure is complete")
+                        
+                        # Check for emergency appointments
+                        emergency_count = len([apt for apt in provider_appointments if apt.get('appointment_type') == 'emergency'])
+                        regular_count = len([apt for apt in provider_appointments if apt.get('appointment_type') == 'non_emergency'])
+                        print(f"   📊 Emergency appointments: {emergency_count}, Regular: {regular_count}")
+                        
+                        # Check appointment statuses
+                        status_counts = {}
+                        for apt in provider_appointments:
+                            status = apt.get('status', 'unknown')
+                            status_counts[status] = status_counts.get(status, 0) + 1
+                        print(f"   📊 Appointment statuses: {status_counts}")
+                    else:
+                        print(f"   ❌ Missing required fields in appointment data: {missing_fields}")
+                        all_success = False
+                else:
+                    print("   ⚠️  No appointments found for provider")
+            else:
+                print("   ❌ Provider cannot retrieve appointments - CRITICAL ISSUE")
+                all_success = False
+        
+        # Test Doctor appointment retrieval
+        if 'doctor' in self.tokens:
+            success, response = self.run_test(
+                "GET /api/appointments (Doctor Role)",
+                "GET",
+                "appointments",
+                200,
+                token=self.tokens['doctor']
+            )
+            
+            if success:
+                doctor_appointments = response
+                print(f"   ✅ Doctor can retrieve appointments: {len(doctor_appointments)} found")
+                
+                # Doctors should see ALL appointments, not just their own
+                if doctor_appointments:
+                    # Check if doctor sees more or equal appointments than provider
+                    provider_count = len(provider_appointments) if 'provider_appointments' in locals() else 0
+                    if len(doctor_appointments) >= provider_count:
+                        print("   ✅ Doctor sees all appointments (correct role-based access)")
+                    else:
+                        print("   ❌ Doctor sees fewer appointments than expected")
+                        all_success = False
+                        
+                    # Check for pending appointments that doctor can accept
+                    pending_appointments = [apt for apt in doctor_appointments if apt.get('status') == 'pending']
+                    print(f"   📊 Pending appointments available for doctor: {len(pending_appointments)}")
+                else:
+                    print("   ⚠️  No appointments found for doctor")
+            else:
+                print("   ❌ Doctor cannot retrieve appointments - CRITICAL ISSUE")
+                all_success = False
+        
+        # Test Admin appointment retrieval
+        if 'admin' in self.tokens:
+            success, response = self.run_test(
+                "GET /api/appointments (Admin Role)",
+                "GET",
+                "appointments",
+                200,
+                token=self.tokens['admin']
+            )
+            
+            if success:
+                admin_appointments = response
+                print(f"   ✅ Admin can retrieve appointments: {len(admin_appointments)} found")
+                
+                # Admin should see ALL appointments
+                if admin_appointments:
+                    print("   ✅ Admin has full appointment visibility")
+                else:
+                    print("   ⚠️  No appointments found in system")
+            else:
+                print("   ❌ Admin cannot retrieve appointments - CRITICAL ISSUE")
+                all_success = False
+        
+        # CRITICAL TEST 2: Doctor Accept Appointment Functionality
+        print("\n2️⃣ CRITICAL TEST: Doctor Accept Appointment Functionality")
+        print("-" * 70)
+        
+        # First, create a test appointment to accept
+        if 'provider' in self.tokens:
+            test_appointment_data = {
+                "patient": {
+                    "name": "Critical Test Patient",
+                    "age": 42,
+                    "gender": "Female",
+                    "vitals": {
+                        "blood_pressure": "130/85",
+                        "heart_rate": 78,
+                        "temperature": 99.1,
+                        "oxygen_saturation": 98
+                    },
+                    "consultation_reason": "Persistent headaches and fatigue"
+                },
+                "appointment_type": "non_emergency",
+                "consultation_notes": "Patient reports symptoms for past week"
+            }
+            
+            success, response = self.run_test(
+                "Create Test Appointment for Doctor Acceptance",
+                "POST",
+                "appointments",
+                200,
+                data=test_appointment_data,
+                token=self.tokens['provider']
+            )
+            
+            if success:
+                test_appointment_id = response.get('id')
+                print(f"   ✅ Test appointment created: {test_appointment_id}")
+                
+                # Now test doctor accepting the appointment
+                if 'doctor' in self.tokens and test_appointment_id:
+                    accept_data = {
+                        "status": "accepted",
+                        "doctor_id": self.users['doctor']['id'],
+                        "doctor_notes": "Appointment accepted by doctor - will review patient case"
+                    }
+                    
+                    success, response = self.run_test(
+                        "Doctor Accept Appointment (PUT /api/appointments/{id})",
+                        "PUT",
+                        f"appointments/{test_appointment_id}",
+                        200,
+                        data=accept_data,
+                        token=self.tokens['doctor']
+                    )
+                    
+                    if success:
+                        print("   ✅ Doctor can accept appointments successfully")
+                        
+                        # Verify the appointment status changed
+                        success, verify_response = self.run_test(
+                            "Verify Appointment Status Changed",
+                            "GET",
+                            f"appointments/{test_appointment_id}",
+                            200,
+                            token=self.tokens['doctor']
+                        )
+                        
+                        if success:
+                            updated_status = verify_response.get('status')
+                            updated_doctor_id = verify_response.get('doctor_id')
+                            
+                            if updated_status == 'accepted' and updated_doctor_id == self.users['doctor']['id']:
+                                print("   ✅ Appointment status persisted in database correctly")
+                            else:
+                                print(f"   ❌ Status not persisted correctly: status={updated_status}, doctor_id={updated_doctor_id}")
+                                all_success = False
+                        else:
+                            print("   ❌ Cannot verify appointment status change")
+                            all_success = False
+                    else:
+                        print("   ❌ Doctor cannot accept appointments - CRITICAL ISSUE")
+                        all_success = False
+            else:
+                print("   ❌ Cannot create test appointment for acceptance testing")
+                all_success = False
+        
+        # CRITICAL TEST 3: Provider Appointment Creation (Emergency & Non-Emergency)
+        print("\n3️⃣ CRITICAL TEST: Provider Appointment Creation")
+        print("-" * 70)
+        
+        if 'provider' in self.tokens:
+            # Test creating emergency appointment
+            emergency_data = {
+                "patient": {
+                    "name": "Emergency Test Patient",
+                    "age": 67,
+                    "gender": "Male",
+                    "vitals": {
+                        "blood_pressure": "190/110",
+                        "heart_rate": 120,
+                        "temperature": 103.2,
+                        "oxygen_saturation": 89
+                    },
+                    "consultation_reason": "Severe chest pain and shortness of breath"
+                },
+                "appointment_type": "emergency",
+                "consultation_notes": "URGENT: Patient experiencing cardiac symptoms"
+            }
+            
+            success, response = self.run_test(
+                "Create Emergency Appointment (Provider)",
+                "POST",
+                "appointments",
+                200,
+                data=emergency_data,
+                token=self.tokens['provider']
+            )
+            
+            if success:
+                emergency_apt_id = response.get('id')
+                print(f"   ✅ Emergency appointment created: {emergency_apt_id}")
+                
+                # Verify emergency appointment is properly marked
+                if response.get('appointment_type') == 'emergency':
+                    print("   ✅ Emergency appointment properly marked")
+                else:
+                    print("   ❌ Emergency appointment not properly marked")
+                    all_success = False
+            else:
+                print("   ❌ Provider cannot create emergency appointments - CRITICAL ISSUE")
+                all_success = False
+            
+            # Test creating non-emergency appointment
+            regular_data = {
+                "patient": {
+                    "name": "Regular Test Patient",
+                    "age": 28,
+                    "gender": "Female",
+                    "vitals": {
+                        "blood_pressure": "115/75",
+                        "heart_rate": 68,
+                        "temperature": 98.4,
+                        "oxygen_saturation": 99
+                    },
+                    "consultation_reason": "Annual wellness check"
+                },
+                "appointment_type": "non_emergency",
+                "consultation_notes": "Routine annual physical examination"
+            }
+            
+            success, response = self.run_test(
+                "Create Non-Emergency Appointment (Provider)",
+                "POST",
+                "appointments",
+                200,
+                data=regular_data,
+                token=self.tokens['provider']
+            )
+            
+            if success:
+                regular_apt_id = response.get('id')
+                print(f"   ✅ Non-emergency appointment created: {regular_apt_id}")
+                
+                # Verify data storage and retrieval
+                success, verify_response = self.run_test(
+                    "Verify Appointment Data Storage",
+                    "GET",
+                    f"appointments/{regular_apt_id}",
+                    200,
+                    token=self.tokens['provider']
+                )
+                
+                if success:
+                    stored_patient = verify_response.get('patient', {})
+                    if stored_patient.get('name') == 'Regular Test Patient':
+                        print("   ✅ Appointment data properly stored and retrieved")
+                    else:
+                        print("   ❌ Appointment data not properly stored")
+                        all_success = False
+                else:
+                    print("   ❌ Cannot verify appointment data storage")
+                    all_success = False
+            else:
+                print("   ❌ Provider cannot create non-emergency appointments - CRITICAL ISSUE")
+                all_success = False
+        
+        # CRITICAL TEST 4: Database State Check
+        print("\n4️⃣ CRITICAL TEST: Database State Check")
+        print("-" * 70)
+        
+        if 'admin' in self.tokens:
+            success, response = self.run_test(
+                "Get All Appointments for Database State Check",
+                "GET",
+                "appointments",
+                200,
+                token=self.tokens['admin']
+            )
+            
+            if success:
+                all_appointments = response
+                total_count = len(all_appointments)
+                
+                # Count by type
+                emergency_count = len([apt for apt in all_appointments if apt.get('appointment_type') == 'emergency'])
+                regular_count = len([apt for apt in all_appointments if apt.get('appointment_type') == 'non_emergency'])
+                
+                # Count by status
+                pending_count = len([apt for apt in all_appointments if apt.get('status') == 'pending'])
+                accepted_count = len([apt for apt in all_appointments if apt.get('status') == 'accepted'])
+                completed_count = len([apt for apt in all_appointments if apt.get('status') == 'completed'])
+                cancelled_count = len([apt for apt in all_appointments if apt.get('status') == 'cancelled'])
+                
+                print(f"   📊 DATABASE STATE SUMMARY:")
+                print(f"   📊 Total appointments: {total_count}")
+                print(f"   📊 Emergency: {emergency_count}, Non-emergency: {regular_count}")
+                print(f"   📊 Pending: {pending_count}, Accepted: {accepted_count}")
+                print(f"   📊 Completed: {completed_count}, Cancelled: {cancelled_count}")
+                
+                if total_count > 0:
+                    print("   ✅ Database contains appointment data")
+                else:
+                    print("   ⚠️  Database is empty - no appointments found")
+            else:
+                print("   ❌ Cannot check database state - CRITICAL ISSUE")
+                all_success = False
+        
+        # CRITICAL TEST 5: Authentication Token Validation
+        print("\n5️⃣ CRITICAL TEST: Authentication Token Validation")
+        print("-" * 70)
+        
+        # Test token expiration and validity
+        for role in ['provider', 'doctor', 'admin']:
+            if role in self.tokens:
+                # Test valid token
+                success, response = self.run_test(
+                    f"Valid Token Test ({role.title()})",
+                    "GET",
+                    "appointments",
+                    200,
+                    token=self.tokens[role]
+                )
+                
+                if success:
+                    print(f"   ✅ {role.title()} token is valid and not expired")
+                else:
+                    print(f"   ❌ {role.title()} token is invalid or expired - CRITICAL ISSUE")
+                    all_success = False
+                
+                # Test malformed token
+                malformed_token = self.tokens[role][:-10] + "invalid123"
+                success, response = self.run_test(
+                    f"Malformed Token Test ({role.title()})",
+                    "GET",
+                    "appointments",
+                    401,
+                    token=malformed_token
+                )
+                
+                if success:
+                    print(f"   ✅ Malformed {role} token correctly rejected")
+                else:
+                    print(f"   ❌ Malformed {role} token not properly rejected")
+                    all_success = False
+        
+        # Final Summary
+        print("\n" + "="*80)
+        print("🏁 CRITICAL DASHBOARD ISSUES TESTING COMPLETED")
+        print("="*80)
+        
+        if all_success:
+            print("🎉 ALL CRITICAL TESTS PASSED!")
+            print("✅ Appointment data retrieval working for all roles")
+            print("✅ Doctor accept appointment functionality working")
+            print("✅ Provider appointment creation working (emergency & non-emergency)")
+            print("✅ Database state is healthy")
+            print("✅ Authentication tokens are valid")
+        else:
+            print("❌ CRITICAL ISSUES FOUND!")
+            print("⚠️  Some dashboard functionality may not work properly")
+            print("⚠️  Check the detailed test results above")
+        
+        return all_success
+
 def main():
     print("🏥 MedConnect Telehealth API Testing - COMPREHENSIVE AUTHENTICATION & CREDENTIAL ERROR INVESTIGATION")
     print("=" * 100)
