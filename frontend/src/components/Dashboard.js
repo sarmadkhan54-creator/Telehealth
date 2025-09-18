@@ -64,138 +64,196 @@ const Dashboard = ({ user, onLogout }) => {
   }, []);
 
   const setupWebSocket = () => {
-    // Construct WebSocket URL properly for mobile and desktop
-    let wsUrl;
-    if (BACKEND_URL.startsWith('https://')) {
-      wsUrl = BACKEND_URL.replace('https://', 'wss://') + `/api/ws/${user.id}`;
-    } else if (BACKEND_URL.startsWith('http://')) {
-      wsUrl = BACKEND_URL.replace('http://', 'ws://') + `/api/ws/${user.id}`;
-    } else {
-      // Fallback for relative URLs
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      wsUrl = `${protocol}//${window.location.host}/api/ws/${user.id}`;
-    }
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 10;
     
-    console.log(`🔌 Connecting to WebSocket: ${wsUrl}`);
-    
-    try {
-      const ws = new WebSocket(wsUrl);
-      
-      ws.onopen = () => {
-        console.log('✅ WebSocket connected successfully');
-      };
-    
-      ws.onmessage = (event) => {
-        try {
-          const notification = JSON.parse(event.data);
-          console.log('📨 Received WebSocket notification:', notification);
-          
-          // Auto-refresh appointments when receiving notifications
-          if (notification.type === 'emergency_appointment' || 
-              notification.type === 'new_appointment' ||
-              notification.type === 'appointment_accepted' || 
-              notification.type === 'appointment_updated' ||
-              notification.type === 'video_call_invitation') {
-            fetchAppointments(); // Refresh appointments list
-          }
-          
-          // Handle Jitsi video call invitations
-          if (notification.type === 'jitsi_call_invitation') {
-            console.log('📞 Received video call invitation');
-            
-            // Play ringing sound
-            playRingingSound();
-            
-            // Show video call invitation popup with Jitsi URL
-            setVideoCallInvitation({
-              jitsiUrl: notification.jitsi_url,
-              roomName: notification.room_name,
-              callerName: notification.caller,
-              callerRole: notification.caller_role,
-              appointmentId: notification.appointment_id,
-              appointmentType: notification.appointment_type,
-              patient: notification.patient || {
-                name: "Unknown Patient",
-                age: "Unknown",
-                gender: "Unknown", 
-                consultation_reason: "General consultation",
-                vitals: {}
-              }
-            });
-            setShowVideoCallInvitation(true);
-            
-            // Auto-hide popup after 30 seconds
-            setTimeout(() => {
-              stopRingingSound();
-              setShowVideoCallInvitation(false);
-              setVideoCallInvitation(null);
-            }, 30000);
-            
-            // Add notification to local state
-            const newNotification = {
-              id: Date.now(),
-              type: notification.type,
-              title: 'Incoming Video Call',
-              message: `${notification.caller} is inviting you to a video consultation`,
-              timestamp: new Date().toISOString(),
-              isRead: false
-            };
-            setNotifications(prev => [newNotification, ...prev]);
-            setUnreadNotifications(prev => prev + 1);
-
-            // Send browser notification if permission granted
-            if (Notification.permission === 'granted') {
-              const browserNotification = new Notification('📞 Incoming Video Call', {
-                body: `${notification.caller} is inviting you to a video consultation`,
-                icon: '/icons/icon-192x192.png',
-                badge: '/icons/badge-72x72.png',
-                tag: 'video-call-invitation',
-                requireInteraction: true,
-                actions: [
-                  { action: 'answer', title: 'Answer' },
-                  { action: 'decline', title: 'Decline' }
-                ]
-              });
-              
-              browserNotification.onclick = () => {
-                handleAcceptVideoCall();
-                browserNotification.close();
-              };
-            }
-          }
-          
-          // Handle other notification types
-          if (Notification.permission === 'granted') {
-            if (notification.type === 'appointment_accepted') {
-              new Notification('✅ Appointment Accepted', {
-                body: `Doctor accepted your appointment for ${notification.patient_name}`,
-                icon: '/icons/icon-192x192.png'
-              });
-            } else if (notification.type === 'emergency_appointment') {
-              new Notification('🚨 Emergency Appointment', {
-                body: `New emergency appointment: ${notification.patient_name}`,
-                icon: '/icons/icon-192x192.png',
-                requireInteraction: true
-              });
-            }
-          }
-        } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
+    const connectWebSocket = () => {
+      try {
+        // Construct WebSocket URL properly for mobile and desktop
+        let wsUrl;
+        if (BACKEND_URL.startsWith('https://')) {
+          wsUrl = BACKEND_URL.replace('https://', 'wss://') + `/api/ws/${user.id}`;
+        } else if (BACKEND_URL.startsWith('http://')) {
+          wsUrl = BACKEND_URL.replace('http://', 'ws://') + `/api/ws/${user.id}`;
+        } else {
+          // Fallback for relative URLs
+          const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+          wsUrl = `${protocol}//${window.location.host}/api/ws/${user.id}`;
         }
-      };
-
-      ws.onerror = (error) => {
-        console.error('❌ WebSocket error:', error);
-      };
-
-      ws.onclose = (event) => {
-        console.log('🔌 WebSocket disconnected, attempting to reconnect in 5 seconds...');
-        console.log('Close event:', event.code, event.reason);
         
-        // Clear existing timeout if any
-        if (reconnectTimeout) {
-          clearTimeout(reconnectTimeout);
+        console.log(`🔌 Provider WebSocket connecting (attempt ${reconnectAttempts + 1}):`, wsUrl);
+        
+        const ws = new WebSocket(wsUrl);
+        
+        ws.onopen = () => {
+          console.log('✅ Provider WebSocket connected successfully');
+          reconnectAttempts = 0; // Reset on successful connection
+        };
+      
+        ws.onmessage = (event) => {
+          try {
+            const notification = JSON.parse(event.data);
+            console.log('📨 Provider received WebSocket notification:', notification);
+            
+            // CRITICAL: Force immediate dashboard updates with multiple attempts
+            if (notification.type === 'emergency_appointment' || 
+                notification.type === 'new_appointment' ||
+                notification.type === 'appointment_accepted' || 
+                notification.type === 'appointment_updated' ||
+                notification.type === 'appointment_cancelled' ||
+                notification.type === 'video_call_invitation') {
+              
+              console.log('📅 CRITICAL: Provider appointment notification received, forcing multiple refreshes...');
+              
+              // Immediate refresh
+              setTimeout(async () => {
+                console.log('🔄 First forced refresh after provider notification');
+                await fetchAppointments();
+                // Force React re-render
+                setLoading(prev => prev === false ? true : false);
+                setTimeout(() => setLoading(false), 100);
+              }, 100);
+              
+              // Second refresh after 1 second
+              setTimeout(async () => {
+                console.log('🔄 Second forced refresh after provider notification');
+                await fetchAppointments();
+              }, 1000);
+              
+              // Final refresh after 3 seconds
+              setTimeout(async () => {
+                console.log('🔄 Final forced refresh after provider notification');
+                await fetchAppointments();
+              }, 3000);
+            }
+            
+            // Handle Jitsi video call invitations
+            if (notification.type === 'jitsi_call_invitation') {
+              console.log('📞 Received video call invitation');
+              
+              // Play ringing sound
+              playRingingSound();
+              
+              // Show video call invitation popup with Jitsi URL
+              setVideoCallInvitation({
+                jitsiUrl: notification.jitsi_url,
+                roomName: notification.room_name,
+                callerName: notification.caller,
+                callerRole: notification.caller_role,
+                appointmentId: notification.appointment_id,
+                appointmentType: notification.appointment_type,
+                patient: notification.patient || {
+                  name: "Unknown Patient",
+                  age: "Unknown",
+                  gender: "Unknown", 
+                  consultation_reason: "General consultation",
+                  vitals: {}
+                }
+              });
+              setShowVideoCallInvitation(true);
+              
+              // Auto-hide popup after 30 seconds
+              setTimeout(() => {
+                stopRingingSound();
+                setShowVideoCallInvitation(false);
+                setVideoCallInvitation(null);
+              }, 30000);
+              
+              // Add notification to local state
+              const newNotification = {
+                id: Date.now() + Math.random(),
+                type: notification.type,
+                title: 'Incoming Video Call',
+                message: `${notification.caller} is inviting you to a video consultation`,
+                timestamp: new Date().toISOString(),
+                isRead: false
+              };
+              setNotifications(prev => [newNotification, ...prev]);
+              setUnreadNotifications(prev => prev + 1);
+
+              // Send browser notification if permission granted
+              if (Notification.permission === 'granted') {
+                const browserNotification = new Notification('📞 Incoming Video Call', {
+                  body: `${notification.caller} is inviting you to a video consultation`,
+                  icon: '/icons/icon-192x192.png',
+                  badge: '/icons/badge-72x72.png',
+                  tag: 'video-call-invitation',
+                  requireInteraction: true,
+                  actions: [
+                    { action: 'answer', title: 'Answer' },
+                    { action: 'decline', title: 'Decline' }
+                  ]
+                });
+                
+                browserNotification.onclick = () => {
+                  handleAcceptVideoCall();
+                  browserNotification.close();
+                };
+              }
+            }
+            
+            // Handle other notification types with browser notifications
+            if (Notification.permission === 'granted') {
+              if (notification.type === 'appointment_accepted') {
+                new Notification('✅ Appointment Accepted', {
+                  body: `Doctor accepted your appointment for ${notification.patient_name}`,
+                  icon: '/icons/icon-192x192.png'
+                });
+              } else if (notification.type === 'emergency_appointment') {
+                new Notification('🚨 Emergency Appointment', {
+                  body: `New emergency appointment: ${notification.patient_name}`,
+                  icon: '/icons/icon-192x192.png',
+                  requireInteraction: true
+                });
+              }
+            }
+          } catch (error) {
+            console.error('Error parsing Provider WebSocket message:', error);
+          }
+        };
+
+        ws.onerror = (error) => {
+          console.error('❌ Provider WebSocket error:', error);
+        };
+
+        ws.onclose = (event) => {
+          console.log('🔌 Provider WebSocket disconnected');
+          console.log('Close event:', event.code, event.reason);
+          
+          // Clear existing timeout if any
+          if (reconnectTimeout) {
+            clearTimeout(reconnectTimeout);
+          }
+          
+          // Implement exponential backoff reconnection
+          if (reconnectAttempts < maxReconnectAttempts) {
+            const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000); // Max 30 seconds
+            console.log(`🔄 Provider WebSocket reconnecting in ${delay}ms (attempt ${reconnectAttempts + 1}/${maxReconnectAttempts})`);
+            
+            reconnectTimeout = setTimeout(() => {
+              reconnectAttempts++;
+              connectWebSocket();
+            }, delay);
+          } else {
+            console.error('❌ Provider WebSocket max reconnection attempts reached');
+          }
+        };
+
+      } catch (error) {
+        console.error('❌ Error creating Provider WebSocket:', error);
+        
+        // Retry after delay
+        if (reconnectAttempts < maxReconnectAttempts) {
+          setTimeout(() => {
+            reconnectAttempts++;
+            connectWebSocket();
+          }, 1000 * Math.pow(2, reconnectAttempts));
         }
+      }
+    };
+
+    connectWebSocket();
+  };
         
         // Try to reconnect after 5 seconds
         const reconnectTimeout = setTimeout(() => {
