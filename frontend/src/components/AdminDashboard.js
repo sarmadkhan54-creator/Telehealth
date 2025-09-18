@@ -702,6 +702,42 @@ const AdminDashboard = ({ user, onLogout }) => {
     exportToCSV(exportData, filename);
   };
 
+  const exportMonthlyReport = () => {
+    const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+    const monthlyData = [
+      {
+        'Report Type': 'Monthly Summary',
+        'Month': currentMonth,
+        'Total Users': stats.totalUsers,
+        'Total Providers': stats.providers,
+        'Total Doctors': stats.doctors,
+        'Total Appointments': stats.totalAppointments,
+        'Emergency Appointments': stats.emergencyAppointments,
+        'Completed Appointments': stats.completedAppointments,
+        'Today Appointments': stats.todayAppointments,
+        'Generated Date': new Date().toLocaleString()
+      }
+    ];
+    
+    // Add provider performance data
+    const providerStats = users.filter(u => u.role === 'provider').map(provider => {
+      const providerAppts = appointments.filter(a => a.provider_id === provider.id);
+      return {
+        'Report Type': 'Provider Performance',
+        'Provider Name': provider.full_name,
+        'District': provider.district || '',
+        'Total Appointments': providerAppts.length,
+        'Emergency Calls': providerAppts.filter(a => a.appointment_type === 'emergency').length,
+        'Completed Calls': providerAppts.filter(a => a.status === 'completed').length,
+        'Generated Date': new Date().toLocaleString()
+      };
+    });
+    
+    const combinedData = [...monthlyData, ...providerStats];
+    const filename = `greenstar-monthly-report-${new Date().toISOString().split('T')[0]}.csv`;
+    exportToCSV(combinedData, filename);
+  };
+
   const handleCleanupAllAppointments = async () => {
     if (user.role !== 'admin') {
       alert('Access Denied: Only administrators can perform cleanup operations');
