@@ -1539,6 +1539,27 @@ const AdminDashboard = ({ user, onLogout }) => {
                 </button>
               </div>
             </div>
+
+            <div className="glass-card border-red-200 bg-red-50">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-red-800">⚠️ System Maintenance</h3>
+              </div>
+              <div className="text-sm text-red-700 mb-4">
+                <p className="mb-2">Use these functions with extreme caution. These operations cannot be undone.</p>
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                <button 
+                  onClick={handleCleanupAllAppointments}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>🗑️ Clean All Appointments</span>
+                </button>
+              </div>
+              <div className="text-xs text-red-600 mt-2">
+                <p>This will permanently remove all appointments, patient data, and consultation notes.</p>
+              </div>
+            </div>
           </div>
         )}
       </div>
