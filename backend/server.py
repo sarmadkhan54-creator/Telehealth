@@ -1168,6 +1168,13 @@ async def get_video_call_session(appointment_id: str, current_user: User = Depen
     jitsi_domain = "meet.jit.si"  # Using public Jitsi server
     jitsi_url = f"https://{jitsi_domain}/{room_name}"
     
+    # Track call initiation for auto-redial system
+    if current_user.role == "doctor":
+        # Doctor is initiating call to provider
+        provider_id = appointment["provider_id"]
+        call_session = call_manager.start_call(appointment_id, current_user.id, provider_id)
+        print(f"📞 Call tracking started: Doctor {current_user.id} calling Provider {provider_id}")
+    
     # Store the Jitsi room info
     jitsi_session = {
         "appointment_id": appointment_id,
