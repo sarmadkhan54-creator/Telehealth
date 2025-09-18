@@ -172,6 +172,44 @@ class VideoCallManager:
 manager = ConnectionManager()
 video_call_manager = VideoCallManager()
 
+# WebSocket heartbeat task
+async def websocket_heartbeat():
+    """Send periodic heartbeat to all connected clients"""
+    while True:
+        try:
+            await asyncio.sleep(30)  # Send heartbeat every 30 seconds
+            if manager.active_connections:
+                heartbeat_message = {
+                    "type": "heartbeat",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "server_status": "healthy"
+                }
+                
+                failed_connections = []
+                for user_id, websocket in manager.active_connections.items():
+                    try:
+                        await websocket.send_text(json.dumps(heartbeat_message))
+                    except Exception as e:
+                        print(f"💔 Heartbeat failed for user {user_id}: {e}")
+                        failed_connections.append(user_id)
+                
+                # Clean up failed connections
+                for user_id in failed_connections:
+                    manager.disconnect(user_id)
+                    
+                if failed_connections:
+                    print(f"🧹 Cleaned up {len(failed_connections)} failed connections")
+                else:
+                    print(f"💓 Heartbeat sent to {len(manager.active_connections)} connections")
+        except Exception as e:
+            print(f"❌ Heartbeat system error: {e}")
+
+# Start heartbeat task
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(websocket_heartbeat())
+    print("🚀 WebSocket heartbeat system started")
+
 # Pydantic Models and Constants
 class UserRole:
     ADMIN = "admin"
