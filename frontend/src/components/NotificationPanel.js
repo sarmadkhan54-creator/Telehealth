@@ -171,17 +171,37 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
   };
 
   const loadNotifications = () => {
-    // Load notifications from localStorage for persistence
-    const savedNotifications = localStorage.getItem(`notifications_${user.id}`);
-    if (savedNotifications) {
-      try {
+    try {
+      const savedNotifications = localStorage.getItem(`notifications_${user.id}`);
+      if (savedNotifications) {
         const parsed = JSON.parse(savedNotifications);
-        setNotifications(parsed.map(n => ({
-          ...n,
-          timestamp: new Date(n.timestamp)
-        })));
-      } catch (error) {
-        console.error('Error loading saved notifications:', error);
+        
+        // Validate and clean the loaded data
+        if (Array.isArray(parsed)) {
+          const validNotifications = parsed
+            .filter(n => n && typeof n === 'object' && n.id && n.type) // Only valid notifications
+            .map(n => ({
+              ...n,
+              timestamp: new Date(n.timestamp) // Convert timestamp back to Date object
+            }))
+            .slice(0, 50); // Limit to 50 notifications
+          
+          setNotifications(validNotifications);
+        } else {
+          console.warn('Invalid notifications data in localStorage');
+          setNotifications([]);
+        }
+      } else {
+        setNotifications([]);
+      }
+    } catch (error) {
+      console.error('Error loading saved notifications:', error);
+      setNotifications([]);
+      // Clear corrupted data
+      try {
+        localStorage.removeItem(`notifications_${user.id}`);
+      } catch (clearError) {
+        console.error('Error clearing corrupted notifications:', clearError);
       }
     }
   };
