@@ -7,7 +7,7 @@ import requests
 import json
 
 def check_appointments():
-    base_url = "https://greenstar-health-2.preview.emergentagent.com"
+    base_url = "https://calltrack-health.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login as provider

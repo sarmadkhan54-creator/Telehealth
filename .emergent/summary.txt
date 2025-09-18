@@ -1,73 +1,77 @@
 <analysis>
-The AI engineer's work involved an iterative development and bug-fixing process for a full-stack telehealth MVP. Initial efforts focused on PWA conversion, implementing , , and push notifications. Key challenges included establishing reliable video communication, leading to a migration from WebRTC to Jitsi Meet. The engineer systematically addressed user feedback regarding Android PWA layout, auto-login, admin CRUD functionalities, and video call reconnection. Repeatedly, critical issues stemmed from the deployment environment, particularly incorrect frontend  configurations and a persistent Spinning up Servers overlay from the Emergent platform blocking app interaction. Despite numerous code fixes to the application logic (e.g.,  bug, auth headers, responsive CSS), the fundamental deployment issue persisted, preventing full end-to-end testing and causing login failures on external devices. The work concluded with the identification of this environment-level problem.
+The AI engineer's work primarily involved a reactive cycle of bug fixing and feature enhancement based on user reports. Initial efforts focused on fixing authentication (bcrypt incompatibility,  bug), refactoring video calls to Jitsi, and improving notification and admin functionalities. After a comprehensive summary claiming resolution, the user reported new dashboard update and call handling issues, leading to the involvement of a . The agent identified deeper issues like silent WebSocket disconnections, frontend race conditions, and missing server-side call redial logic. The engineer then meticulously implemented fixes for these root causes, including enhancing WebSocket stability, adding call tracking and redialing, improving error handling, and debouncing dashboard updates. The trajectory concludes with a successful backend test of these critical fixes, awaiting user verification or frontend testing.
 </analysis>
 
 <product_requirements>
-The initial goal was to build a responsive, tablet-optimized telehealth MVP using FastAPI, React, and MongoDB. Core features included user management (Provider, Doctor, Admin), secure authentication, comprehensive appointment management (creation, acceptance, completion for emergency/non-emergency), WebRTC video calling, and WebSocket-based real-time notifications.
-
-Subsequent enhancements and bug fixes iteratively refined the platform:
-- Branding: Integrated Greenstar branding and removed Emergent branding.
-- Admin Controls: Robust admin-only access for user CRUD and reporting.
-- Export: CSV export for appointments, users, and reports.
-- Appointment Workflow: Doctors send notes to providers, providers manage their appointments, admins have full CRUD access.
-- Video Calls: Persistent issues with WebRTC connectivity led to a complete migration to Jitsi Meet for improved reliability and features.
-- Notifications: Auto-refresh for appointments and real-time ringing popups with patient details were implemented.
-- Mobile Accessibility: The user requested the app be available on the Play Store, leading to the current task of converting it to a Progressive Web App (PWA).
+The telehealth MVP is a responsive, tablet-optimized application (FastAPI, React, MongoDB) supporting Provider, Doctor, and Admin roles with secure authentication. It manages appointments (emergency/non-emergency, CRUD) and utilizes Jitsi Meet for video calls, replacing a problematic WebRTC implementation. A WebSocket-based real-time notification system provides auto-refresh and ringing popups. Recent branding enhancements include Greenstar, robust admin CRUD for users/appointments, and CSV export. The refined appointment workflow involves doctors sending notes and providers managing appointments. Key requirements include PWA conversion, multi-device accessibility with a WhatsApp-like calling experience, comprehensive notifications with categories (All, Calls, Appointments, Unread), provider-specific appointment filtering, real-time dashboard updates for both roles, and automatic call redialing if a call ends.
 </product_requirements>
 
 <key_technical_concepts>
-- **Full-Stack:** FastAPI (Python), React.js (JavaScript), MongoDB (NoSQL Database).
-- **UI/UX:** Shadcn/UI, Tailwind CSS, Glassmorphism.
-- **Authentication:** JWT,  (bcrypt).
-- **Communication:** WebSockets, Jitsi Meet (video calls), WebRTC (replaced).
-- **Data Handling:** Pydantic, PyMongo/Motor, UUIDs.
-- **Deployment:** Kubernetes (ingress rules), Supervisor.
-- **Mobile Accessibility:** Progressive Web App (PWA) conversion, Pillow (image generation), ERROR: Subscription Info argument missing. (push notifications).
+- **Full-Stack:** FastAPI, React.js, MongoDB.
+- **UI/UX:** Tailwind CSS, Responsive Design.
+- **Authentication:** JWT, , , Axios interceptors for 401.
+- **Communication:** WebSockets (with heartbeat and reconnection), Jitsi Meet (video calls).
+- **Mobile Accessibility:** PWA (manifest, service worker).
+- **Deployment:** Kubernetes, Supervisor.
 </key_technical_concepts>
 
 <code_architecture>
-The application employs a client-server architecture with a React frontend and FastAPI backend, using MongoDB as the database.
+The application employs a client-server architecture with React for the frontend, FastAPI for the backend, and MongoDB as the database.
 
 **Directory Structure:**
 
 
-**Key Files and Changes:**
-
--   : Core FastAPI application. Refactored from WebRTC to Jitsi. Added push notification models/endpoints, integrated them into video call flow, implemented a comprehensive user edit endpoint (), and introduced a  endpoint.
--   : Client-side routing, auth context. Modified for PWA service worker registration, push notification initialization, and to clear stored user data. Adjusted loading state and added timeouts for robustness.
--   : Provider's dashboard.  adapted for Jitsi and mobile compatibility using . Enhanced WebSocket handling and reconnection logic. Fixed notification sound trigger by incorporating user interaction for audio permission. Integrated  and improved mobile responsiveness.
--   : Doctor's interface.  function updated to be mobile-friendly for Jitsi calls.
--   : Admin interface. Fixed user deletion and implemented a full user edit functionality ( with ), ensuring all API calls included proper Authorization headers.
--   : PWA metadata. Created and updated with appropriate icons and Android compatibility settings.
--   : PWA service worker. Created, had lint errors fixed, and was enhanced for offline caching and mobile-specific issues.
--   : A Python script, created to programmatically generate PWA icons of various sizes, necessitating the installation of the  library.
--   : Manages push notification subscriptions. A critical bug related to  method binding was identified and fixed, and its initialization logic was refined.
--   : Global styles. Extensively updated with mobile-specific media queries, PWA-specific styles, safe area support, and navigation adjustments for improved responsiveness. A  property was added to  to attempt to render the app above deployment overlays.
--   : Frontend environment variables. Repeatedly identified as having incorrect  configurations, which significantly hampered frontend-backend connectivity in the deployed environment.
+-   : Core FastAPI app.
+    -   **Importance**: Centralizes API endpoints, authentication, user/appointment management, and WebSocket communication.
+    -   **Changes**: Refactored video call logic to Jitsi URLs; enhanced notification models/endpoints; modified appointment visibility queries; improved user/appointment deletion logic; temporarily disabled push notifications due to  issues; increased JWT token expiration to 8 hours; added  endpoint; fixed  to log errors instead of silently failing; implemented WebSocket heartbeat; added call tracking for ,  with redial logic.
+-   : Handles client-side routing and authentication context.
+    -   **Importance**: Entry point for React app, manages global state, authentication, and routing.
+    -   **Changes**: Fixed a bug clearing  (initially, then confirmed it was not present later); added Axios response interceptor for graceful 401 error handling.
+-   : Provider's dashboard.
+    -   **Importance**: Displays provider-specific appointments, notifications, and call options.
+    -   **Changes**: Modified  for Jitsi; integrated  and ; added appointment cancellation functionality; enhanced WebSocket handling for notifications/auto-refresh with reconnection logic and error handling; improved  with robust error handling; fixed WebSocket reconnection logic.
+-   : Doctor's dashboard.
+    -   **Importance**: Displays doctor-specific appointments (pending), and call options.
+    -   **Changes**: Modified  for Jitsi; integrated  and ; fixed  redeclaration; enhanced WebSocket handling for  notifications and auto-refresh with reconnection logic and error handling; improved , ,  with better error handling and user feedback; implemented debounced refresh.
+-   : Admin interface.
+    -   **Importance**: Provides CRUD operations for users and appointments.
+    -   **Changes**: Fixed  and  for proper UI refresh; added a Clean All Appointments button linked to the new backend endpoint.
+-   : **NEW FILE**.
+    -   **Importance**: Implements a comprehensive notification UI with various tabs and direct calling options.
+    -   **Changes**: Added robust error handling, data validation, and storage limits to prevent crashes; enhanced  and  functions.
+-   : **NEW FILE**.
+    -   **Importance**: Component for direct calls.
+    -   **Changes**: Enhanced with automatic redialing logic (up to 3 attempts with 30-second delays) and visual feedback.
+-   :
+    -   **Importance**: Styling for the application.
+    -   **Changes**: Added CSS for danger buttons and responsive design for 10-inch Android tablets.
 </code_architecture>
 
 <pending_tasks>
-- Resolve the persistent deployment issue where the external URL serves an iframe wrapper or Spinning up Servers overlay, preventing direct app interaction and full end-to-end testing.
-- Ensure consistent login functionality across all devices without credential errors, which is currently blocked by the deployment issue.
-- Verify that all implemented fixes (e.g., admin CRUD, video call reconnection, notification sounds, responsive design) are fully functional and accessible in the deployed environment.
+- Ensure the external URL  is accessible and configured correctly for deployment (or revert if needed).
+- Re-enable and fix the push notification system, addressing  compatibility or key generation issues.
+- Implement comprehensive unit and integration tests for newly added components like  and .
+- Comprehensive frontend testing to fully validate UI updates, notification panel stability, and call redialing.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was critically investigating the app's persistent failure to log in or function on external devices, frequently showing credential error messages or being stuck on a Spinning up Servers overlay.
+Immediately before this summary, the AI engineer was addressing recurring critical issues related to dashboard updates, call handling, and session persistence, guided by a 's root cause analysis.
 
-The core problem was identified as a combination of:
-1.  **Incorrect Frontend Backend URL Configuration**: The  in  was repeatedly found to be misconfigured or reverted, preventing the frontend from reaching the backend.
-2.  **Deployment Environment Instability**: The external preview URL was serving an iframe wrapper (either Spinning up Servers or Preview Unavailable messages) instead of the direct React application. This deployment-level overlay was physically blocking user interaction, even when the underlying React app was technically loading correctly.
-3.  **App Inactivity Shutdown**: The investigation culminated in the discovery that the Emergent platform itself was putting the application to sleep after inactivity, requiring a manual wake-up as indicated by a Preview Unavailable message.
+The user reported:
+1.  **Doctor/Provider Dashboards Issues**: Sections like Pending Requests, My Appointments, Todays Activity", "Todays Summary are not updating or working properly.
+2.  **Call Handling Issue**: Provider does not receive incoming call notification or redial attempts once a call ends.
 
-The engineer's latest attempts to resolve this included:
--   Correcting the  in  to match the correct backend service URL.
--   Adding a  to the  element in  to try and force the React app to render above any deployment overlays.
--   Debugging the app's loading state in  and adding timeouts to ensure independent loading.
+The AI engineer implemented the following specific fixes:
+-   **Backend WebSocket ConnectionManager**: Fixed  to log errors instead of silently disconnecting users during , enhancing WebSocket stability.
+-   **WebSocket Heartbeat**: Added a heartbeat mechanism in  to maintain active WebSocket connections.
+-   **Frontend Dashboard Race Conditions**: Modified  to use a debounced refresh mechanism within  instead of multiple  calls, preventing update conflicts.
+-   **Server-Side Call End Detection and Notification**: Implemented call tracking and redialing logic in  within  and  endpoints. This includes detecting call endings, initiating redials (up to 3 times with 30-second delays), and sending retry notifications to providers.
+-   **Call Redialing Logic**: Enhanced  to support automatic redialing attempts (up to 3 times with 30-second delays) and visual feedback for the user.
+-   **WebSocket Reconnection Logic**: Enhanced WebSocket implementation in  and  with improved reconnection logic and error handling.
 
-The current state is that the React app *is* loading the login form correctly, but the external Spinning up Servers overlay originating from the deployment infrastructure is still blocking user interaction, indicating a fundamental deployment-level issue rather than an application code bug.
+The latest backend testing () indicates that these critical fixes for WebSocket connections, heartbeat, call management (auto-redial, end detection), and dashboard data updates (role-based filtering, real-time notifications, debounced refresh) are functioning as expected. The system now reports 14 total appointments, with 8 emergency cases.
 </current_work>
 
 <optional_next_step>
-Communicate the deployment environment issue to the user, explaining the external Spinning up Servers overlay and the platform's inactivity shutdown.
+I will await your testing and feedback, or proceed with automated frontend testing to validate UI enhancements and call redialing.
 </optional_next_step>
