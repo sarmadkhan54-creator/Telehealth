@@ -264,6 +264,5 @@ const CallButton = ({
     </div>
   );
 };
-};
 
 export default CallButton;
