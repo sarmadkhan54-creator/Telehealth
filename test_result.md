@@ -105,6 +105,53 @@
 user_problem_statement: "Fix credential error when users try to login from other devices (app works only on developer's device)"
 
 backend:
+  - task: "Admin User Deletion UI Refresh Fix"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/AdminDashboard.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "User reports: Admin deletion appears to work in backend but items still show in UI lists. Enhanced deletion functions with multiple refresh attempts and immediate UI state updates to ensure proper refresh."
+
+  - task: "Admin Appointment Deletion UI Refresh Fix" 
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/AdminDashboard.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "User reports: Admin appointment deletion appears to work in backend but items still show in UI lists. Enhanced deletion functions with multiple refresh attempts and immediate UI state updates to ensure proper refresh."
+
+  - task: "Clean All Appointments Endpoint"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Added new admin-only endpoint DELETE /admin/appointments/cleanup to remove all appointments, notes, and patient data as requested by user."
+
+  - task: "Provider Appointment Cancellation Fix"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/Dashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "User reports: Provider cannot cancel appointments. Enhanced handleCancelAppointment with better error handling, multiple refresh attempts, and immediate UI state updates."
   - task: "PWA Service Worker Implementation"
     implemented: true
     working: true
