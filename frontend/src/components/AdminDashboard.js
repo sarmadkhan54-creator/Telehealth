@@ -702,40 +702,43 @@ const AdminDashboard = ({ user, onLogout }) => {
     exportToCSV(exportData, filename);
   };
 
-  const exportMonthlyReport = () => {
-    const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
-    const monthlyData = [
-      {
-        'Report Type': 'Monthly Summary',
-        'Month': currentMonth,
-        'Total Users': stats.totalUsers,
-        'Total Providers': stats.providers,
-        'Total Doctors': stats.doctors,
-        'Total Appointments': stats.totalAppointments,
-        'Emergency Appointments': stats.emergencyAppointments,
-        'Completed Appointments': stats.completedAppointments,
-        'Today Appointments': stats.todayAppointments,
-        'Generated Date': new Date().toLocaleString()
-      }
-    ];
-    
-    // Add provider performance data
-    const providerStats = users.filter(u => u.role === 'provider').map(provider => {
-      const providerAppts = appointments.filter(a => a.provider_id === provider.id);
-      return {
-        'Report Type': 'Provider Performance',
-        'Provider Name': provider.full_name,
-        'District': provider.district || '',
-        'Total Appointments': providerAppts.length,
-        'Emergency Calls': providerAppts.filter(a => a.appointment_type === 'emergency').length,
-        'Completed Calls': providerAppts.filter(a => a.status === 'completed').length,
-        'Generated Date': new Date().toLocaleString()
-      };
-    });
-    
-    const combinedData = [...monthlyData, ...providerStats];
-    const filename = `greenstar-monthly-report-${new Date().toISOString().split('T')[0]}.csv`;
-    exportToCSV(combinedData, filename);
+  const handleCleanupAllAppointments = async () => {
+    if (user.role !== 'admin') {
+      alert('Access Denied: Only administrators can perform cleanup operations');
+      return;
+    }
+
+    const confirmed = window.confirm(`⚠️ WARNING: This will permanently delete ALL appointments, patient data, and notes. Are you absolutely sure you want to proceed?`);
+    if (!confirmed) return;
+
+    const doubleConfirmed = window.confirm(`🚨 FINAL CONFIRMATION: This action cannot be undone and will remove all historical data. Type 'DELETE ALL' to proceed.`);
+    if (!doubleConfirmed) return;
+
+    try {
+      console.log('Attempting to cleanup all appointments...');
+      
+      const response = await axios.delete(`${API}/admin/appointments/cleanup`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('Cleanup response:', response.data);
+      
+      // Clear appointments state immediately
+      setAppointments([]);
+      
+      alert(`Cleanup completed successfully! Deleted: ${response.data.deleted.appointments} appointments, ${response.data.deleted.notes} notes, ${response.data.deleted.patients} patients`);
+      
+      // Refresh data to confirm cleanup
+      await fetchData();
+      
+    } catch (error) {
+      console.error('Error during cleanup:', error);
+      alert(error.response?.data?.detail || 'Failed to cleanup appointments. Please try again.');
+      await fetchData();
+    }
   };
 
   // User management functions (Admin only)
