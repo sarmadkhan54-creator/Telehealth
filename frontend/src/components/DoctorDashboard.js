@@ -189,12 +189,35 @@ const DoctorDashboard = ({ user, onLogout }) => {
 
   const handleCompleteAppointment = async (appointmentId) => {
     try {
-      await axios.put(`${API}/appointments/${appointmentId}`, {
+      console.log('Completing appointment:', appointmentId);
+      
+      const response = await axios.put(`${API}/appointments/${appointmentId}`, {
         status: 'completed'
       });
-      fetchAppointments();
+      
+      console.log('Appointment completed successfully:', response.data);
+      
+      // Show success message
+      alert('Appointment completed successfully!');
+      
+      // Force multiple refresh attempts to ensure UI updates
+      setTimeout(async () => {
+        console.log('First refresh after appointment completion...');
+        await fetchAppointments();
+      }, 100);
+      
+      setTimeout(async () => {
+        console.log('Second refresh after appointment completion...');
+        await fetchAppointments();
+      }, 1000);
+      
     } catch (error) {
       console.error('Error completing appointment:', error);
+      const errorMessage = error.response?.data?.detail || 'Error completing appointment. Please try again.';
+      alert(errorMessage);
+      
+      // Refresh appointments even on error to check current state
+      await fetchAppointments();
     }
   };
 
