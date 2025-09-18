@@ -65,8 +65,44 @@ class ConnectionManager:
         if user_id in self.active_connections:
             try:
                 await self.active_connections[user_id].send_text(json.dumps(message))
-            except:
+                print(f"✅ WebSocket message sent successfully to user {user_id}: {message.get('type', 'unknown')}")
+                return True
+            except Exception as e:
+                print(f"❌ WebSocket send failed for user {user_id}: {e}")
+                print(f"🔌 Disconnecting user {user_id} due to send failure")
                 self.disconnect(user_id)
+                return False
+        else:
+            print(f"⚠️ User {user_id} not in active WebSocket connections")
+            return False
+    
+    async def broadcast_to_role(self, message: dict, role: str):
+        """Broadcast message to all users with specific role"""
+        failed_users = []
+        success_count = 0
+        
+        for user_id, websocket in self.active_connections.items():
+            try:
+                await websocket.send_text(json.dumps(message))
+                success_count += 1
+                print(f"✅ Broadcast sent to user {user_id}")
+            except Exception as e:
+                print(f"❌ Broadcast failed for user {user_id}: {e}")
+                failed_users.append(user_id)
+        
+        # Clean up failed connections
+        for user_id in failed_users:
+            self.disconnect(user_id)
+            
+        print(f"📡 Broadcast completed: {success_count} successful, {len(failed_users)} failed")
+        return success_count
+    
+    def get_connection_status(self):
+        """Get current WebSocket connection status"""
+        return {
+            "total_connections": len(self.active_connections),
+            "connected_users": list(self.active_connections.keys())
+        }
 
 # WebSocket connection manager for video calls
 class VideoCallManager:
