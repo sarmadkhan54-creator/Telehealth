@@ -409,18 +409,42 @@ const Dashboard = ({ user, onLogout }) => {
     if (!confirmed) return;
 
     try {
-      await axios.delete(`${API}/appointments/${appointmentId}`, {
+      console.log('Attempting to cancel appointment:', appointmentId);
+      
+      const response = await axios.delete(`${API}/appointments/${appointmentId}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
       });
 
+      console.log('Cancel appointment response:', response.data);
+      
+      // Force immediate UI update by filtering out the cancelled appointment
+      setAppointments(prevAppointments => {
+        const updatedAppointments = prevAppointments.filter(a => a.id !== appointmentId);
+        console.log('Updated appointments list:', updatedAppointments.length, 'appointments remaining');
+        return updatedAppointments;
+      });
+
       alert('Appointment cancelled successfully');
-      fetchAppointments(); // Refresh appointments list
+      
+      // Force multiple refresh attempts to ensure UI updates
+      setTimeout(async () => {
+        console.log('First refresh after appointment cancellation...');
+        await fetchAppointments();
+      }, 100);
+      
+      setTimeout(async () => {
+        console.log('Second refresh after appointment cancellation...');
+        await fetchAppointments();
+      }, 1000);
       
     } catch (error) {
       console.error('Error cancelling appointment:', error);
-      alert(error.response?.data?.detail || 'Error cancelling appointment. Please try again.');
+      const errorMessage = error.response?.data?.detail || 'Error cancelling appointment. Please try again.';
+      alert(errorMessage);
+      // Refresh appointments even on error to check current state
+      await fetchAppointments();
     }
   };
 
