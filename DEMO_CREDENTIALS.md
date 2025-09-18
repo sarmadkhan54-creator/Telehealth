@@ -2,7 +2,7 @@
 
 ## 🚀 **Application Access**
 **Greenstar Telehealth Platform:** Your custom domain (once configured)
-**Current URL:** https://health-connect-20.preview.emergentagent.com
+**Current URL:** https://greenstar-health-2.preview.emergentagent.com
 
 ---
 
