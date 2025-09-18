@@ -1178,16 +1178,34 @@ async def join_video_call(session_token: str, current_user: User = Depends(get_c
         "video_session": clean_mongo_data(video_session)
     }
 
-# WebSocket endpoint for real-time notifications (dashboard notifications only)
-@app.websocket("/api/ws/{user_id}")
-async def websocket_endpoint(websocket: WebSocket, user_id: str):
-    await manager.connect(websocket, user_id)
-    try:
-        while True:
-            data = await websocket.receive_text()
-            # Handle incoming messages if needed
-    except WebSocketDisconnect:
-        manager.disconnect(user_id)
+@api_router.get("/websocket/status")
+async def websocket_status(current_user: User = Depends(get_current_user)):
+    """Get WebSocket connection status for debugging"""
+    status = manager.get_connection_status()
+    return {
+        "websocket_status": status,
+        "current_user_connected": current_user.id in manager.active_connections,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+@api_router.post("/websocket/test-message")
+async def test_websocket_message(current_user: User = Depends(get_current_user)):
+    """Send test message to current user's WebSocket for debugging"""
+    test_message = {
+        "type": "test_message",
+        "title": "Test Notification",
+        "message": "This is a test WebSocket message",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "user_id": current_user.id
+    }
+    
+    result = await manager.send_personal_message(test_message, current_user.id)
+    
+    return {
+        "message_sent": result,
+        "user_connected": current_user.id in manager.active_connections,
+        "test_message": test_message
+    }
 
 # Push notification endpoints
 @api_router.post("/push/subscribe")
