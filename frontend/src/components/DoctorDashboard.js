@@ -77,68 +77,136 @@ const DoctorDashboard = ({ user, onLogout }) => {
   }, []);
 
   const setupWebSocket = () => {
-    const wsUrl = `${BACKEND_URL.replace('https:', 'wss:').replace('http:', 'ws:')}/api/ws/${user.id}`;
-    const ws = new WebSocket(wsUrl);
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 10;
     
-    ws.onmessage = (event) => {
-      const notification = JSON.parse(event.data);
-      // Create comprehensive notification object
-      const newNotification = {
-        id: Date.now(),
-        type: notification.type,
-        title: getNotificationTitle(notification),
-        message: getNotificationMessage(notification),
-        timestamp: new Date(),
-        data: notification,
-        isRead: false,
-        priority: notification.type === 'emergency_appointment' ? 'high' : 'normal'
-      };
-      
-      setNotifications(prev => [newNotification, ...prev.slice(0, 9)]);
-      setUnreadNotifications(prev => prev + 1);
-      
-      // Auto-refresh appointments when receiving notifications
-      if (notification.type === 'emergency_appointment' || 
-          notification.type === 'new_appointment' ||
-          notification.type === 'appointment_updated' ||
-          notification.type === 'video_call_invitation') {
-        console.log('📅 Received appointment notification, refreshing appointments...');
-        fetchAppointments(); // Refresh appointments list
-      }
-      
-      if (notification.type === 'emergency_appointment') {
-        // Show browser notification for emergencies
-        if (Notification.permission === 'granted') {
-          new Notification('Emergency Appointment', {
-            body: `${notification.patient_name} needs immediate consultation`,
-            icon: '/favicon.ico'
-          });
+    const connectWebSocket = () => {
+      try {
+        const wsUrl = `${BACKEND_URL.replace('https:', 'wss:').replace('http:', 'ws:')}/api/ws/${user.id}`;
+        console.log(`🔌 Doctor WebSocket connecting (attempt ${reconnectAttempts + 1}):`, wsUrl);
+        const ws = new WebSocket(wsUrl);
+        
+        ws.onopen = () => {
+          console.log('✅ Doctor WebSocket connected successfully');
+          reconnectAttempts = 0; // Reset on successful connection
+        };
+        
+        ws.onmessage = (event) => {
+          try {
+            const notification = JSON.parse(event.data);
+            console.log('📨 Doctor received WebSocket notification:', notification);
+            
+            // Create comprehensive notification object
+            const newNotification = {
+              id: Date.now() + Math.random(),
+              type: notification.type,
+              title: getNotificationTitle(notification),
+              message: getNotificationMessage(notification),
+              timestamp: new Date(),
+              data: notification,
+              isRead: false,
+              priority: notification.type === 'emergency_appointment' ? 'high' : 'normal'
+            };
+            
+            setNotifications(prev => [newNotification, ...prev.slice(0, 9)]);
+            setUnreadNotifications(prev => prev + 1);
+            
+            // CRITICAL: Force immediate dashboard updates with multiple attempts
+            if (notification.type === 'emergency_appointment' || 
+                notification.type === 'new_appointment' ||
+                notification.type === 'appointment_updated' ||
+                notification.type === 'appointment_cancelled' ||
+                notification.type === 'video_call_invitation') {
+              
+              console.log('📅 CRITICAL: Appointment notification received, forcing multiple refreshes...');
+              
+              // Immediate refresh
+              setTimeout(async () => {
+                console.log('🔄 First forced refresh after notification');
+                await fetchAppointments();
+                // Force React re-render by updating state
+                setLoading(prev => prev === false ? true : false);
+                setTimeout(() => setLoading(false), 100);
+              }, 100);
+              
+              // Second refresh after 1 second
+              setTimeout(async () => {
+                console.log('🔄 Second forced refresh after notification');
+                await fetchAppointments();
+              }, 1000);
+              
+              // Final refresh after 3 seconds
+              setTimeout(async () => {
+                console.log('🔄 Final forced refresh after notification');
+                await fetchAppointments();
+              }, 3000);
+            }
+            
+            // Show browser notifications for critical events
+            if (notification.type === 'emergency_appointment') {
+              if (Notification.permission === 'granted') {
+                new Notification('🚨 Emergency Appointment', {
+                  body: `${notification.patient_name || 'Patient'} needs immediate consultation`,
+                  icon: '/favicon.ico',
+                  requireInteraction: true
+                });
+              }
+            } else if (notification.type === 'video_call_invitation') {
+              if (Notification.permission === 'granted') {
+                new Notification('📞 Video Call Invitation', {
+                  body: `${notification.caller || 'Someone'} is inviting you to a video call`,
+                  icon: '/favicon.ico',
+                  requireInteraction: true
+                });
+              }
+            }
+          } catch (error) {
+            console.error('Error processing doctor WebSocket notification:', error);
+          }
+        };
+
+        ws.onerror = (error) => {
+          console.error('❌ Doctor WebSocket error:', error);
+        };
+
+        ws.onclose = () => {
+          console.log('🔌 Doctor WebSocket disconnected');
+          
+          // Implement exponential backoff reconnection
+          if (reconnectAttempts < maxReconnectAttempts) {
+            const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000); // Max 30 seconds
+            console.log(`🔄 Doctor WebSocket reconnecting in ${delay}ms (attempt ${reconnectAttempts + 1}/${maxReconnectAttempts})`);
+            
+            setTimeout(() => {
+              reconnectAttempts++;
+              connectWebSocket();
+            }, delay);
+          } else {
+            console.error('❌ Doctor WebSocket max reconnection attempts reached');
+          }
+        };
+
+        // Request notification permission
+        if (Notification.permission === 'default') {
+          Notification.requestPermission();
         }
-      } else if (notification.type === 'video_call_invitation') {
-        if (Notification.permission === 'granted') {
-          new Notification('Video Call Invitation', {
-            body: `${notification.caller} is inviting you to a video call`,
-            icon: '/favicon.ico'
-          });
+
+        return () => ws.close();
+        
+      } catch (error) {
+        console.error('❌ Error creating doctor WebSocket:', error);
+        
+        // Retry after delay
+        if (reconnectAttempts < maxReconnectAttempts) {
+          setTimeout(() => {
+            reconnectAttempts++;
+            connectWebSocket();
+          }, 1000 * Math.pow(2, reconnectAttempts));
         }
       }
     };
 
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-
-    ws.onclose = () => {
-      // Try to reconnect after 5 seconds
-      setTimeout(setupWebSocket, 5000);
-    };
-
-    // Request notification permission
-    if (Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-
-    return () => ws.close();
+    connectWebSocket();
   };
 
   const fetchAppointments = async () => {
