@@ -76,7 +76,22 @@ const DoctorDashboard = ({ user, onLogout }) => {
     };
   }, []);
 
-  const setupWebSocket = () => {
+  // Enhanced WebSocket setup with debounced refresh
+  useEffect(() => {
+    let refreshTimeout = null;
+    
+    // Debounced refresh function to prevent race conditions
+    const debouncedRefresh = () => {
+      if (refreshTimeout) {
+        clearTimeout(refreshTimeout);
+      }
+      
+      refreshTimeout = setTimeout(async () => {
+        console.log('🔄 Debounced appointment refresh triggered');
+        await fetchAppointments();
+      }, 500); // Wait 500ms for multiple updates to settle
+    };
+    
     let reconnectAttempts = 0;
     const maxReconnectAttempts = 10;
     
@@ -96,6 +111,12 @@ const DoctorDashboard = ({ user, onLogout }) => {
             const notification = JSON.parse(event.data);
             console.log('📨 Doctor received WebSocket notification:', notification);
             
+            // Handle heartbeat
+            if (notification.type === 'heartbeat') {
+              console.log('💓 Doctor WebSocket heartbeat received');
+              return;
+            }
+            
             // Create comprehensive notification object
             const newNotification = {
               id: Date.now() + Math.random(),
@@ -111,35 +132,15 @@ const DoctorDashboard = ({ user, onLogout }) => {
             setNotifications(prev => [newNotification, ...prev.slice(0, 9)]);
             setUnreadNotifications(prev => prev + 1);
             
-            // CRITICAL: Force immediate dashboard updates with multiple attempts
+            // Use debounced refresh for critical appointment updates
             if (notification.type === 'emergency_appointment' || 
                 notification.type === 'new_appointment' ||
                 notification.type === 'appointment_updated' ||
                 notification.type === 'appointment_cancelled' ||
                 notification.type === 'video_call_invitation') {
               
-              console.log('📅 CRITICAL: Appointment notification received, forcing multiple refreshes...');
-              
-              // Immediate refresh
-              setTimeout(async () => {
-                console.log('🔄 First forced refresh after notification');
-                await fetchAppointments();
-                // Force React re-render by updating state
-                setLoading(prev => prev === false ? true : false);
-                setTimeout(() => setLoading(false), 100);
-              }, 100);
-              
-              // Second refresh after 1 second
-              setTimeout(async () => {
-                console.log('🔄 Second forced refresh after notification');
-                await fetchAppointments();
-              }, 1000);
-              
-              // Final refresh after 3 seconds
-              setTimeout(async () => {
-                console.log('🔄 Final forced refresh after notification');
-                await fetchAppointments();
-              }, 3000);
+              console.log('📅 CRITICAL: Doctor appointment notification - triggering debounced refresh');
+              debouncedRefresh();
             }
             
             // Show browser notifications for critical events
@@ -171,6 +172,11 @@ const DoctorDashboard = ({ user, onLogout }) => {
 
         ws.onclose = () => {
           console.log('🔌 Doctor WebSocket disconnected');
+          
+          // Clear refresh timeout on disconnect
+          if (refreshTimeout) {
+            clearTimeout(refreshTimeout);
+          }
           
           // Implement exponential backoff reconnection
           if (reconnectAttempts < maxReconnectAttempts) {
@@ -207,7 +213,14 @@ const DoctorDashboard = ({ user, onLogout }) => {
     };
 
     connectWebSocket();
-  };
+    
+    // Cleanup on unmount
+    return () => {
+      if (refreshTimeout) {
+        clearTimeout(refreshTimeout);
+      }
+    };
+  }, [user.id, BACKEND_URL]);
 
   const fetchAppointments = async () => {
     try {
