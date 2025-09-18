@@ -1228,6 +1228,54 @@ async def get_video_call_session(appointment_id: str, current_user: User = Depen
         "status": "ready"
     }
 
+@api_router.post("/video-call/end/{appointment_id}")
+async def end_video_call(appointment_id: str, current_user: User = Depends(get_current_user)):
+    """Report that a video call has ended - triggers auto-redial logic"""
+    appointment = await db.appointments.find_one({"id": appointment_id})
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    
+    # Check authorization
+    if current_user.role not in ["doctor", "provider"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    if current_user.role == "provider" and appointment["provider_id"] != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only report end for your own appointments")
+    
+    if current_user.role == "doctor" and appointment.get("doctor_id") != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only report end for your assigned appointments")
+    
+    # End the call tracking
+    call_manager.end_call(appointment_id, reason="user_reported")
+    
+    return {
+        "message": "Call end reported successfully",
+        "appointment_id": appointment_id,
+        "ended_by": current_user.id,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+@api_router.get("/video-call/status/{appointment_id}")
+async def get_call_status(appointment_id: str, current_user: User = Depends(get_current_user)):
+    """Get current call status for appointment"""
+    if appointment_id in call_manager.active_calls:
+        call_session = call_manager.active_calls[appointment_id]
+        return {
+            "active": True,
+            "appointment_id": appointment_id,
+            "caller_id": call_session.caller_id,
+            "provider_id": call_session.provider_id,
+            "start_time": call_session.start_time.isoformat(),
+            "status": call_session.status,
+            "retry_count": call_session.retry_count,
+            "max_retries": call_session.max_retries
+        }
+    else:
+        return {
+            "active": False,
+            "appointment_id": appointment_id
+        }
+
 @api_router.post("/video-call/end/{room_name}")
 async def end_jitsi_call(room_name: str, current_user: User = Depends(get_current_user)):
     """End a Jitsi video call session"""
