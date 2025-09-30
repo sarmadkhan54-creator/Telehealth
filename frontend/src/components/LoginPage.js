@@ -27,11 +27,51 @@ const LoginPage = ({ onLogin }) => {
     setError('');
 
     try {
-      const response = await axios.post(`${API}/login`, formData);
+      console.log('🔐 Attempting login for:', formData.username);
+      
+      // Clear any existing authentication data first
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userData');
+      sessionStorage.clear();
+      
+      const response = await axios.post(`${API}/login`, formData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        timeout: 10000, // 10 second timeout for slow connections
+      });
+      
       const { access_token, user } = response.data;
-      onLogin(access_token, user);
+      
+      console.log('✅ Login successful for user:', user.username, 'Role:', user.role);
+      
+      // Store authentication data with additional metadata for cross-device tracking
+      const authData = {
+        ...user,
+        loginTime: new Date().toISOString(),
+        deviceInfo: navigator.userAgent,
+        lastActivity: new Date().toISOString()
+      };
+      
+      onLogin(access_token, authData);
+      
     } catch (error) {
-      setError(error.response?.data?.detail || 'Login failed. Please check your credentials.');
+      console.error('❌ Login failed:', error);
+      
+      let errorMessage = 'Login failed. Please check your credentials.';
+      
+      if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Connection timeout. Please check your internet connection and try again.';
+      } else if (error.code === 'ERR_NETWORK') {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else if (error.response?.status === 401) {
+        errorMessage = 'Invalid username or password. Please check your credentials.';
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
