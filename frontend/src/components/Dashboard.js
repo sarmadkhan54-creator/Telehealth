@@ -147,7 +147,8 @@ const Dashboard = ({ user, onLogout }) => {
                   name: "Unknown Patient",
                   age: "Unknown",
                   gender: "Unknown", 
-                  consultation_reason: "General consultation",
+                  history: "General consultation",
+                  area_of_consultation: "General Medicine",
                   vitals: {}
                 }
               });
