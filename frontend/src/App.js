@@ -134,17 +134,39 @@ function App() {
   }, []);
 
   const handleLogin = async (token, userData) => {
-    localStorage.setItem('authToken', token);
-    localStorage.setItem('userData', JSON.stringify(userData));
-    setUser(userData);
-    
-    // Initialize push notifications after successful login
-    // try {
-    //   console.log('🔔 Initializing push notifications...');
-    //   await pushNotificationManager.initialize(true);
-    // } catch (error) {
-    //   console.error('Failed to initialize push notifications:', error);
-    // }
+    try {
+      // Store authentication data with enhanced cross-device compatibility
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('userData', JSON.stringify(userData));
+      
+      // Also store in sessionStorage as backup for some devices
+      sessionStorage.setItem('authToken', token);
+      sessionStorage.setItem('userData', JSON.stringify(userData));
+      
+      console.log('💾 Authentication data stored for user:', userData.username);
+      
+      setUser(userData);
+      
+      // Set up activity tracking for session management
+      const updateLastActivity = () => {
+        const updatedUserData = {
+          ...userData,
+          lastActivity: new Date().toISOString()
+        };
+        localStorage.setItem('userData', JSON.stringify(updatedUserData));
+      };
+      
+      // Update activity every 30 seconds
+      const activityInterval = setInterval(updateLastActivity, 30000);
+      
+      // Store interval ID to clear on logout
+      window.activityTracker = activityInterval;
+      
+      console.log('✅ Login completed successfully');
+      
+    } catch (error) {
+      console.error('🔧 Error during login setup:', error);
+    }
   };
 
   const handleLogout = () => {
