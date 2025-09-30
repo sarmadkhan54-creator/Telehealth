@@ -212,9 +212,84 @@ class MedConnectAPITester:
                 print(f"   ❌ {test_case['desc']} not properly rejected")
                 all_success = False
         
-        # Test 3: Edge cases and malformed requests
-        print("\n3️⃣ Testing Edge Cases & Malformed Requests")
-        print("-" * 50)
+        # Test 4: Enhanced CORS Configuration Testing
+        print("\n4️⃣ Testing Enhanced CORS Configuration")
+        print("-" * 60)
+        
+        try:
+            import requests
+            
+            # Test CORS preflight request
+            cors_response = requests.options(
+                f"{self.api_url}/login",
+                headers={
+                    'Origin': 'https://different-domain.com',
+                    'Access-Control-Request-Method': 'POST',
+                    'Access-Control-Request-Headers': 'Content-Type, Authorization'
+                },
+                timeout=10
+            )
+            
+            cors_headers = {
+                'Access-Control-Allow-Origin': cors_response.headers.get('Access-Control-Allow-Origin'),
+                'Access-Control-Allow-Methods': cors_response.headers.get('Access-Control-Allow-Methods'),
+                'Access-Control-Allow-Headers': cors_response.headers.get('Access-Control-Allow-Headers'),
+                'Access-Control-Allow-Credentials': cors_response.headers.get('Access-Control-Allow-Credentials'),
+            }
+            
+            print(f"   CORS Status Code: {cors_response.status_code}")
+            
+            if cors_response.status_code in [200, 204]:
+                print("   ✅ CORS preflight request successful")
+                
+                for header, value in cors_headers.items():
+                    if value:
+                        print(f"   ✅ {header}: {value}")
+                    else:
+                        print(f"   ⚠️  {header}: Not set")
+                
+                # Check if CORS allows cross-device access
+                allow_origin = cors_headers.get('Access-Control-Allow-Origin')
+                if allow_origin == '*' or allow_origin:
+                    print("   ✅ CORS configured for cross-device compatibility")
+                else:
+                    print("   ❌ CORS may block cross-device access")
+                    all_success = False
+            else:
+                print(f"   ❌ CORS preflight failed with status {cors_response.status_code}")
+                all_success = False
+                
+            # Test actual cross-origin request simulation
+            login_response = requests.post(
+                f"{self.api_url}/login",
+                json=self.demo_credentials['provider'],
+                headers={
+                    'Origin': 'https://different-device.com',
+                    'Content-Type': 'application/json'
+                },
+                timeout=10
+            )
+            
+            if login_response.status_code == 200:
+                print("   ✅ Cross-origin login request successful")
+                
+                # Check CORS headers in actual response
+                actual_cors_origin = login_response.headers.get('Access-Control-Allow-Origin')
+                if actual_cors_origin:
+                    print(f"   ✅ Response includes CORS origin: {actual_cors_origin}")
+                else:
+                    print("   ⚠️  Response missing CORS origin header")
+            else:
+                print(f"   ❌ Cross-origin login failed: {login_response.status_code}")
+                all_success = False
+                
+        except Exception as e:
+            print(f"   ❌ CORS testing failed: {str(e)}")
+            all_success = False
+
+        # Test 5: Token Validation and Authentication Flow
+        print("\n5️⃣ Testing Token Validation & Authentication Flow")
+        print("-" * 60)
         
         edge_cases = [
             {"data": {"username": "", "password": ""}, "desc": "Empty Fields"},
