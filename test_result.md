@@ -737,11 +737,14 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Provider and Doctor Dashboard Real-time Updates"
+    - "Enhanced Admin Permissions Testing"
+    - "Doctor Appointment Visibility Testing"
+    - "Provider Appointment Visibility Testing"
+    - "Role-Based Access Verification"
   stuck_tasks: 
     - "Authentication Persistence Fix - Multi-Device Login Issue"
   test_all: false
-  test_priority: "critical_first"
+  test_priority: "review_request_first"
 
 agent_communication:
   - agent: "main"
