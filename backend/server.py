@@ -399,10 +399,24 @@ class VideoCallSession(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     appointment_id: str
     provider_id: str
-    doctor_id: Optional[str] = None
+    doctor_id: str  # Required - doctor who initiated the call
     session_token: str
+    room_name: str  # Jitsi room name
+    call_attempt: int = 1  # Track multiple call attempts (WhatsApp-like)
     started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     ended_at: Optional[datetime] = None
+    status: str = "calling"  # calling, active, ended, cancelled, missed
+    
+class CallAttempt(BaseModel):
+    call_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    appointment_id: str
+    doctor_id: str
+    provider_id: str
+    attempt_number: int
+    jitsi_url: str
+    room_name: str
+    initiated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    status: str = "calling"  # calling, answered, missed, cancelled
 
 class PushSubscription(BaseModel):
     endpoint: str
