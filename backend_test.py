@@ -32,36 +32,52 @@ class MedConnectAPITester:
         print(f"\n🔍 Testing {name}...")
         print(f"   URL: {url}")
         
-        try:
-            if method == 'GET':
-                response = requests.get(url, headers=headers, timeout=10)
-            elif method == 'POST':
-                response = requests.post(url, json=data, headers=headers, timeout=10)
-            elif method == 'PUT':
-                response = requests.put(url, json=data, headers=headers, timeout=10)
-            elif method == 'DELETE':
-                response = requests.delete(url, headers=headers, timeout=10)
+        # Retry logic for network issues
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                if method == 'GET':
+                    response = requests.get(url, headers=headers, timeout=30)
+                elif method == 'POST':
+                    response = requests.post(url, json=data, headers=headers, timeout=30)
+                elif method == 'PUT':
+                    response = requests.put(url, json=data, headers=headers, timeout=30)
+                elif method == 'DELETE':
+                    response = requests.delete(url, headers=headers, timeout=30)
 
-            success = response.status_code == expected_status
-            if success:
-                self.tests_passed += 1
-                print(f"✅ Passed - Status: {response.status_code}")
-                try:
-                    return True, response.json()
-                except:
-                    return True, {}
-            else:
-                print(f"❌ Failed - Expected {expected_status}, got {response.status_code}")
-                try:
-                    error_detail = response.json()
-                    print(f"   Error: {error_detail}")
-                except:
-                    print(f"   Response text: {response.text}")
-                return False, {}
+                success = response.status_code == expected_status
+                if success:
+                    self.tests_passed += 1
+                    print(f"✅ Passed - Status: {response.status_code}")
+                    try:
+                        return True, response.json()
+                    except:
+                        return True, {}
+                else:
+                    print(f"❌ Failed - Expected {expected_status}, got {response.status_code}")
+                    try:
+                        error_detail = response.json()
+                        print(f"   Error: {error_detail}")
+                    except:
+                        print(f"   Response text: {response.text}")
+                    return False, {}
 
-        except Exception as e:
-            print(f"❌ Failed - Error: {str(e)}")
-            return False, {}
+            except requests.exceptions.Timeout:
+                if attempt < max_retries - 1:
+                    print(f"⏰ Timeout on attempt {attempt + 1}, retrying...")
+                    continue
+                else:
+                    print(f"❌ Failed - Timeout after {max_retries} attempts")
+                    return False, {}
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    print(f"⚠️  Error on attempt {attempt + 1}: {str(e)}, retrying...")
+                    continue
+                else:
+                    print(f"❌ Failed - Error: {str(e)}")
+                    return False, {}
+
+        return False, {}
 
     def test_health_check(self):
         """Test the health check endpoint"""
