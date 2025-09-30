@@ -488,13 +488,13 @@ const DoctorDashboard = ({ user, onLogout }) => {
           <div className="glass-card">
             <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
               <CheckCircle className="w-6 h-6 mr-2 text-green-600" />
-              My Appointments
+              Active Consultations
             </h3>
             <div className="text-center">
               <div className="text-3xl font-bold text-green-600 mb-2">
-                {myAppointments.length}
+                {activeAppointments.length}
               </div>
-              <p className="text-gray-600">Active cases</p>
+              <p className="text-gray-600">In progress</p>
             </div>
           </div>
 
