@@ -838,12 +838,14 @@ async def create_appointment(appointment_data: AppointmentCreate, current_user: 
     patient = Patient(**appointment_data.patient.dict())
     await db.patients.insert_one(patient.dict())
     
-    # Create appointment
+    # Create appointment with enhanced multiple account support
     appointment = Appointment(
         patient_id=patient.id,
         provider_id=current_user.id,
+        provider_name=current_user.full_name,  # For easy filtering per provider account
         appointment_type=appointment_data.appointment_type,
-        consultation_notes=appointment_data.consultation_notes
+        consultation_notes=appointment_data.consultation_notes,
+        call_history=[]  # Initialize empty call history
     )
     
     await db.appointments.insert_one(appointment.dict())
