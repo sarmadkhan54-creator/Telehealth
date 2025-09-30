@@ -379,44 +379,99 @@ class MedConnectAPITester:
         print("-" * 60)
         
         try:
-            # Test basic connectivity
-            success, response = self.run_test(
-                "Backend Accessibility - Health Check",
-                "GET",
-                "health",
-                200
-            )
+            import requests
+            import time
             
-            if success:
-                print("   ✅ Backend accessible from external URL")
-                print(f"   Response: {response.get('message', 'N/A')}")
+            # Test 1: Basic connectivity with different timeout values
+            timeout_tests = [
+                {"timeout": 5, "desc": "Short Timeout (5s)"},
+                {"timeout": 10, "desc": "Medium Timeout (10s)"},
+                {"timeout": 30, "desc": "Long Timeout (30s)"}
+            ]
+            
+            for timeout_test in timeout_tests:
+                try:
+                    start_time = time.time()
+                    response = requests.get(
+                        f"{self.api_url}/health",
+                        timeout=timeout_test["timeout"]
+                    )
+                    end_time = time.time()
+                    response_time = end_time - start_time
+                    
+                    if response.status_code == 200:
+                        print(f"   ✅ {timeout_test['desc']}: Success ({response_time:.2f}s)")
+                    else:
+                        print(f"   ❌ {timeout_test['desc']}: Failed with status {response.status_code}")
+                        all_success = False
+                        
+                except requests.exceptions.Timeout:
+                    print(f"   ⚠️  {timeout_test['desc']}: Request timed out")
+                except requests.exceptions.ConnectionError:
+                    print(f"   ❌ {timeout_test['desc']}: Connection error")
+                    all_success = False
+                except Exception as e:
+                    print(f"   ❌ {timeout_test['desc']}: Error - {str(e)}")
+                    all_success = False
+            
+            # Test 2: Concurrent request handling (simulating multiple devices)
+            print("   Testing concurrent requests (multi-device simulation)...")
+            
+            def make_login_request():
+                try:
+                    response = requests.post(
+                        f"{self.api_url}/login",
+                        json=self.demo_credentials['provider'],
+                        timeout=10
+                    )
+                    return response.status_code == 200
+                except:
+                    return False
+            
+            import threading
+            concurrent_results = []
+            threads = []
+            
+            # Simulate 5 concurrent login attempts from different devices
+            for i in range(5):
+                thread = threading.Thread(target=lambda: concurrent_results.append(make_login_request()))
+                threads.append(thread)
+                thread.start()
+            
+            # Wait for all threads to complete
+            for thread in threads:
+                thread.join()
+            
+            successful_concurrent = sum(concurrent_results)
+            print(f"   ✅ Concurrent requests: {successful_concurrent}/5 successful")
+            
+            if successful_concurrent >= 4:  # Allow for 1 failure
+                print("   ✅ System handles concurrent cross-device logins well")
             else:
-                print("   ❌ Backend not accessible - CRITICAL NETWORK ISSUE")
+                print("   ❌ System struggles with concurrent cross-device access")
                 all_success = False
             
-            # Test CORS headers (basic check)
-            import requests
-            try:
-                response = requests.options(f"{self.api_url}/login", timeout=10)
-                cors_headers = {
-                    'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
-                    'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
-                    'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers'),
-                }
-                
-                if any(cors_headers.values()):
-                    print("   ✅ CORS headers present")
-                    for header, value in cors_headers.items():
-                        if value:
-                            print(f"   {header}: {value}")
-                else:
-                    print("   ⚠️  CORS headers not detected (may still work)")
-                    
-            except Exception as e:
-                print(f"   ⚠️  CORS check failed: {str(e)}")
+            # Test 3: Network resilience with retry logic
+            print("   Testing network resilience...")
+            
+            retry_success = False
+            for attempt in range(3):
+                try:
+                    response = requests.get(f"{self.api_url}/health", timeout=5)
+                    if response.status_code == 200:
+                        retry_success = True
+                        break
+                except:
+                    time.sleep(1)  # Wait before retry
+            
+            if retry_success:
+                print("   ✅ Network resilience test passed")
+            else:
+                print("   ❌ Network resilience test failed")
+                all_success = False
                 
         except Exception as e:
-            print(f"   ❌ Network test failed: {str(e)}")
+            print(f"   ❌ Network error handling test failed: {str(e)}")
             all_success = False
         
         # Test 6: Database connection and user records
