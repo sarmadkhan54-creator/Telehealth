@@ -128,21 +128,22 @@ const Dashboard = ({ user, onLogout }) => {
               }, 3000);
             }
             
-            // Handle Jitsi video call invitations
-            if (notification.type === 'jitsi_call_invitation') {
-              console.log('📞 Received video call invitation');
+            // Handle WhatsApp-like video call notifications (updated notification type)
+            if (notification.type === 'incoming_video_call' || notification.type === 'jitsi_call_invitation') {
+              console.log('📞 Received WhatsApp-like video call invitation:', notification);
               
-              // Play ringing sound
+              // Play ringing sound immediately
               playRingingSound();
               
               // Show video call invitation popup with Jitsi URL
               setVideoCallInvitation({
                 jitsiUrl: notification.jitsi_url,
                 roomName: notification.room_name,
-                callerName: notification.caller,
-                callerRole: notification.caller_role,
+                callerName: notification.doctor_name || notification.caller,
+                callerRole: 'doctor',
                 appointmentId: notification.appointment_id,
-                appointmentType: notification.appointment_type,
+                appointmentType: 'emergency',  // WhatsApp-like calls are emergency only
+                callAttempt: notification.call_attempt || 1,
                 patient: notification.patient || {
                   name: "Unknown Patient",
                   age: "Unknown",
