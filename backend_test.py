@@ -5614,39 +5614,36 @@ def main():
         return all_success
 
 if __name__ == "__main__":
-    # Run the critical dashboard issues test as requested in review
+    # Run the appointment workflow debugging test as requested in review
     tester = MedConnectAPITester()
     
-    print("🎯 CRITICAL DASHBOARD ISSUES TESTING")
+    print("🎯 APPOINTMENT WORKFLOW DEBUGGING")
     print("=" * 80)
-    print("Testing critical dashboard issues reported by user:")
-    print("- Appointments and buttons not working properly")
-    print("- Nothing working on dashboards despite previous testing")
-    print("- Data retrieval and persistence issues")
-    print("- Button/action functionality on backend side")
-    print("- Emergency appointment filtering")
-    print("- Real-time data consistency")
-    print("- Session management")
+    print("Testing complete appointment workflow to identify why appointments aren't showing in 'My Appointments':")
+    print("1. Provider Creates Appointment")
+    print("2. Doctor Accepts Appointment") 
+    print("3. Debug Appointment Filtering")
+    print("4. Database State Verification")
     
     # First login to get tokens
     if not tester.test_login_all_roles():
         print("❌ Login failed - aborting tests")
         sys.exit(1)
     
-    # Run the critical dashboard issues test
-    result = tester.test_critical_dashboard_issues()
+    # Run the appointment workflow debugging test
+    result = tester.test_appointment_workflow_debugging()
     
     if result:
-        print("\n🎉 CRITICAL DASHBOARD ISSUES TEST COMPLETED SUCCESSFULLY!")
-        print("✅ All critical dashboard functionality working correctly")
-        print("✅ Appointment data retrieval working for all roles")
-        print("✅ Doctor accept appointment functionality working")
-        print("✅ Provider appointment creation working")
-        print("✅ Database state is healthy")
-        print("✅ Authentication tokens are valid")
+        print("\n🎉 APPOINTMENT WORKFLOW DEBUGGING COMPLETED SUCCESSFULLY!")
+        print("✅ All workflow steps working correctly")
+        print("✅ Provider creates appointment → provider_id correctly set")
+        print("✅ Doctor accepts appointment → doctor_id correctly set")
+        print("✅ Appointment filtering working correctly")
+        print("✅ Database state consistent")
+        print("\n💡 If 'My Appointments' still not working, issue is in FRONTEND")
         sys.exit(0)
     else:
-        print("\n❌ CRITICAL DASHBOARD ISSUES TEST FAILED!")
-        print("⚠️  Some critical dashboard functionality needs attention")
+        print("\n❌ APPOINTMENT WORKFLOW DEBUGGING FAILED!")
+        print("⚠️  Backend appointment system has issues that need fixing")
         print("⚠️  Check the detailed test results above")
         sys.exit(1)
