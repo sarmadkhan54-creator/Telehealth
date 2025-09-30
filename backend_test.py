@@ -478,36 +478,83 @@ class MedConnectAPITester:
         print("\n7️⃣ Testing Authentication Headers & Response Handling")
         print("-" * 60)
         
-        if 'admin' in self.tokens:
+        # Test different authentication header formats
+        header_tests = [
+            {
+                "headers": {"Authorization": f"Bearer {self.tokens.get('admin', '')}"}, 
+                "desc": "Standard Bearer Token",
+                "expected": 200
+            },
+            {
+                "headers": {"Authorization": f"bearer {self.tokens.get('admin', '')}"}, 
+                "desc": "Lowercase Bearer",
+                "expected": 401  # Should fail due to case sensitivity
+            },
+            {
+                "headers": {"Authorization": self.tokens.get('admin', '')}, 
+                "desc": "Token Without Bearer",
+                "expected": 401
+            },
+            {
+                "headers": {"Authorization": f"Token {self.tokens.get('admin', '')}"}, 
+                "desc": "Wrong Auth Type",
+                "expected": 401
+            },
+            {
+                "headers": {}, 
+                "desc": "No Authorization Header",
+                "expected": 403
+            }
+        ]
+        
+        for test_case in header_tests:
+            try:
+                import requests
+                response = requests.get(
+                    f"{self.api_url}/users/profile",
+                    headers={**{"Content-Type": "application/json"}, **test_case["headers"]},
+                    timeout=10
+                )
+                
+                if response.status_code == test_case["expected"]:
+                    print(f"   ✅ {test_case['desc']}: Correct response ({response.status_code})")
+                else:
+                    print(f"   ❌ {test_case['desc']}: Expected {test_case['expected']}, got {response.status_code}")
+                    all_success = False
+                    
+            except Exception as e:
+                print(f"   ❌ {test_case['desc']}: Error - {str(e)}")
+                all_success = False
+        
+        # Test response format consistency
+        if 'provider' in self.tokens:
             success, response = self.run_test(
-                "Database Access - Get All Users",
+                "Response Format Validation",
                 "GET",
-                "users",
+                "users/profile",
                 200,
-                token=self.tokens['admin']
+                token=self.tokens['provider']
             )
             
-            if success and isinstance(response, list):
-                print(f"   ✅ Database accessible - {len(response)} users found")
+            if success:
+                required_fields = ['id', 'username', 'email', 'full_name', 'role', 'is_active']
+                missing_fields = [field for field in required_fields if field not in response]
                 
-                # Check if demo users exist
-                demo_users_found = {}
-                for user in response:
-                    username = user.get('username', '')
-                    if username in ['demo_provider', 'demo_doctor', 'demo_admin']:
-                        demo_users_found[username] = user
-                        print(f"   ✅ Found {username}: {user.get('full_name', 'N/A')} (Active: {user.get('is_active', 'N/A')})")
-                
-                missing_users = set(['demo_provider', 'demo_doctor', 'demo_admin']) - set(demo_users_found.keys())
-                if missing_users:
-                    print(f"   ❌ Missing demo users: {', '.join(missing_users)} - CRITICAL ISSUE")
-                    all_success = False
+                if not missing_fields:
+                    print("   ✅ Response format includes all required fields")
                 else:
-                    print("   ✅ All demo users exist in database")
-                    
-            else:
-                print("   ❌ Database access failed - CRITICAL ISSUE")
-                all_success = False
+                    print(f"   ❌ Response missing fields: {missing_fields}")
+                    all_success = False
+                
+                # Check that sensitive fields are not included
+                sensitive_fields = ['hashed_password', 'password']
+                exposed_fields = [field for field in sensitive_fields if field in response]
+                
+                if not exposed_fields:
+                    print("   ✅ No sensitive fields exposed in response")
+                else:
+                    print(f"   ❌ Sensitive fields exposed: {exposed_fields}")
+                    all_success = False
         
         # Test 7: Rate limiting and security measures
         print("\n7️⃣ Testing Rate Limiting & Security Measures")
