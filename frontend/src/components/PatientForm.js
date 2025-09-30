@@ -354,6 +354,66 @@ const PatientForm = ({ user }) => {
                       onChange={handleChange}
                     />
                   </div>
+
+                  {/* New Vitals Fields */}
+                  <div className="form-group">
+                    <label htmlFor="vitals.hb" className="form-label flex items-center">
+                      <span className="mr-1">💉</span>
+                      Hemoglobin (g/dL)
+                    </label>
+                    <input
+                      id="vitals.hb"
+                      name="vitals.hb"
+                      type="number"
+                      step="0.1"
+                      min="7"
+                      max="18"
+                      className={`form-input ${
+                        formData.vitals.hb && (formData.vitals.hb < 7 || formData.vitals.hb > 18) 
+                        ? 'border-red-500 bg-red-50' 
+                        : formData.vitals.hb && formData.vitals.hb >= 7 && formData.vitals.hb <= 18
+                        ? 'border-green-500 bg-green-50'
+                        : ''
+                      }`}
+                      placeholder="e.g., 12.5"
+                      value={formData.vitals.hb}
+                      onChange={handleChange}
+                    />
+                    {formData.vitals.hb && (formData.vitals.hb < 7 || formData.vitals.hb > 18) && (
+                      <p className="text-xs text-red-600 mt-1">
+                        Normal range: 7-18 g/dL
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="vitals.sugar_level" className="form-label flex items-center">
+                      <span className="mr-1">🍬</span>
+                      Blood Sugar (mg/dL)
+                    </label>
+                    <input
+                      id="vitals.sugar_level"
+                      name="vitals.sugar_level"
+                      type="number"
+                      min="70"
+                      max="200"
+                      className={`form-input ${
+                        formData.vitals.sugar_level && (formData.vitals.sugar_level < 70 || formData.vitals.sugar_level > 200) 
+                        ? 'border-red-500 bg-red-50' 
+                        : formData.vitals.sugar_level && formData.vitals.sugar_level >= 70 && formData.vitals.sugar_level <= 200
+                        ? 'border-green-500 bg-green-50'
+                        : ''
+                      }`}
+                      placeholder="e.g., 95"
+                      value={formData.vitals.sugar_level}
+                      onChange={handleChange}
+                    />
+                    {formData.vitals.sugar_level && (formData.vitals.sugar_level < 70 || formData.vitals.sugar_level > 200) && (
+                      <p className="text-xs text-red-600 mt-1">
+                        Normal range: 70-200 mg/dL
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
