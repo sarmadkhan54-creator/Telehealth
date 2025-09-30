@@ -105,13 +105,13 @@ class MedConnectAPITester:
         
         all_success = True
         
-        # Test 1: Valid credentials for all demo users
-        print("\n1️⃣ Testing Valid Demo Credentials")
-        print("-" * 50)
+        # Test 1: Enhanced Demo Credentials Testing (Cross-Device Focus)
+        print("\n1️⃣ Testing Enhanced Demo Credentials (Cross-Device)")
+        print("-" * 60)
         
         for role, credentials in self.demo_credentials.items():
             success, response = self.run_test(
-                f"Valid Login - {role.title()}",
+                f"Cross-Device Login - {role.title()}",
                 "POST", 
                 "login",
                 200,
@@ -119,16 +119,26 @@ class MedConnectAPITester:
             )
             
             if success and 'access_token' in response and 'user' in response:
-                print(f"   ✅ {role.title()} login successful")
-                print(f"   Token Type: {response.get('token_type', 'N/A')}")
+                print(f"   ✅ {role.title()} cross-device login successful")
+                print(f"   Token Type: {response.get('token_type', 'bearer')}")
+                print(f"   User ID: {response['user'].get('id', 'N/A')}")
                 print(f"   User Role: {response['user'].get('role', 'N/A')}")
                 print(f"   User Active: {response['user'].get('is_active', 'N/A')}")
+                print(f"   Token Length: {len(response.get('access_token', ''))}")
                 
                 # Store tokens for further testing
                 self.tokens[role] = response['access_token']
                 self.users[role] = response['user']
+                
+                # Validate token structure (JWT format)
+                token = response.get('access_token', '')
+                if token.count('.') == 2:
+                    print(f"   ✅ JWT token format valid for {role}")
+                else:
+                    print(f"   ❌ Invalid JWT token format for {role}")
+                    all_success = False
             else:
-                print(f"   ❌ {role.title()} login failed - CRITICAL ISSUE")
+                print(f"   ❌ {role.title()} cross-device login failed - CRITICAL ISSUE")
                 all_success = False
         
         # Test 2: Invalid credentials
