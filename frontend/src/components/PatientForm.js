@@ -63,7 +63,8 @@ const PatientForm = ({ user }) => {
           name: formData.name,
           age: parseInt(formData.age),
           gender: formData.gender,
-          consultation_reason: formData.consultation_reason,
+          history: formData.history,  // Updated field name
+          area_of_consultation: formData.area_of_consultation,  // New field
           vitals: formData.vitals
         },
         appointment_type: appointmentType,
