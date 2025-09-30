@@ -77,35 +77,58 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing authentication on app start
-    const checkAuthStatus = () => {
-      const token = localStorage.getItem('authToken');
-      const userData = localStorage.getItem('userData');
-      
-      if (token && userData) {
-        try {
-          const parsedUser = JSON.parse(userData);
-          setUser(parsedUser);
-          console.log('🔐 Auto-login successful:', parsedUser.username);
-        } catch (error) {
-          console.error('Error parsing stored user data:', error);
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('userData');
+    // Enhanced authentication check for cross-device compatibility
+    const checkAuthStatus = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        const userData = localStorage.getItem('userData');
+        
+        if (token && userData) {
+          console.log('🔍 Found stored credentials, validating...');
+          
+          try {
+            const parsedUser = JSON.parse(userData);
+            
+            // Validate token with backend (cross-device verification)
+            const response = await axios.get(`${API}/users/profile`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            if (response.status === 200) {
+              setUser(parsedUser);
+              console.log('✅ Cross-device authentication successful:', parsedUser.username);
+            } else {
+              throw new Error('Token validation failed');
+            }
+            
+          } catch (validationError) {
+            console.warn('⚠️ Token validation failed, clearing credentials:', validationError.message);
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userData');
+            sessionStorage.clear();
+          }
+        } else {
+          console.log('🚪 No stored credentials found - showing login page');
         }
-      } else {
-        console.log('🚪 No stored credentials - showing login page');
+      } catch (error) {
+        console.error('🔧 Auth check error:', error);
+        // Clear potentially corrupted data
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
     
     checkAuthStatus();
     
-    // Failsafe: Ensure loading is set to false after maximum 2 seconds
+    // Failsafe timeout for slow network conditions
     const failsafeTimeout = setTimeout(() => {
-      setLoading(false);
-      console.log('🔧 Failsafe: Forced loading to false');
-    }, 2000);
+      if (loading) {
+        setLoading(false);
+        console.log('⏰ Failsafe timeout - forced loading complete');
+      }
+    }, 5000); // Increased to 5 seconds for cross-device scenarios
     
     return () => clearTimeout(failsafeTimeout);
   }, []);
