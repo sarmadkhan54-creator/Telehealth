@@ -6541,35 +6541,35 @@ def main():
         return all_success
 
 if __name__ == "__main__":
-    # Run the appointment visibility and calling diagnosis test as requested in review
+    # Run the focused appointment creation and video calling workflow test as requested in review
     tester = MedConnectAPITester()
     
-    print("🎯 APPOINTMENT VISIBILITY AND CALLING DIAGNOSIS")
+    print("🎯 FOCUSED APPOINTMENT CREATION AND VIDEO CALLING WORKFLOW TEST")
     print("=" * 80)
-    print("Testing specific issues mentioned in review request:")
-    print("1. Create appointment with demo_provider/Demo123!")
-    print("2. Check if appointment appears in provider's own dashboard")
-    print("3. Check if appointment appears in doctor's dashboard")
-    print("4. Test video call initiation from doctor to provider")
-    print("5. Check WebSocket notifications")
-    print("6. Verify notification delivery system")
+    print("Testing specific workflow as requested in review request:")
+    print("1. Create Emergency Appointment using demo_provider/Demo123!")
+    print("2. Verify Provider Dashboard - confirm provider can see their own new appointment")
+    print("3. Verify Doctor Dashboard - confirm doctor can see the new appointment immediately")
+    print("4. Test Video Calling - have doctor initiate video call and verify provider receives notification")
+    print("5. Test WebSocket notification delivery (verify provider gets incoming_video_call notification)")
     print("=" * 80)
     
     # First login to get tokens
     if not tester.test_login_all_roles():
-        print("\n❌ Login failed - cannot continue with diagnosis")
+        print("\n❌ Login failed - cannot continue with focused testing")
         sys.exit(1)
     
-    # Run the specific diagnosis test
-    success = tester.test_appointment_visibility_and_calling_diagnosis()
+    # Run the focused workflow test
+    success = tester.test_focused_appointment_video_workflow()
     
     if success:
-        print("\n🎉 DIAGNOSIS COMPLETE: All systems working correctly!")
-        print("✅ Backend appointment visibility and calling functionality is operational")
-        print("✅ If issues persist, they are likely in frontend implementation")
+        print("\n🎉 FOCUSED WORKFLOW TEST COMPLETE: All systems working correctly!")
+        print("✅ Backend appointment creation and video calling workflow is operational")
+        print("✅ All review request requirements have been verified")
+        print("✅ Provider creates appointment → appears in provider dashboard → appears in doctor dashboard → doctor can initiate video calls → WebSocket notifications working → provider receives call notifications")
     else:
-        print("\n❌ DIAGNOSIS COMPLETE: Issues found in backend systems")
+        print("\n❌ FOCUSED WORKFLOW TEST COMPLETE: Issues found in backend systems")
         print("❌ Check the detailed test results above for specific problems")
-        print("❌ Backend fixes needed before frontend testing")
+        print("❌ Backend fixes needed for appointment visibility or calling functionality")
     
     sys.exit(0 if success else 1)
