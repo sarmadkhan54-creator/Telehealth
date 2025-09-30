@@ -1210,91 +1210,131 @@ async def start_video_call(appointment_id: str, current_user: User = Depends(get
     
     return {"session_token": session_token, "appointment_id": appointment_id}
 
-@api_router.get("/video-call/session/{appointment_id}")
-async def get_video_call_session(appointment_id: str, current_user: User = Depends(get_current_user)):
-    """Get or create Jitsi room for appointment"""
+@api_router.post("/video-call/start/{appointment_id}")
+async def start_video_call(appointment_id: str, current_user: User = Depends(get_current_user)):
+    """Start WhatsApp-like video call - doctor can tap multiple times to create new calls"""
+    
+    # Only doctors can initiate calls
+    if current_user.role != "doctor":
+        raise HTTPException(status_code=403, detail="Only doctors can initiate video calls")
+    
+    # Get appointment details
     appointment = await db.appointments.find_one({"id": appointment_id})
     if not appointment:
         raise HTTPException(status_code=404, detail="Appointment not found")
     
-    # Check if user is authorized to access this appointment
-    if current_user.role == "doctor":
-        # Doctors can access any appointment they're assigned to or if no doctor is assigned yet
-        if appointment.get("doctor_id") and appointment.get("doctor_id") != current_user.id:
-            raise HTTPException(status_code=403, detail="You are not assigned to this appointment")
-    elif current_user.role == "provider":
-        # Providers can only access their own appointments
-        if appointment["provider_id"] != current_user.id:
-            raise HTTPException(status_code=403, detail="You can only access your own appointments")
-    else:
-        raise HTTPException(status_code=403, detail="Access denied")
+    # Check appointment type restrictions
+    if appointment["appointment_type"] == "non_emergency":
+        raise HTTPException(
+            status_code=403, 
+            detail="Video calls not allowed for non-emergency appointments. Please use notes instead."
+        )
     
-    # Generate Jitsi room name based on appointment ID
-    room_name = f"greenstar-appointment-{appointment_id}"
+    # Get provider details for notification
+    provider = await db.users.find_one({"id": appointment["provider_id"]})
+    if not provider:
+        raise HTTPException(status_code=404, detail="Provider not found")
     
-    # Create Jitsi meeting URL
-    jitsi_domain = "meet.jit.si"  # Using public Jitsi server
-    jitsi_url = f"https://{jitsi_domain}/{room_name}"
+    # Count existing call attempts for this appointment
+    existing_calls = await db.call_attempts.count_documents({"appointment_id": appointment_id})
+    call_attempt_number = existing_calls + 1
     
-    # Track call initiation for auto-redial system
-    if current_user.role == "doctor":
-        # Doctor is initiating call to provider
-        provider_id = appointment["provider_id"]
-        call_session = call_manager.start_call(appointment_id, current_user.id, provider_id)
-        print(f"📞 Call tracking started: Doctor {current_user.id} calling Provider {provider_id}")
+    # Create unique Jitsi room name with call attempt
+    room_name = f"emergency-{appointment_id}-call-{call_attempt_number}-{int(datetime.now().timestamp())}"
+    jitsi_url = f"https://meet.jit.si/{room_name}"
     
-    # Store the Jitsi room info
-    jitsi_session = {
-        "appointment_id": appointment_id,
-        "room_name": room_name,
-        "jitsi_url": jitsi_url,
-        "created_by": current_user.id,
-        "created_at": datetime.now(timezone.utc),
-        "participants": []
-    }
-    
-    # Update or insert Jitsi session
-    await db.jitsi_sessions.update_one(
-        {"appointment_id": appointment_id},
-        {"$set": jitsi_session},
-        upsert=True
+    # Create new call attempt
+    call_attempt = CallAttempt(
+        appointment_id=appointment_id,
+        doctor_id=current_user.id,
+        provider_id=appointment["provider_id"],
+        attempt_number=call_attempt_number,
+        jitsi_url=jitsi_url,
+        room_name=room_name,
+        status="calling"
     )
     
-    # Notify the other participant about video call invitation
-    if current_user.role == "doctor":
-        target_user_id = appointment.get("provider_id")
-    else:
-        target_user_id = appointment.get("doctor_id")
+    # Save call attempt
+    await db.call_attempts.insert_one(call_attempt.dict())
     
-    if target_user_id:
-        # Get appointment details for notification
-        patient_info = appointment.get("patient", {})
-        
-        notification = {
-            "type": "jitsi_call_invitation",
-            "appointment_id": appointment_id,
-            "jitsi_url": jitsi_url,
-            "room_name": room_name,
-            "caller": current_user.full_name,
-            "caller_role": current_user.role,
-            "appointment_type": appointment.get("appointment_type", "non_emergency"),
-            "patient": {
-                "name": patient_info.get("name", "Unknown Patient"),
-                "age": patient_info.get("age", "Unknown"),
-                "gender": patient_info.get("gender", "Unknown"),
-                "consultation_reason": patient_info.get("consultation_reason", "General consultation"),
-                "vitals": patient_info.get("vitals", {})
+    # Update appointment call history
+    await db.appointments.update_one(
+        {"id": appointment_id},
+        {
+            "$push": {
+                "call_history": {
+                    "call_id": call_attempt.call_id,
+                    "doctor_name": current_user.full_name,
+                    "attempt_number": call_attempt_number,
+                    "initiated_at": call_attempt.initiated_at.isoformat(),
+                    "status": "calling"
+                }
             },
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "$set": {
+                "status": "in_call",
+                "doctor_id": current_user.id,
+                "doctor_name": current_user.full_name,
+                "updated_at": datetime.now(timezone.utc)
+            }
         }
-        await manager.send_personal_message(notification, target_user_id)
+    )
     
-    return {
+    # Send real-time notification to provider (WhatsApp-like instant delivery)
+    call_notification = {
+        "type": "incoming_video_call",
+        "call_id": call_attempt.call_id,
+        "appointment_id": appointment_id,
+        "doctor_name": current_user.full_name,
+        "doctor_id": current_user.id,
+        "patient_name": appointment.get("patient", {}).get("name", "Unknown Patient"),
         "jitsi_url": jitsi_url,
         "room_name": room_name,
-        "appointment_id": appointment_id,
-        "status": "ready"
+        "call_attempt": call_attempt_number,
+        "message": f"Dr. {current_user.full_name} is calling you for {appointment.get('patient', {}).get('name', 'patient')} consultation",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "auto_answer": True  # WhatsApp-like instant call delivery
     }
+    
+    # Send to provider immediately
+    await manager.send_personal_message(call_notification, appointment["provider_id"])
+    
+    return {
+        "success": True,
+        "call_id": call_attempt.call_id,
+        "jitsi_url": jitsi_url,
+        "room_name": room_name,
+        "call_attempt": call_attempt_number,
+        "message": f"Call initiated to {provider.get('full_name', 'provider')}",
+        "provider_notified": True,
+        "appointment_type": "emergency"  # Confirm this is emergency appointment
+    }
+
+@api_router.get("/video-call/session/{appointment_id}")
+async def get_video_call_session(appointment_id: str, current_user: User = Depends(get_current_user)):
+    """Get latest video call session for appointment (backward compatibility)"""
+    
+    # Get appointment details
+    appointment = await db.appointments.find_one({"id": appointment_id})
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    
+    # Get latest call attempt
+    latest_call = await db.call_attempts.find_one(
+        {"appointment_id": appointment_id},
+        sort=[("initiated_at", -1)]
+    )
+    
+    if latest_call:
+        return {
+            "session_id": latest_call["call_id"],
+            "jitsi_url": latest_call["jitsi_url"],
+            "room_name": latest_call["room_name"],
+            "status": latest_call["status"],
+            "appointment_id": appointment_id,
+            "call_attempt": latest_call["attempt_number"]
+        }
+    else:
+        raise HTTPException(status_code=404, detail="No video call sessions found for this appointment")
 
 @api_router.post("/video-call/end/{appointment_id}")
 async def end_video_call(appointment_id: str, current_user: User = Depends(get_current_user)):
