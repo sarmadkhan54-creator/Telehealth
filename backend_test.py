@@ -603,9 +603,9 @@ class MedConnectAPITester:
             print("   ❌ Cross-device session management issues detected")
             all_success = False
         
-        # Test 8: Error response format validation
-        print("\n8️⃣ Testing Error Response Format")
-        print("-" * 50)
+        # Test 9: Enhanced Error Response Format & Cross-Device Compatibility
+        print("\n9️⃣ Testing Enhanced Error Response Format")
+        print("-" * 60)
         
         success, response = self.run_test(
             "Error Format Check - Invalid Login",
