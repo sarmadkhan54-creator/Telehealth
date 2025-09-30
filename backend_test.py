@@ -95,9 +95,12 @@ class MedConnectAPITester:
         
         return all_success
 
-    def test_comprehensive_authentication_scenarios(self):
-        """🎯 COMPREHENSIVE AUTHENTICATION & CREDENTIAL ERROR INVESTIGATION"""
-        print("\n🎯 COMPREHENSIVE AUTHENTICATION & CREDENTIAL ERROR INVESTIGATION")
+    def test_enhanced_cross_device_authentication(self):
+        """🎯 ENHANCED CROSS-DEVICE AUTHENTICATION SYSTEM TESTING"""
+        print("\n🎯 ENHANCED CROSS-DEVICE AUTHENTICATION SYSTEM TESTING")
+        print("=" * 80)
+        print("Testing enhanced authentication system for cross-device compatibility")
+        print("Focus: Login functionality, profile validation, CORS, token validation")
         print("=" * 80)
         
         all_success = True
