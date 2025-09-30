@@ -1394,6 +1394,17 @@ const AdminDashboard = ({ user, onLogout }) => {
                           <div className="text-sm">
                             <p className="text-gray-900">{userItem.phone}</p>
                             <p className="text-gray-600">{userItem.email}</p>
+                            {user.role === 'admin' && (
+                              <div className="text-xs text-blue-600 mt-1">
+                                <button 
+                                  onClick={() => handleViewPassword(userItem.id, userItem.username)}
+                                  className="hover:underline"
+                                  title="View Password"
+                                >
+                                  View Password
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </td>
                         <td className="py-3 px-4">
