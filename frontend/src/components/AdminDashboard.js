@@ -1435,10 +1435,18 @@ const AdminDashboard = ({ user, onLogout }) => {
                               <button 
                                 onClick={() => handleDeleteUser(userItem.id, userItem.full_name)}
                                 className="text-red-600 hover:text-red-800 transition-colors"
-                                title="Delete User"
+                                title="Soft Delete User"
                                 disabled={userItem.id === user.id} // Prevent self-deletion
                               >
                                 <Trash2 className="w-4 h-4" />
+                              </button>
+                              <button 
+                                onClick={() => handlePermanentDeleteUser(userItem.id, userItem.full_name)}
+                                className="text-red-800 hover:text-red-900 transition-colors"
+                                title="Permanent Delete User"
+                                disabled={userItem.id === user.id} // Prevent self-deletion
+                              >
+                                💀
                               </button>
                             </div>
                           ) : (
