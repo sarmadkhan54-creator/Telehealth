@@ -612,9 +612,15 @@ const DoctorDashboard = ({ user, onLogout }) => {
                           </p>
                         </div>
                         <div className="md:col-span-2">
-                          <p className="text-gray-600">Consultation Reason</p>
+                          <p className="text-gray-600">Patient History</p>
                           <p className="font-medium">
-                            {appointment.patient?.consultation_reason}
+                            {appointment.patient?.history}
+                          </p>
+                        </div>
+                        <div className="md:col-span-2">
+                          <p className="text-gray-600">Area of Consultation</p>
+                          <p className="font-medium">
+                            {appointment.patient?.area_of_consultation}
                           </p>
                         </div>
                         
@@ -734,9 +740,15 @@ const DoctorDashboard = ({ user, onLogout }) => {
                           </p>
                         </div>
                         <div className="md:col-span-2">
-                          <p className="text-gray-600">Consultation Reason</p>
+                          <p className="text-gray-600">Patient History</p>
                           <p className="font-medium">
-                            {appointment.patient?.consultation_reason}
+                            {appointment.patient?.history}
+                          </p>
+                        </div>
+                        <div className="md:col-span-2">
+                          <p className="text-gray-600">Area of Consultation</p>
+                          <p className="font-medium">
+                            {appointment.patient?.area_of_consultation}
                           </p>
                         </div>
                       </div>
