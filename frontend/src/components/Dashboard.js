@@ -1160,9 +1160,15 @@ const Dashboard = ({ user, onLogout }) => {
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Consultation Reason</label>
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Patient History</label>
                   <p className="text-sm text-gray-900 bg-white rounded p-2 mt-1">
-                    {videoCallInvitation.patient.consultation_reason}
+                    {videoCallInvitation.patient.history}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Area of Consultation</label>
+                  <p className="text-sm text-gray-900 bg-white rounded p-2 mt-1">
+                    {videoCallInvitation.patient.area_of_consultation}
                   </p>
                 </div>
 
