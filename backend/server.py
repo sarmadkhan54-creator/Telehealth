@@ -344,7 +344,8 @@ class Patient(BaseModel):
     age: int
     gender: str
     vitals: Dict[str, Any] = Field(default_factory=dict)  # blood_pressure, heart_rate, temperature, etc.
-    consultation_reason: str
+    history: str  # Replaced consultation_reason with history
+    area_of_consultation: str  # New field for area of consultation
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class PatientCreate(BaseModel):
