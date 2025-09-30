@@ -6429,36 +6429,35 @@ def main():
         return all_success
 
 if __name__ == "__main__":
-    # Run the appointment workflow debugging test as requested in review
+    # Run the appointment visibility and calling diagnosis test as requested in review
     tester = MedConnectAPITester()
     
-    print("🎯 APPOINTMENT WORKFLOW DEBUGGING")
+    print("🎯 APPOINTMENT VISIBILITY AND CALLING DIAGNOSIS")
     print("=" * 80)
-    print("Testing complete appointment workflow to identify why appointments aren't showing in 'My Appointments':")
-    print("1. Provider Creates Appointment")
-    print("2. Doctor Accepts Appointment") 
-    print("3. Debug Appointment Filtering")
-    print("4. Database State Verification")
+    print("Testing specific issues mentioned in review request:")
+    print("1. Create appointment with demo_provider/Demo123!")
+    print("2. Check if appointment appears in provider's own dashboard")
+    print("3. Check if appointment appears in doctor's dashboard")
+    print("4. Test video call initiation from doctor to provider")
+    print("5. Check WebSocket notifications")
+    print("6. Verify notification delivery system")
+    print("=" * 80)
     
     # First login to get tokens
     if not tester.test_login_all_roles():
-        print("❌ Login failed - aborting tests")
+        print("\n❌ Login failed - cannot continue with diagnosis")
         sys.exit(1)
     
-    # Run the appointment workflow debugging test
-    result = tester.test_appointment_workflow_debugging()
+    # Run the specific diagnosis test
+    success = tester.test_appointment_visibility_and_calling_diagnosis()
     
-    if result:
-        print("\n🎉 APPOINTMENT WORKFLOW DEBUGGING COMPLETED SUCCESSFULLY!")
-        print("✅ All workflow steps working correctly")
-        print("✅ Provider creates appointment → provider_id correctly set")
-        print("✅ Doctor accepts appointment → doctor_id correctly set")
-        print("✅ Appointment filtering working correctly")
-        print("✅ Database state consistent")
-        print("\n💡 If 'My Appointments' still not working, issue is in FRONTEND")
-        sys.exit(0)
+    if success:
+        print("\n🎉 DIAGNOSIS COMPLETE: All systems working correctly!")
+        print("✅ Backend appointment visibility and calling functionality is operational")
+        print("✅ If issues persist, they are likely in frontend implementation")
     else:
-        print("\n❌ APPOINTMENT WORKFLOW DEBUGGING FAILED!")
-        print("⚠️  Backend appointment system has issues that need fixing")
-        print("⚠️  Check the detailed test results above")
-        sys.exit(1)
+        print("\n❌ DIAGNOSIS COMPLETE: Issues found in backend systems")
+        print("❌ Check the detailed test results above for specific problems")
+        print("❌ Backend fixes needed before frontend testing")
+    
+    sys.exit(0 if success else 1)
