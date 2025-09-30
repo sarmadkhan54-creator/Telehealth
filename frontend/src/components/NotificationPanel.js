@@ -572,7 +572,7 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              // Accept appointment logic here
+                              handleAcceptAppointment(notification.data.appointment_id);
                               markAsRead(notification.id);
                             }}
                             className="flex items-center space-x-1 px-3 py-1 bg-blue-500 text-white text-xs rounded-full hover:bg-blue-600 transition-colors"
