@@ -888,8 +888,12 @@ const Dashboard = ({ user, onLogout }) => {
                     </div>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Consultation Reason</p>
-                    <p className="font-medium">{selectedAppointment.patient?.consultation_reason}</p>
+                    <p className="text-sm text-gray-600">Patient History</p>
+                    <p className="font-medium">{selectedAppointment.patient?.history}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Area of Consultation</p>
+                    <p className="font-medium">{selectedAppointment.patient?.area_of_consultation}</p>
                   </div>
                 </div>
 
