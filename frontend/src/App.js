@@ -170,24 +170,48 @@ function App() {
   };
 
   const handleLogout = () => {
-    // Clear all authentication data
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
-    
-    // Clear any push notification subscriptions
-    if (pushNotificationManager) {
-      pushNotificationManager.unsubscribe().catch(error => {
-        console.error('Error unsubscribing from push notifications:', error);
-      });
+    try {
+      console.log('🚪 Starting logout process...');
+      
+      // Clear all authentication data from multiple storage locations
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userData');
+      sessionStorage.removeItem('authToken');
+      sessionStorage.removeItem('userData');
+      
+      // Clear any push notification subscriptions
+      if (pushNotificationManager) {
+        pushNotificationManager.unsubscribe().catch(error => {
+          console.error('Error unsubscribing from push notifications:', error);
+        });
+      }
+      
+      // Clear activity tracker
+      if (window.activityTracker) {
+        clearInterval(window.activityTracker);
+        delete window.activityTracker;
+      }
+      
+      // Clear all session storage and local storage
+      sessionStorage.clear();
+      
+      // Clear any cached API responses
+      if (window.caches) {
+        caches.keys().then(names => {
+          names.forEach(name => caches.delete(name));
+        });
+      }
+      
+      // Reset user state
+      setUser(null);
+      
+      console.log('✅ Logout completed - all data cleared');
+      
+    } catch (error) {
+      console.error('🔧 Error during logout:', error);
+      // Force reset even if there's an error
+      setUser(null);
     }
-    
-    // Reset user state
-    setUser(null);
-    
-    // Clear any browser cache/session storage as well
-    sessionStorage.clear();
-    
-    console.log('🚪 User logged out and all data cleared');
   };
 
   if (loading) {
