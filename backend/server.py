@@ -1578,12 +1578,30 @@ async def test_websocket_endpoint(websocket: WebSocket):
 # Include the router in the main app
 app.include_router(api_router)
 
+# Enhanced CORS middleware configuration for cross-device compatibility
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for cross-device access
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"],
+    allow_headers=[
+        "*",
+        "Accept", 
+        "Accept-Language", 
+        "Content-Language", 
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "Origin",
+        "Cache-Control",
+        "Pragma",
+        "User-Agent",
+        "DNT",
+        "Connection",
+        "Keep-Alive"
+    ],
+    expose_headers=["*"],
+    max_age=86400,  # 24 hours cache for preflight requests
 )
 
 # Configure logging
