@@ -374,9 +374,9 @@ class MedConnectAPITester:
             print("   ❌ Missing token accepted - SECURITY ISSUE")
             all_success = False
         
-        # Test 5: CORS and network accessibility
-        print("\n5️⃣ Testing CORS & Network Accessibility")
-        print("-" * 50)
+        # Test 6: Network Error Handling and Timeout Scenarios
+        print("\n6️⃣ Testing Network Error Handling & Timeout Scenarios")
+        print("-" * 60)
         
         try:
             # Test basic connectivity
