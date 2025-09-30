@@ -3273,6 +3273,349 @@ class MedConnectAPITester:
         
         return all_success
 
+    def test_appointment_workflow_debugging(self):
+        """🎯 APPOINTMENT WORKFLOW DEBUGGING: Test complete appointment workflow to identify why appointments aren't showing in 'My Appointments'"""
+        print("\n🎯 APPOINTMENT WORKFLOW DEBUGGING - COMPREHENSIVE TESTING")
+        print("=" * 80)
+        print("Testing complete appointment workflow to identify 'My Appointments' filtering issues")
+        
+        all_success = True
+        
+        # Step 1: Provider Creates Appointment
+        print("\n1️⃣ STEP 1: Provider Creates Appointment")
+        print("-" * 60)
+        
+        if 'provider' not in self.tokens:
+            print("❌ No provider token available")
+            return False
+        
+        # Create realistic appointment data
+        appointment_data = {
+            "patient": {
+                "name": "Sarah Johnson",
+                "age": 28,
+                "gender": "Female",
+                "vitals": {
+                    "blood_pressure": "125/82",
+                    "heart_rate": 78,
+                    "temperature": 99.1,
+                    "oxygen_saturation": 98
+                },
+                "consultation_reason": "Severe chest pain and shortness of breath"
+            },
+            "appointment_type": "emergency",
+            "consultation_notes": "Patient experiencing acute symptoms, requires immediate medical attention"
+        }
+        
+        success, response = self.run_test(
+            "Provider Creates Emergency Appointment",
+            "POST",
+            "appointments",
+            200,
+            data=appointment_data,
+            token=self.tokens['provider']
+        )
+        
+        if not success:
+            print("❌ CRITICAL: Provider cannot create appointment")
+            return False
+        
+        workflow_appointment_id = response.get('id')
+        provider_id = self.users['provider']['id']
+        
+        print(f"   ✅ Appointment created successfully")
+        print(f"   📋 Appointment ID: {workflow_appointment_id}")
+        print(f"   👤 Provider ID: {provider_id}")
+        print(f"   🏥 Patient: {appointment_data['patient']['name']}")
+        print(f"   🚨 Type: {appointment_data['appointment_type']}")
+        
+        # Verify provider_id is correctly set
+        success, appointment_details = self.run_test(
+            "Verify Appointment Details After Creation",
+            "GET",
+            f"appointments/{workflow_appointment_id}",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if success:
+            stored_provider_id = appointment_details.get('provider_id')
+            if stored_provider_id == provider_id:
+                print(f"   ✅ Provider ID correctly set: {stored_provider_id}")
+            else:
+                print(f"   ❌ CRITICAL: Provider ID mismatch - Expected: {provider_id}, Got: {stored_provider_id}")
+                all_success = False
+        
+        # Check if appointment appears in provider's appointments list
+        success, provider_appointments = self.run_test(
+            "Provider Gets Own Appointments List",
+            "GET",
+            "appointments",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if success:
+            provider_appointment_ids = [apt.get('id') for apt in provider_appointments]
+            if workflow_appointment_id in provider_appointment_ids:
+                print(f"   ✅ Appointment appears in provider's list ({len(provider_appointments)} total)")
+            else:
+                print(f"   ❌ CRITICAL: Appointment NOT in provider's list")
+                print(f"   📊 Provider sees {len(provider_appointments)} appointments")
+                print(f"   🔍 Looking for: {workflow_appointment_id}")
+                print(f"   📋 Found IDs: {provider_appointment_ids[:3]}...")
+                all_success = False
+        
+        # Step 2: Doctor Accepts Appointment
+        print("\n2️⃣ STEP 2: Doctor Accepts Appointment")
+        print("-" * 60)
+        
+        if 'doctor' not in self.tokens:
+            print("❌ No doctor token available")
+            return False
+        
+        doctor_id = self.users['doctor']['id']
+        
+        # Get list of pending appointments for doctor
+        success, doctor_appointments_before = self.run_test(
+            "Doctor Gets Pending Appointments",
+            "GET",
+            "appointments",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if success:
+            pending_appointments = [apt for apt in doctor_appointments_before if apt.get('status') == 'pending']
+            appointment_found = any(apt.get('id') == workflow_appointment_id for apt in pending_appointments)
+            
+            print(f"   📊 Doctor sees {len(doctor_appointments_before)} total appointments")
+            print(f"   ⏳ Pending appointments: {len(pending_appointments)}")
+            
+            if appointment_found:
+                print(f"   ✅ New appointment visible to doctor in pending list")
+            else:
+                print(f"   ❌ CRITICAL: New appointment NOT visible to doctor")
+                print(f"   🔍 Looking for appointment: {workflow_appointment_id}")
+                all_success = False
+        
+        # Doctor accepts the appointment
+        accept_data = {
+            "status": "accepted",
+            "doctor_id": doctor_id,
+            "doctor_notes": "Emergency case accepted. Patient will be seen immediately."
+        }
+        
+        success, response = self.run_test(
+            "Doctor Accepts Appointment",
+            "PUT",
+            f"appointments/{workflow_appointment_id}",
+            200,
+            data=accept_data,
+            token=self.tokens['doctor']
+        )
+        
+        if success:
+            print(f"   ✅ Doctor successfully accepted appointment")
+            print(f"   👨‍⚕️ Doctor ID: {doctor_id}")
+            print(f"   📝 Status changed to: accepted")
+        else:
+            print("   ❌ CRITICAL: Doctor cannot accept appointment")
+            all_success = False
+        
+        # Verify doctor_id is correctly set in database
+        success, updated_appointment = self.run_test(
+            "Verify Appointment After Doctor Acceptance",
+            "GET",
+            f"appointments/{workflow_appointment_id}",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if success:
+            stored_doctor_id = updated_appointment.get('doctor_id')
+            stored_status = updated_appointment.get('status')
+            
+            print(f"   📋 Updated appointment details:")
+            print(f"   👤 Provider ID: {updated_appointment.get('provider_id')}")
+            print(f"   👨‍⚕️ Doctor ID: {stored_doctor_id}")
+            print(f"   📊 Status: {stored_status}")
+            
+            if stored_doctor_id == doctor_id:
+                print(f"   ✅ Doctor ID correctly set: {stored_doctor_id}")
+            else:
+                print(f"   ❌ CRITICAL: Doctor ID mismatch - Expected: {doctor_id}, Got: {stored_doctor_id}")
+                all_success = False
+            
+            if stored_status == "accepted":
+                print(f"   ✅ Status correctly updated to: {stored_status}")
+            else:
+                print(f"   ❌ CRITICAL: Status not updated - Expected: accepted, Got: {stored_status}")
+                all_success = False
+        
+        # Check if appointment appears in doctor's appointments list
+        success, doctor_appointments_after = self.run_test(
+            "Doctor Gets Appointments After Acceptance",
+            "GET",
+            "appointments",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if success:
+            doctor_appointment_ids = [apt.get('id') for apt in doctor_appointments_after]
+            accepted_appointments = [apt for apt in doctor_appointments_after if apt.get('status') == 'accepted' and apt.get('doctor_id') == doctor_id]
+            
+            print(f"   📊 Doctor sees {len(doctor_appointments_after)} total appointments")
+            print(f"   ✅ Doctor's accepted appointments: {len(accepted_appointments)}")
+            
+            if workflow_appointment_id in doctor_appointment_ids:
+                print(f"   ✅ Appointment appears in doctor's list")
+            else:
+                print(f"   ❌ CRITICAL: Appointment NOT in doctor's list after acceptance")
+                all_success = False
+        
+        # Step 3: Debug Appointment Filtering
+        print("\n3️⃣ STEP 3: Debug Appointment Filtering")
+        print("-" * 60)
+        
+        # Test GET /api/appointments with provider credentials
+        success, provider_filtered_appointments = self.run_test(
+            "Provider Appointments (Should Filter by provider_id)",
+            "GET",
+            "appointments",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if success:
+            print(f"   📊 Provider filtering results:")
+            print(f"   📋 Total appointments returned: {len(provider_filtered_appointments)}")
+            
+            # Verify all appointments belong to this provider
+            provider_owned = 0
+            other_owned = 0
+            
+            for apt in provider_filtered_appointments:
+                apt_provider_id = apt.get('provider_id')
+                if apt_provider_id == provider_id:
+                    provider_owned += 1
+                else:
+                    other_owned += 1
+                    print(f"   ❌ FILTERING ERROR: Appointment {apt.get('id')} belongs to provider {apt_provider_id}, not {provider_id}")
+            
+            print(f"   ✅ Provider-owned appointments: {provider_owned}")
+            print(f"   ❌ Other-owned appointments: {other_owned}")
+            
+            if other_owned == 0:
+                print(f"   ✅ Provider filtering working correctly")
+            else:
+                print(f"   ❌ CRITICAL: Provider filtering broken - seeing other providers' appointments")
+                all_success = False
+        
+        # Test GET /api/appointments with doctor credentials
+        success, doctor_all_appointments = self.run_test(
+            "Doctor Appointments (Should Show ALL)",
+            "GET",
+            "appointments",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if success:
+            print(f"   📊 Doctor filtering results:")
+            print(f"   📋 Total appointments returned: {len(doctor_all_appointments)}")
+            print(f"   ℹ️  Doctors should see ALL appointments (no filtering)")
+            
+            # Check appointment data structure
+            if doctor_all_appointments:
+                sample_apt = doctor_all_appointments[0]
+                print(f"   📋 Sample appointment structure:")
+                print(f"   🆔 ID: {sample_apt.get('id', 'MISSING')}")
+                print(f"   👤 Provider ID: {sample_apt.get('provider_id', 'MISSING')}")
+                print(f"   👨‍⚕️ Doctor ID: {sample_apt.get('doctor_id', 'MISSING')}")
+                print(f"   📊 Status: {sample_apt.get('status', 'MISSING')}")
+                print(f"   🏥 Patient: {sample_apt.get('patient', {}).get('name', 'MISSING')}")
+        
+        # Step 4: Database State Verification
+        print("\n4️⃣ STEP 4: Database State Verification")
+        print("-" * 60)
+        
+        # Get the actual appointment document from database (via API)
+        success, db_appointment = self.run_test(
+            "Database State - Get Appointment Details",
+            "GET",
+            f"appointments/{workflow_appointment_id}",
+            200,
+            token=self.tokens['admin']
+        )
+        
+        if success:
+            print(f"   📋 Database appointment document:")
+            print(f"   🆔 ID: {db_appointment.get('id')}")
+            print(f"   👤 Provider ID: {db_appointment.get('provider_id')}")
+            print(f"   👨‍⚕️ Doctor ID: {db_appointment.get('doctor_id')}")
+            print(f"   📊 Status: {db_appointment.get('status')}")
+            print(f"   📅 Created: {db_appointment.get('created_at')}")
+            print(f"   📅 Updated: {db_appointment.get('updated_at')}")
+            
+            # Verify critical fields
+            db_provider_id = db_appointment.get('provider_id')
+            db_doctor_id = db_appointment.get('doctor_id')
+            db_status = db_appointment.get('status')
+            
+            if db_provider_id == provider_id:
+                print(f"   ✅ Database provider_id correct: {db_provider_id}")
+            else:
+                print(f"   ❌ CRITICAL: Database provider_id wrong - Expected: {provider_id}, Got: {db_provider_id}")
+                all_success = False
+            
+            if db_doctor_id == doctor_id:
+                print(f"   ✅ Database doctor_id correct: {db_doctor_id}")
+            else:
+                print(f"   ❌ CRITICAL: Database doctor_id wrong - Expected: {doctor_id}, Got: {db_doctor_id}")
+                all_success = False
+            
+            if db_status == "accepted":
+                print(f"   ✅ Database status correct: {db_status}")
+            else:
+                print(f"   ❌ CRITICAL: Database status wrong - Expected: accepted, Got: {db_status}")
+                all_success = False
+            
+            # Check patient data structure
+            patient_data = db_appointment.get('patient', {})
+            if patient_data:
+                print(f"   📋 Patient data structure:")
+                print(f"   👤 Name: {patient_data.get('name', 'MISSING')}")
+                print(f"   🎂 Age: {patient_data.get('age', 'MISSING')}")
+                print(f"   ⚕️ Vitals: {len(patient_data.get('vitals', {})) if patient_data.get('vitals') else 0} fields")
+                print(f"   📝 Reason: {patient_data.get('consultation_reason', 'MISSING')}")
+            else:
+                print(f"   ❌ CRITICAL: Patient data missing from appointment")
+                all_success = False
+        
+        # Final Summary
+        print("\n🎯 APPOINTMENT WORKFLOW DEBUGGING SUMMARY")
+        print("=" * 80)
+        
+        if all_success:
+            print("✅ ALL WORKFLOW STEPS PASSED")
+            print("✅ Provider creates appointment → provider_id correctly set")
+            print("✅ Doctor accepts appointment → doctor_id correctly set")
+            print("✅ Appointment filtering working correctly")
+            print("✅ Database state consistent")
+            print("\n💡 If 'My Appointments' still not working, issue is in FRONTEND:")
+            print("   - Check frontend API calls")
+            print("   - Verify frontend filtering logic")
+            print("   - Check WebSocket real-time updates")
+            print("   - Verify authentication token in frontend requests")
+        else:
+            print("❌ WORKFLOW ISSUES DETECTED")
+            print("🔍 Check the specific failures above for root cause")
+            print("🚨 Backend appointment system has issues that need fixing")
+        
+        return all_success
+
     def test_complete_bidirectional_workflow(self):
         """🔄 COMPREHENSIVE TEST: Complete Bidirectional Video Call Workflow"""
         print("\n🔄 Testing Complete Bidirectional Video Call Workflow")
