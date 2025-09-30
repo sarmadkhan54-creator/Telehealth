@@ -607,23 +607,78 @@ class MedConnectAPITester:
         print("\n9️⃣ Testing Enhanced Error Response Format")
         print("-" * 60)
         
-        success, response = self.run_test(
-            "Error Format Check - Invalid Login",
-            "POST",
-            "login",
-            401,
-            data={"username": "demo_provider", "password": "WrongPassword"}
-        )
+        error_scenarios = [
+            {
+                "data": {"username": "demo_provider", "password": "WrongPassword"},
+                "expected_status": 401,
+                "desc": "Invalid Credentials"
+            },
+            {
+                "data": {"username": "nonexistent", "password": "Demo123!"},
+                "expected_status": 401,
+                "desc": "Non-existent User"
+            },
+            {
+                "data": {"username": "", "password": ""},
+                "expected_status": 401,
+                "desc": "Empty Credentials"
+            }
+        ]
         
-        if success:
-            print("   ✅ Error response returned correctly")
-            if isinstance(response, dict) and 'detail' in response:
-                print(f"   Error message: {response['detail']}")
-                print("   ✅ Error format matches FastAPI standard")
+        for scenario in error_scenarios:
+            success, response = self.run_test(
+                f"Error Format - {scenario['desc']}",
+                "POST",
+                "login",
+                scenario['expected_status'],
+                data=scenario['data']
+            )
+            
+            if success:
+                print(f"   ✅ {scenario['desc']} error handled correctly")
+                if isinstance(response, dict) and 'detail' in response:
+                    print(f"   Error message: {response['detail']}")
+                    
+                    # Check if error message is user-friendly for cross-device scenarios
+                    error_msg = response['detail'].lower()
+                    if 'invalid' in error_msg or 'incorrect' in error_msg or 'not found' in error_msg:
+                        print("   ✅ Error message is clear and user-friendly")
+                    else:
+                        print("   ⚠️  Error message could be more user-friendly")
+                else:
+                    print(f"   ⚠️  Unexpected error format: {response}")
             else:
-                print(f"   ⚠️  Unexpected error format: {response}")
+                print(f"   ❌ {scenario['desc']} error not handled properly")
+                all_success = False
+        
+        # Final summary for cross-device authentication
+        print("\n" + "=" * 80)
+        print("🎯 CROSS-DEVICE AUTHENTICATION SYSTEM SUMMARY")
+        print("=" * 80)
+        
+        if all_success:
+            print("✅ ENHANCED CROSS-DEVICE AUTHENTICATION: FULLY OPERATIONAL")
+            print("✅ All demo credentials working across devices")
+            print("✅ Profile validation endpoint functional")
+            print("✅ CORS configuration supports cross-device access")
+            print("✅ Token validation robust for different devices")
+            print("✅ Network error handling and timeout scenarios handled")
+            print("✅ Authentication headers and response handling working")
+            print("✅ Multiple device sessions supported simultaneously")
+        else:
+            print("❌ CROSS-DEVICE AUTHENTICATION: ISSUES DETECTED")
+            print("❌ Some authentication scenarios failed")
+            print("❌ May cause credential errors on other devices")
         
         return all_success
+
+    def test_comprehensive_authentication_scenarios(self):
+        """🎯 COMPREHENSIVE AUTHENTICATION & CREDENTIAL ERROR INVESTIGATION (Legacy)"""
+        print("\n🎯 COMPREHENSIVE AUTHENTICATION & CREDENTIAL ERROR INVESTIGATION (Legacy)")
+        print("=" * 80)
+        
+        # Call the new enhanced test
+        return self.test_enhanced_cross_device_authentication()
 
     def test_authentication_headers_comprehensive(self):
         """Test comprehensive authentication header scenarios"""
