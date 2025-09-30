@@ -252,27 +252,34 @@ const DoctorDashboard = ({ user, onLogout }) => {
 
   // Removed accept functionality - doctors can now directly video call without accepting
 
-  const handleVideoCall = (appointment) => {
+  const handleVideoCall = async (appointment) => {
     console.log('Starting video call for appointment:', appointment.id);
     
-    // Create meeting ID based on appointment
-    const meetingId = `appointment-${appointment.id}`;
-    const meetingUrl = `https://meet.jit.si/${meetingId}`;
+    // Check appointment type restrictions
+    if (appointment.appointment_type === 'non_emergency') {
+      alert('❌ Video calls are not allowed for non-emergency appointments. Please use notes instead.');
+      return;
+    }
     
-    // Open video call in new window
-    window.open(meetingUrl, '_blank', 'width=1200,height=800');
-    
-    // Notify provider about the video call
     try {
-      axios.post(`${API}/notifications/send`, {
-        recipient_id: appointment.provider_id,
-        type: 'video_call_started',
-        message: `Dr. ${user.full_name} started video call for ${appointment.patient?.name}`,
-        appointment_id: appointment.id,
-        meeting_url: meetingUrl
-      });
+      // Use the new WhatsApp-like video calling system
+      const response = await axios.post(`${API}/video-call/start/${appointment.id}`);
+      
+      if (response.data.success) {
+        const { jitsi_url, call_attempt, message } = response.data;
+        
+        // Show success message with call attempt number
+        alert(`📞 Call ${call_attempt} initiated! ${message}`);
+        
+        // Open Jitsi video call in new window
+        window.open(jitsi_url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+        
+        console.log(`✅ Emergency video call started (attempt ${call_attempt}):`, jitsi_url);
+      }
     } catch (error) {
-      console.error('Error sending video call notification:', error);
+      console.error('Error starting video call:', error);
+      const errorMessage = error.response?.data?.detail || 'Failed to start video call. Please try again.';
+      alert(`❌ ${errorMessage}`);
     }
   };
 
