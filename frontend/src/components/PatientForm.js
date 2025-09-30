@@ -16,14 +16,17 @@ const PatientForm = ({ user }) => {
     name: '',
     age: '',
     gender: '',
-    consultation_reason: '',
+    history: '',  // Replaced consultation_reason with history
+    area_of_consultation: '',  // New field for area of consultation
     vitals: {
       blood_pressure: '',
       heart_rate: '',
       temperature: '',
       oxygen_saturation: '',
       weight: '',
-      height: ''
+      height: '',
+      hb: '',  // New field: Hemoglobin (g/dL)
+      sugar_level: ''  // New field: Blood Sugar (mg/dL)
     }
   });
   
