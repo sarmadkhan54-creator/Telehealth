@@ -429,16 +429,10 @@ const Dashboard = ({ user, onLogout }) => {
 
   const fetchAppointments = async () => {
     try {
-      console.log('Fetching appointments for provider...', user.id);
+      console.log('Fetching appointments for provider...');
       const response = await axios.get(`${API}/appointments`);
       console.log('Provider appointments fetched:', response.data.length, 'appointments');
-      console.log('Provider appointments data:', response.data);
-      
-      // Ensure we're only showing appointments created by this provider
-      const providerAppointments = response.data.filter(apt => apt.provider_id === user.id);
-      console.log('Filtered provider appointments:', providerAppointments.length, 'appointments');
-      
-      setAppointments(providerAppointments);
+      setAppointments(response.data);
     } catch (error) {
       console.error('Error fetching appointments:', error);
       if (error.response?.status === 401) {
