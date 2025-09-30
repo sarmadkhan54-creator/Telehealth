@@ -198,20 +198,57 @@ const PatientForm = ({ user }) => {
                     </select>
                   </div>
 
+                  {/* History Field - Vertically Stacked */}
                   <div className="form-group md:col-span-2">
-                    <label htmlFor="consultation_reason" className="form-label">
-                      Consultation Reason *
+                    <label htmlFor="history" className="form-label">
+                      Patient History *
                     </label>
                     <textarea
-                      id="consultation_reason"
-                      name="consultation_reason"
+                      id="history"
+                      name="history"
                       required
                       rows={3}
+                      maxLength={500}
                       className="form-input form-textarea"
-                      placeholder="Describe the reason for consultation..."
-                      value={formData.consultation_reason}
+                      placeholder="Describe the patient's medical history and current symptoms..."
+                      value={formData.history}
                       onChange={handleChange}
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {formData.history.length}/500 characters
+                    </p>
+                  </div>
+
+                  {/* Area of Consultation Field - Below History */}
+                  <div className="form-group md:col-span-2">
+                    <label htmlFor="area_of_consultation" className="form-label">
+                      Area of Consultation *
+                    </label>
+                    <select
+                      id="area_of_consultation"
+                      name="area_of_consultation"
+                      required
+                      className="form-input"
+                      value={formData.area_of_consultation}
+                      onChange={handleChange}
+                    >
+                      <option value="">Select specialty area</option>
+                      <option value="Cardiology">🫀 Cardiology</option>
+                      <option value="Gynecology">👩‍⚕️ Gynecology</option>
+                      <option value="Pediatrics">👶 Pediatrics</option>
+                      <option value="Dermatology">🩺 Dermatology</option>
+                      <option value="Neurology">🧠 Neurology</option>
+                      <option value="Orthopedics">🦴 Orthopedics</option>
+                      <option value="General Medicine">⚕️ General Medicine</option>
+                      <option value="Emergency Medicine">🚨 Emergency Medicine</option>
+                      <option value="Psychiatry">🧘‍♀️ Psychiatry</option>
+                      <option value="Ophthalmology">👁️ Ophthalmology</option>
+                      <option value="ENT">👂 ENT (Ear, Nose, Throat)</option>
+                      <option value="Gastroenterology">🫄 Gastroenterology</option>
+                      <option value="Pulmonology">🫁 Pulmonology</option>
+                      <option value="Endocrinology">🩺 Endocrinology</option>
+                      <option value="Other">🏥 Other</option>
+                    </select>
                   </div>
                 </div>
               </div>
