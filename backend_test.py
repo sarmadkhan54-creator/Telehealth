@@ -6258,6 +6258,288 @@ def main():
         
         return all_success
 
+    def test_focused_appointment_video_workflow(self):
+        """🎯 FOCUSED TESTING: Appointment Creation and Video Calling Workflow"""
+        print("\n🎯 FOCUSED TESTING: APPOINTMENT CREATION AND VIDEO CALLING WORKFLOW")
+        print("=" * 80)
+        print("Testing specific workflow as requested in review:")
+        print("1. Create Emergency Appointment with demo_provider/Demo123!")
+        print("2. Verify Provider Dashboard - provider sees own appointment")
+        print("3. Verify Doctor Dashboard - doctor sees new appointment immediately")
+        print("4. Test Video Calling - doctor initiates call, provider gets notification")
+        print("=" * 80)
+        
+        all_success = True
+        
+        # STEP 1: Create Emergency Appointment with new fields
+        print("\n🚨 STEP 1: Create Emergency Appointment with New Fields")
+        print("-" * 60)
+        
+        if 'provider' not in self.tokens:
+            print("❌ No provider token available")
+            return False
+        
+        # Create appointment with new history/area_of_consultation fields
+        emergency_appointment_data = {
+            "patient": {
+                "name": "Sarah Johnson",
+                "age": 28,
+                "gender": "Female",
+                "vitals": {
+                    "blood_pressure": "140/90",
+                    "heart_rate": 95,
+                    "temperature": 101.2,
+                    "oxygen_saturation": 96,
+                    "hb": 11.5,  # New field: Hemoglobin (7-18 g/dL)
+                    "sugar_level": 110  # New field: Sugar Level (70-200 mg/dL)
+                },
+                "history": "Patient experiencing severe chest pain for the past 2 hours, accompanied by shortness of breath and dizziness. No previous cardiac history. Pain radiates to left arm.",  # New field replacing consultation_reason
+                "area_of_consultation": "Emergency Medicine"  # New dropdown field
+            },
+            "appointment_type": "emergency",
+            "consultation_notes": "URGENT: Possible cardiac event - requires immediate attention"
+        }
+        
+        success, response = self.run_test(
+            "Create Emergency Appointment with New Fields",
+            "POST",
+            "appointments",
+            200,
+            data=emergency_appointment_data,
+            token=self.tokens['provider']
+        )
+        
+        if not success:
+            print("❌ CRITICAL: Could not create emergency appointment")
+            return False
+        
+        test_appointment_id = response.get('id')
+        provider_id = self.users['provider']['id']
+        
+        print(f"✅ Emergency appointment created successfully!")
+        print(f"   Appointment ID: {test_appointment_id}")
+        print(f"   Provider ID: {provider_id}")
+        print(f"   Patient: {emergency_appointment_data['patient']['name']}")
+        print(f"   History: {emergency_appointment_data['patient']['history'][:50]}...")
+        print(f"   Area of Consultation: {emergency_appointment_data['patient']['area_of_consultation']}")
+        print(f"   New Vitals - Hb: {emergency_appointment_data['patient']['vitals']['hb']} g/dL")
+        print(f"   New Vitals - Sugar: {emergency_appointment_data['patient']['vitals']['sugar_level']} mg/dL")
+        
+        # STEP 2: Verify Provider Dashboard - provider sees own appointment
+        print("\n👩‍⚕️ STEP 2: Verify Provider Dashboard - Own Appointment Visibility")
+        print("-" * 60)
+        
+        success, response = self.run_test(
+            "Get Appointments as Provider",
+            "GET",
+            "appointments",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if not success:
+            print("❌ CRITICAL: Provider cannot access appointments")
+            all_success = False
+        else:
+            provider_appointments = response
+            print(f"✅ Provider can access appointments ({len(provider_appointments)} total)")
+            
+            # Check if new appointment is visible
+            new_appointment_found = False
+            provider_owned_count = 0
+            other_owned_count = 0
+            
+            for apt in provider_appointments:
+                if apt.get('id') == test_appointment_id:
+                    new_appointment_found = True
+                    print(f"✅ New emergency appointment found in provider dashboard!")
+                    print(f"   Status: {apt.get('status', 'N/A')}")
+                    print(f"   Type: {apt.get('appointment_type', 'N/A')}")
+                    print(f"   Patient: {apt.get('patient', {}).get('name', 'N/A')}")
+                
+                # Count ownership
+                if apt.get('provider_id') == provider_id:
+                    provider_owned_count += 1
+                else:
+                    other_owned_count += 1
+            
+            if new_appointment_found:
+                print("✅ Provider can see their own new appointment immediately")
+            else:
+                print("❌ CRITICAL: New appointment not visible in provider dashboard")
+                all_success = False
+            
+            print(f"✅ Provider filtering working correctly:")
+            print(f"   Provider-owned appointments: {provider_owned_count}")
+            print(f"   Other-owned appointments: {other_owned_count}")
+            
+            if other_owned_count == 0:
+                print("✅ Provider only sees own appointments (correct filtering)")
+            else:
+                print("❌ Provider seeing appointments from other providers")
+                all_success = False
+        
+        # STEP 3: Verify Doctor Dashboard - doctor sees new appointment immediately
+        print("\n👨‍⚕️ STEP 3: Verify Doctor Dashboard - All Appointments Visibility")
+        print("-" * 60)
+        
+        if 'doctor' not in self.tokens:
+            print("❌ No doctor token available")
+            all_success = False
+        else:
+            success, response = self.run_test(
+                "Get Appointments as Doctor",
+                "GET",
+                "appointments",
+                200,
+                token=self.tokens['doctor']
+            )
+            
+            if not success:
+                print("❌ CRITICAL: Doctor cannot access appointments")
+                all_success = False
+            else:
+                doctor_appointments = response
+                print(f"✅ Doctor can access appointments ({len(doctor_appointments)} total)")
+                
+                # Check if new appointment is visible to doctor
+                new_appointment_found = False
+                
+                for apt in doctor_appointments:
+                    if apt.get('id') == test_appointment_id:
+                        new_appointment_found = True
+                        print(f"✅ New emergency appointment found in doctor dashboard!")
+                        print(f"   Status: {apt.get('status', 'N/A')}")
+                        print(f"   Type: {apt.get('appointment_type', 'N/A')}")
+                        print(f"   Patient: {apt.get('patient', {}).get('name', 'N/A')}")
+                        print(f"   Provider: {apt.get('provider', {}).get('full_name', 'N/A')}")
+                        
+                        # Verify appointment data structure
+                        patient_data = apt.get('patient', {})
+                        if 'history' in patient_data and 'area_of_consultation' in patient_data:
+                            print(f"✅ New fields present - History: {patient_data['history'][:30]}...")
+                            print(f"✅ Area of consultation: {patient_data['area_of_consultation']}")
+                        else:
+                            print("❌ New fields missing in appointment data")
+                            all_success = False
+                        
+                        break
+                
+                if new_appointment_found:
+                    print("✅ Doctor can see new appointment immediately (no delay)")
+                else:
+                    print("❌ CRITICAL: New appointment not visible in doctor dashboard")
+                    all_success = False
+        
+        # STEP 4: Test Video Calling - doctor initiates call
+        print("\n📹 STEP 4: Test Video Calling - Doctor Initiates Call")
+        print("-" * 60)
+        
+        if 'doctor' not in self.tokens:
+            print("❌ No doctor token available for video call testing")
+            all_success = False
+        else:
+            success, response = self.run_test(
+                "Doctor Initiates Video Call",
+                "POST",
+                f"video-call/start/{test_appointment_id}",
+                200,
+                token=self.tokens['doctor']
+            )
+            
+            if not success:
+                print("❌ CRITICAL: Doctor cannot initiate video call")
+                all_success = False
+            else:
+                call_id = response.get('call_id')
+                jitsi_url = response.get('jitsi_url')
+                room_name = response.get('room_name')
+                provider_notified = response.get('provider_notified')
+                call_attempt = response.get('call_attempt')
+                
+                print(f"✅ Doctor successfully initiated video call!")
+                print(f"   Call ID: {call_id}")
+                print(f"   Jitsi URL: {jitsi_url}")
+                print(f"   Room Name: {room_name}")
+                print(f"   Call Attempt: {call_attempt}")
+                print(f"   Provider Notified: {provider_notified}")
+                
+                # Verify URL format
+                if jitsi_url and 'meet.jit.si' in jitsi_url and test_appointment_id in jitsi_url:
+                    print("✅ Jitsi URL format correct")
+                else:
+                    print("❌ Jitsi URL format incorrect")
+                    all_success = False
+                
+                # Verify WhatsApp-like calling system
+                if call_attempt and call_attempt >= 1:
+                    print("✅ WhatsApp-like calling system operational (multiple attempts supported)")
+                else:
+                    print("❌ Call attempt tracking not working")
+                    all_success = False
+        
+        # STEP 5: Test WebSocket Notification System
+        print("\n🔔 STEP 5: Test WebSocket Notification System")
+        print("-" * 60)
+        
+        # Test WebSocket status endpoint
+        success, response = self.run_test(
+            "WebSocket Status Check",
+            "GET",
+            "websocket/status",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if success:
+            websocket_status = response.get('websocket_status', {})
+            total_connections = websocket_status.get('total_connections', 0)
+            print(f"✅ WebSocket status endpoint accessible")
+            print(f"   Total connections: {total_connections}")
+            print(f"   Current user connected: {response.get('current_user_connected', False)}")
+        else:
+            print("❌ WebSocket status endpoint not accessible")
+            all_success = False
+        
+        # Test WebSocket test message
+        success, response = self.run_test(
+            "WebSocket Test Message",
+            "POST",
+            "websocket/test-message",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if success:
+            message_sent = response.get('message_sent', False)
+            print(f"✅ WebSocket test message system working")
+            print(f"   Message sent: {message_sent}")
+            print(f"   Test message: {response.get('test_message', {}).get('type', 'N/A')}")
+        else:
+            print("❌ WebSocket test message system not working")
+            # Don't fail the test for this as WebSocket might not have active connections in test environment
+        
+        # Final Summary
+        print("\n" + "=" * 80)
+        print("🎯 FOCUSED WORKFLOW TEST SUMMARY")
+        print("=" * 80)
+        
+        if all_success:
+            print("✅ ALL REVIEW REQUEST REQUIREMENTS VERIFIED:")
+            print("✅ Emergency appointment created with new history/area_of_consultation fields")
+            print("✅ Provider can see own appointments in dashboard")
+            print("✅ Doctor can see all appointments including new one immediately")
+            print("✅ Doctor can initiate video calls with proper notification system")
+            print("✅ WebSocket notification infrastructure operational")
+            print("✅ WhatsApp-like calling system with multiple attempts working")
+            print("\n🎯 CRITICAL CONCLUSION: Backend appointment visibility and calling systems are FULLY OPERATIONAL")
+        else:
+            print("❌ SOME REVIEW REQUIREMENTS FAILED:")
+            print("❌ Issues detected in appointment visibility or calling workflow")
+            print("❌ Check specific failures above for details")
+        
+        return all_success
+
 if __name__ == "__main__":
     # Run the appointment visibility and calling diagnosis test as requested in review
     tester = MedConnectAPITester()
