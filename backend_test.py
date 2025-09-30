@@ -6087,14 +6087,20 @@ def main():
         return all_success
 
     def test_appointment_visibility_and_calling_diagnosis(self):
-        """Diagnose appointment visibility and calling issues"""
-        print("\n🎯 APPOINTMENT VISIBILITY AND CALLING DIAGNOSIS")
+        """🎯 FOCUSED TESTING: Appointment Creation and Video Calling Workflow"""
+        print("\n🎯 FOCUSED TESTING: APPOINTMENT CREATION AND VIDEO CALLING WORKFLOW")
+        print("=" * 80)
+        print("Testing specific workflow as requested in review:")
+        print("1. Create Emergency Appointment with demo_provider/Demo123!")
+        print("2. Verify Provider Dashboard - provider sees own appointment")
+        print("3. Verify Doctor Dashboard - doctor sees new appointment immediately")
+        print("4. Test Video Calling - doctor initiates call, provider gets notification")
         print("=" * 80)
         
         all_success = True
         
-        # STEP 1: Create new appointment with demo_provider
-        print("\n1️⃣ STEP 1: Create New Appointment with demo_provider/Demo123!")
+        # STEP 1: Create Emergency Appointment with new fields
+        print("\n🚨 STEP 1: Create Emergency Appointment with New Fields")
         print("-" * 60)
         
         if 'provider' not in self.tokens:
