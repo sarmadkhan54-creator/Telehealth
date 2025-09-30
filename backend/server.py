@@ -660,6 +660,11 @@ async def get_users(current_user: User = Depends(get_current_user)):
     users = await db.users.find().to_list(1000)
     return [User(**{k: v for k, v in user.items() if k != "hashed_password"}) for user in users]
 
+@api_router.get("/users/profile")
+async def get_current_user_profile(current_user: User = Depends(get_current_user)):
+    """Get current user's profile - used for token validation across devices"""
+    return {k: v for k, v in current_user.dict().items() if k not in ["hashed_password"]}
+
 @api_router.get("/users/{user_role}", response_model=List[User])
 async def get_users_by_role(user_role: str, current_user: User = Depends(get_current_user)):
     users = await db.users.find({"role": user_role, "is_active": True}).to_list(1000)
