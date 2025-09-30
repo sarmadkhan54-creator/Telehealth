@@ -1172,46 +1172,6 @@ async def get_appointment_details(appointment_id: str, current_user: User = Depe
 # Video call endpoints
 @api_router.post("/video-call/start/{appointment_id}")
 async def start_video_call(appointment_id: str, current_user: User = Depends(get_current_user)):
-    appointment = await db.appointments.find_one({"id": appointment_id})
-    if not appointment:
-        raise HTTPException(status_code=404, detail="Appointment not found")
-    
-    # Generate session token
-    session_token = str(uuid.uuid4())
-    
-    # Create video call session
-    video_session = VideoCallSession(
-        appointment_id=appointment_id,
-        provider_id=appointment["provider_id"],
-        doctor_id=current_user.id if current_user.role == "doctor" else appointment.get("doctor_id"),
-        session_token=session_token
-    )
-    
-    await db.video_sessions.insert_one(video_session.dict())
-    
-    # Notify the other participant
-    if current_user.role == "doctor":
-        target_user_id = appointment["provider_id"]
-    else:
-        target_user_id = appointment.get("doctor_id")
-    
-    if target_user_id:
-        notification = {
-            "type": "video_call_invitation",
-            "session_token": session_token,
-            "appointment_id": appointment_id,
-            "caller": current_user.full_name,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
-        await manager.send_personal_message(notification, target_user_id)
-        
-        # Send push notification
-        await send_video_call_notification(appointment_id, current_user.role)
-    
-    return {"session_token": session_token, "appointment_id": appointment_id}
-
-@api_router.post("/video-call/start/{appointment_id}")
-async def start_video_call(appointment_id: str, current_user: User = Depends(get_current_user)):
     """Start WhatsApp-like video call - doctor can tap multiple times to create new calls"""
     
     # Only doctors can initiate calls
