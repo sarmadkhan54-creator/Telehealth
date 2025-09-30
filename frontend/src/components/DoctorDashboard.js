@@ -253,7 +253,13 @@ const DoctorDashboard = ({ user, onLogout }) => {
   // Removed accept functionality - doctors can now directly video call without accepting
 
   const handleVideoCall = async (appointment) => {
-    console.log('Starting video call for appointment:', appointment.id);
+    console.log('🎥 Starting WhatsApp-like video call for appointment:', appointment.id);
+    console.log('🎯 Appointment details:', {
+      id: appointment.id,
+      type: appointment.appointment_type,
+      patient: appointment.patient?.name,
+      provider_id: appointment.provider_id
+    });
     
     // Check appointment type restrictions
     if (appointment.appointment_type === 'non_emergency') {
@@ -262,22 +268,41 @@ const DoctorDashboard = ({ user, onLogout }) => {
     }
     
     try {
+      console.log('📡 Sending video call request to backend...');
+      
       // Use the new WhatsApp-like video calling system
       const response = await axios.post(`${API}/video-call/start/${appointment.id}`);
       
+      console.log('📞 Video call response:', response.data);
+      
       if (response.data.success) {
-        const { jitsi_url, call_attempt, message } = response.data;
+        const { jitsi_url, call_attempt, message, provider_notified } = response.data;
         
         // Show success message with call attempt number
-        alert(`📞 Call ${call_attempt} initiated! ${message}`);
+        alert(`📞 Call ${call_attempt} initiated! ${message}\n${provider_notified ? '✅ Provider notified' : '⚠️ Provider notification may have failed'}`);
+        
+        console.log(`✅ Emergency video call initiated (attempt ${call_attempt}):`);
+        console.log(`   Jitsi URL: ${jitsi_url}`);
+        console.log(`   Provider notified: ${provider_notified}`);
+        console.log(`   Message: ${message}`);
         
         // Open Jitsi video call in new window
         window.open(jitsi_url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
         
-        console.log(`✅ Emergency video call started (attempt ${call_attempt}):`, jitsi_url);
+        // Force refresh appointments to update call history
+        setTimeout(() => {
+          console.log('🔄 Refreshing appointments after call initiation...');
+          fetchAppointments();
+        }, 1000);
+      } else {
+        console.error('❌ Video call failed:', response.data);
+        alert('❌ Video call initiation failed. Please try again.');
       }
     } catch (error) {
-      console.error('Error starting video call:', error);
+      console.error('❌ Error starting video call:', error);
+      console.error('   Status:', error.response?.status);
+      console.error('   Response:', error.response?.data);
+      
       const errorMessage = error.response?.data?.detail || 'Failed to start video call. Please try again.';
       alert(`❌ ${errorMessage}`);
     }
