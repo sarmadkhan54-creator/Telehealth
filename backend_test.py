@@ -560,40 +560,48 @@ class MedConnectAPITester:
         print("\n8️⃣ Testing Cross-Device Session Management")
         print("-" * 60)
         
-        # Test multiple failed login attempts
-        failed_attempts = 0
-        for i in range(5):
+        # Test multiple simultaneous sessions from different "devices"
+        device_tokens = {}
+        
+        for device_num in range(3):
             success, response = self.run_test(
-                f"Failed Login Attempt #{i+1}",
+                f"Device {device_num + 1} Login",
                 "POST",
                 "login",
-                401,
-                data={"username": "demo_provider", "password": "WrongPassword123!"}
+                200,
+                data=self.demo_credentials['provider']
             )
             
             if success:
-                failed_attempts += 1
+                device_tokens[f"device_{device_num + 1}"] = response['access_token']
+                print(f"   ✅ Device {device_num + 1} login successful")
             else:
-                # If we get a different status code (like 429 for rate limiting), note it
-                print(f"   ⚠️  Attempt #{i+1} returned unexpected status (possible rate limiting)")
-                break
+                print(f"   ❌ Device {device_num + 1} login failed")
+                all_success = False
         
-        print(f"   ✅ Completed {failed_attempts} failed login attempts")
+        # Test that all device tokens are valid simultaneously
+        valid_tokens = 0
+        for device, token in device_tokens.items():
+            success, response = self.run_test(
+                f"Token Validation - {device}",
+                "GET",
+                "users/profile",
+                200,
+                token=token
+            )
+            
+            if success:
+                valid_tokens += 1
+                print(f"   ✅ {device} token remains valid")
+            else:
+                print(f"   ❌ {device} token invalidated")
+                all_success = False
         
-        # Test if legitimate login still works after failed attempts
-        success, response = self.run_test(
-            "Legitimate Login After Failed Attempts",
-            "POST",
-            "login",
-            200,
-            data=self.demo_credentials['provider']
-        )
-        
-        if success:
-            print("   ✅ Legitimate login works after failed attempts")
+        if valid_tokens == len(device_tokens):
+            print("   ✅ Multiple device sessions supported simultaneously")
         else:
-            print("   ❌ Legitimate login blocked after failed attempts - POSSIBLE RATE LIMITING ISSUE")
-            # Don't fail the test as this might be intentional security
+            print("   ❌ Cross-device session management issues detected")
+            all_success = False
         
         # Test 8: Error response format validation
         print("\n8️⃣ Testing Error Response Format")
