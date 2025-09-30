@@ -13,16 +13,21 @@ import { pushNotificationManager } from './utils/pushNotifications';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Axios interceptor to add auth token
+// Enhanced Axios interceptor for cross-device compatibility
 axios.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      // Add additional headers for better cross-device compatibility
+      config.headers['Content-Type'] = 'application/json';
+      config.headers['Accept'] = 'application/json';
+      config.headers['Cache-Control'] = 'no-cache';
     }
     return config;
   },
   (error) => {
+    console.error('🔧 Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
