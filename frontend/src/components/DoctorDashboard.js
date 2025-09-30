@@ -475,13 +475,13 @@ const DoctorDashboard = ({ user, onLogout }) => {
           <div className="glass-card">
             <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
               <Bell className="w-6 h-6 mr-2 text-orange-600" />
-              Pending Requests
+              All Appointments
             </h3>
             <div className="text-center">
               <div className="text-3xl font-bold text-orange-600 mb-2">
-                {pendingAppointments.length}
+                {allAppointments.length}
               </div>
-              <p className="text-gray-600">Awaiting response</p>
+              <p className="text-gray-600">Available for consultation</p>
             </div>
           </div>
 
