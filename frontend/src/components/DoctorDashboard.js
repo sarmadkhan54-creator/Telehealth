@@ -617,15 +617,22 @@ const DoctorDashboard = ({ user, onLogout }) => {
 
                     <div className="ml-4 flex flex-col space-y-2">
                       <button
-                        onClick={() => handleAcceptAppointment(appointment.id)}
+                        onClick={() => handleVideoCall(appointment)}
                         className="btn-primary flex items-center space-x-2"
                       >
-                        <CheckCircle className="w-4 h-4" />
-                        <span>Accept</span>
+                        <Video className="w-4 h-4" />
+                        <span>Video Call</span>
+                      </button>
+                      <button
+                        onClick={() => handleWriteNote(appointment)}
+                        className="btn-secondary flex items-center space-x-2"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        <span>Write Note</span>
                       </button>
                       <button
                         onClick={() => viewAppointmentDetails(appointment)}
-                        className="btn-secondary flex items-center space-x-2"
+                        className="btn-tertiary flex items-center space-x-2"
                       >
                         <Eye className="w-4 h-4" />
                         <span>View Details</span>
