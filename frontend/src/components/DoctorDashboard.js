@@ -663,6 +663,30 @@ const DoctorDashboard = ({ user, onLogout }) => {
                                   <p className="font-medium">{appointment.patient.vitals.oxygen_saturation}%</p>
                                 </div>
                               )}
+                              {appointment.patient.vitals.hb && (
+                                <div className={`p-2 rounded ${
+                                  appointment.patient.vitals.hb >= 7 && appointment.patient.vitals.hb <= 18 
+                                    ? 'bg-green-50' : 'bg-red-50'
+                                }`}>
+                                  <p className={`${
+                                    appointment.patient.vitals.hb >= 7 && appointment.patient.vitals.hb <= 18 
+                                      ? 'text-green-600' : 'text-red-600'
+                                  }`}>💉 Hb</p>
+                                  <p className="font-medium">{appointment.patient.vitals.hb} g/dL</p>
+                                </div>
+                              )}
+                              {appointment.patient.vitals.sugar_level && (
+                                <div className={`p-2 rounded ${
+                                  appointment.patient.vitals.sugar_level >= 70 && appointment.patient.vitals.sugar_level <= 200 
+                                    ? 'bg-green-50' : 'bg-red-50'
+                                }`}>
+                                  <p className={`${
+                                    appointment.patient.vitals.sugar_level >= 70 && appointment.patient.vitals.sugar_level <= 200 
+                                      ? 'text-green-600' : 'text-red-600'
+                                  }`}>🍬 Sugar</p>
+                                  <p className="font-medium">{appointment.patient.vitals.sugar_level} mg/dL</p>
+                                </div>
+                              )}
                             </div>
                           </div>
                         )}
