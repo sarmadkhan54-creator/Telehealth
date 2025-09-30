@@ -406,8 +406,13 @@ const DoctorDashboard = ({ user, onLogout }) => {
     }
   };
 
+  // Pending appointments: ALL appointments with pending status (for doctors to accept)
   const pendingAppointments = appointments.filter(apt => apt.status === 'pending');
-  const myAppointments = appointments.filter(apt => apt.doctor_id === user.id);
+  
+  // My appointments: appointments assigned to this doctor (accepted/completed)
+  const myAppointments = appointments.filter(apt => 
+    apt.doctor_id === user.id && (apt.status === 'accepted' || apt.status === 'completed')
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
