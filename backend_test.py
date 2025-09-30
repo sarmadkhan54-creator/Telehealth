@@ -316,9 +316,7 @@ class MedConnectAPITester:
                 print(f"   ❌ {test_case['desc']} not handled properly")
                 # Don't fail the entire test for edge cases
         
-        # Test 4: JWT Token validation
-        print("\n4️⃣ Testing JWT Token Generation & Validation")
-        print("-" * 50)
+        # Enhanced JWT Token validation for cross-device scenarios
         
         if 'provider' in self.tokens:
             # Test valid token
