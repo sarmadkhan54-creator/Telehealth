@@ -859,12 +859,14 @@ async def create_appointment(appointment_data: AppointmentCreate, current_user: 
         "patient_name": patient.name,
         "provider_name": current_user.full_name,
         "provider_district": current_user.district,
-        "consultation_reason": patient.consultation_reason,
+        "history": patient.history,  # Updated from consultation_reason
+        "area_of_consultation": patient.area_of_consultation,  # New field
         "patient": {
             "name": patient.name,
             "age": patient.age,
             "gender": patient.gender,
-            "consultation_reason": patient.consultation_reason,
+            "history": patient.history,  # Updated field
+            "area_of_consultation": patient.area_of_consultation,  # New field
             "vitals": patient.vitals if hasattr(patient, 'vitals') and patient.vitals else {}
         },
         "timestamp": datetime.now(timezone.utc).isoformat()
