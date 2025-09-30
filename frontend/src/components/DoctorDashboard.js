@@ -936,12 +936,22 @@ const DoctorDashboard = ({ user, onLogout }) => {
                   <h4 className="text-lg font-semibold text-gray-900 mb-4">Appointment Status</h4>
                   <div className="space-y-3">
                     <div className="flex items-center space-x-3">
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      <span className={`px-3 py-1 rounded-full text-sm font-bold flex items-center space-x-1 ${
                         selectedAppointment.appointment_type === 'emergency' 
-                          ? 'bg-red-100 text-red-800' 
-                          : 'bg-green-100 text-green-800'
+                          ? 'bg-red-100 text-red-800 border-2 border-red-300' 
+                          : 'bg-blue-100 text-blue-800 border border-blue-300'
                       }`}>
-                        {selectedAppointment.appointment_type === 'emergency' ? 'EMERGENCY' : 'NON-EMERGENCY'}
+                        {selectedAppointment.appointment_type === 'emergency' ? (
+                          <>
+                            <span>⚠️</span>
+                            <span>EMERGENCY</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>📅</span>
+                            <span>NON-EMERGENCY</span>
+                          </>
+                        )}
                       </span>
                       <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                         selectedAppointment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
