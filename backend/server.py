@@ -360,13 +360,18 @@ class Appointment(BaseModel):
     patient_id: str
     provider_id: str
     doctor_id: Optional[str] = None
-    appointment_type: str  # "emergency" or "non_emergency"
-    status: str = Field(default="pending")  # pending, accepted, completed, cancelled
+    appointment_type: str  # "emergency" or "non_emergency" 
+    status: str = Field(default="pending")  # pending, in_call, completed, cancelled
     consultation_notes: Optional[str] = None
     doctor_notes: Optional[str] = None  # Notes from doctor to provider
+    call_history: List[Dict[str, Any]] = Field(default_factory=list)  # Track multiple calls
     scheduled_time: Optional[datetime] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    
+    # Multiple account support - each appointment belongs to specific provider
+    provider_name: Optional[str] = None  # For easy filtering and display
+    doctor_name: Optional[str] = None   # Track which doctor is handling
 
 class AppointmentCreate(BaseModel):
     patient: PatientCreate
