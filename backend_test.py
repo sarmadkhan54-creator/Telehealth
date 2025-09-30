@@ -141,9 +141,54 @@ class MedConnectAPITester:
                 print(f"   ❌ {role.title()} cross-device login failed - CRITICAL ISSUE")
                 all_success = False
         
-        # Test 2: Invalid credentials
-        print("\n2️⃣ Testing Invalid Credentials")
-        print("-" * 50)
+        # Test 2: New User Profile Validation Endpoint
+        print("\n2️⃣ Testing New User Profile Validation Endpoint")
+        print("-" * 60)
+        
+        for role in ['provider', 'doctor', 'admin']:
+            if role in self.tokens:
+                success, response = self.run_test(
+                    f"Profile Validation - {role.title()}",
+                    "GET",
+                    "users/profile",
+                    200,
+                    token=self.tokens[role]
+                )
+                
+                if success:
+                    print(f"   ✅ {role.title()} profile validation successful")
+                    print(f"   Profile ID: {response.get('id', 'N/A')}")
+                    print(f"   Profile Role: {response.get('role', 'N/A')}")
+                    print(f"   Profile Active: {response.get('is_active', 'N/A')}")
+                    
+                    # Verify profile data matches login data
+                    if response.get('id') == self.users[role].get('id'):
+                        print(f"   ✅ Profile data matches login data for {role}")
+                    else:
+                        print(f"   ❌ Profile data mismatch for {role}")
+                        all_success = False
+                else:
+                    print(f"   ❌ {role.title()} profile validation failed")
+                    all_success = False
+        
+        # Test profile endpoint without token (should fail)
+        success, response = self.run_test(
+            "Profile Validation - No Token",
+            "GET",
+            "users/profile",
+            403,
+            token=None
+        )
+        
+        if success:
+            print("   ✅ Profile endpoint correctly requires authentication")
+        else:
+            print("   ❌ Profile endpoint security issue - no token accepted")
+            all_success = False
+
+        # Test 3: Invalid credentials and error handling
+        print("\n3️⃣ Testing Invalid Credentials & Error Handling")
+        print("-" * 60)
         
         invalid_tests = [
             {"username": "demo_provider", "password": "WrongPassword123!", "desc": "Wrong Password"},
