@@ -252,6 +252,37 @@ const DoctorDashboard = ({ user, onLogout }) => {
 
   // Removed accept functionality - doctors can now directly video call without accepting
 
+  const handleVideoCall = (appointment) => {
+    console.log('Starting video call for appointment:', appointment.id);
+    
+    // Create meeting ID based on appointment
+    const meetingId = `appointment-${appointment.id}`;
+    const meetingUrl = `https://meet.jit.si/${meetingId}`;
+    
+    // Open video call in new window
+    window.open(meetingUrl, '_blank', 'width=1200,height=800');
+    
+    // Notify provider about the video call
+    try {
+      axios.post(`${API}/notifications/send`, {
+        recipient_id: appointment.provider_id,
+        type: 'video_call_started',
+        message: `Dr. ${user.full_name} started video call for ${appointment.patient?.name}`,
+        appointment_id: appointment.id,
+        meeting_url: meetingUrl
+      });
+    } catch (error) {
+      console.error('Error sending video call notification:', error);
+    }
+  };
+
+  const handleWriteNote = (appointment) => {
+    console.log('Writing note for appointment:', appointment.id);
+    setSelectedAppointment(appointment);
+    setShowAppointmentModal(true);
+    setNoteText('');
+  };
+
   const handleCompleteAppointment = async (appointmentId) => {
     try {
       console.log('Completing appointment:', appointmentId);
