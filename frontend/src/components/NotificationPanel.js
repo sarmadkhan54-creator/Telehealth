@@ -570,18 +570,6 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
                             <Phone className="w-3 h-3" />
                             <span>Call Provider</span>
                           </button>
-                          
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleAcceptAppointment(notification.data.appointment_id);
-                              markAsRead(notification.id);
-                            }}
-                            className="flex items-center space-x-1 px-3 py-1 bg-blue-500 text-white text-xs rounded-full hover:bg-blue-600 transition-colors"
-                          >
-                            <CheckCircle className="w-3 h-3" />
-                            <span>Accept</span>
-                          </button>
                         </div>
                       )}
 
