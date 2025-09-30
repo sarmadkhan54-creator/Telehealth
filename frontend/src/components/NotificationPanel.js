@@ -340,44 +340,7 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
     localStorage.removeItem(`notifications_${user.id}`);
   };
 
-  const handleAcceptAppointment = async (appointmentId) => {
-    try {
-      console.log('Accepting appointment from notification:', appointmentId);
-      
-      const response = await fetch(`${API}/appointments/${appointmentId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        },
-        body: JSON.stringify({
-          status: 'accepted',
-          doctor_id: user.id
-        })
-      });
-      
-      if (response.ok) {
-        console.log('✅ Appointment accepted successfully from notification');
-        alert('Appointment accepted successfully!');
-        
-        // Remove the notification or mark it as handled
-        setNotifications(prev => 
-          prev.filter(n => n.data.appointment_id !== appointmentId)
-        );
-        
-        // Trigger dashboard refresh if parent components need updating
-        window.dispatchEvent(new CustomEvent('appointmentUpdated'));
-        
-      } else {
-        const errorData = await response.json();
-        console.error('Failed to accept appointment:', errorData);
-        alert('Failed to accept appointment. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error accepting appointment from notification:', error);
-      alert('Error accepting appointment. Please try again.');
-    }
-  };
+  // Accept functionality removed - doctors can now directly video call from dashboard
 
   const startVideoCall = async (appointmentId) => {
     try {
