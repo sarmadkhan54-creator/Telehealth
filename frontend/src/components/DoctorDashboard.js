@@ -589,12 +589,22 @@ const DoctorDashboard = ({ user, onLogout }) => {
                         <h3 className="font-semibold text-lg text-gray-900">
                           {appointment.patient?.name}
                         </h3>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-1 ${
                           appointment.appointment_type === 'emergency' 
-                            ? 'bg-red-100 text-red-800' 
-                            : 'bg-green-100 text-green-800'
+                            ? 'bg-red-100 text-red-800 border-2 border-red-300' 
+                            : 'bg-blue-100 text-blue-800 border border-blue-300'
                         }`}>
-                          {appointment.appointment_type === 'emergency' ? 'EMERGENCY' : 'ROUTINE'}
+                          {appointment.appointment_type === 'emergency' ? (
+                            <>
+                              <span>⚠️</span>
+                              <span>EMERGENCY</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>📅</span>
+                              <span>NON-EMERGENCY</span>
+                            </>
+                          )}
                         </span>
                       </div>
                       
@@ -717,12 +727,22 @@ const DoctorDashboard = ({ user, onLogout }) => {
                         <span className={`status-badge ${getStatusColor(appointment.status)}`}>
                           {appointment.status}
                         </span>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-1 ${
                           appointment.appointment_type === 'emergency' 
-                            ? 'bg-red-100 text-red-800' 
-                            : 'bg-green-100 text-green-800'
+                            ? 'bg-red-100 text-red-800 border-2 border-red-300' 
+                            : 'bg-blue-100 text-blue-800 border border-blue-300'
                         }`}>
-                          {appointment.appointment_type === 'emergency' ? 'EMERGENCY' : 'ROUTINE'}
+                          {appointment.appointment_type === 'emergency' ? (
+                            <>
+                              <span>⚠️</span>
+                              <span>EMERGENCY</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>📅</span>
+                              <span>NON-EMERGENCY</span>
+                            </>
+                          )}
                         </span>
                       </div>
                       
