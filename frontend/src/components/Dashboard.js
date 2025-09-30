@@ -614,6 +614,19 @@ const Dashboard = ({ user, onLogout }) => {
               <p className="font-semibold text-gray-900">{user.full_name}</p>
               <p className="text-sm text-gray-600">{user.district}</p>
             </div>
+            {/* Force Refresh Button */}
+            <button
+              onClick={() => {
+                console.log('🔄 Manual refresh triggered');
+                fetchAppointments();
+              }}
+              className="flex items-center space-x-2 px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              title="Refresh Appointments"
+            >
+              <Calendar className="w-5 h-5" />
+              <span className="hidden sm:inline">Refresh</span>
+            </button>
+            
             <button
               onClick={() => setShowNotificationPanel(true)}
               className="flex items-center space-x-2 px-3 py-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors relative"
