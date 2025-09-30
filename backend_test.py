@@ -318,51 +318,61 @@ class MedConnectAPITester:
         
         # Enhanced JWT Token validation for cross-device scenarios
         
-        if 'provider' in self.tokens:
-            # Test valid token
+        # Test token validation across different endpoints
+        for role in ['provider', 'doctor', 'admin']:
+            if role in self.tokens:
+                # Test valid token with profile endpoint
+                success, response = self.run_test(
+                    f"Valid Token - Profile Access ({role})",
+                    "GET",
+                    "users/profile",
+                    200,
+                    token=self.tokens[role]
+                )
+                
+                if success:
+                    print(f"   ✅ Valid JWT token accepted for {role}")
+                else:
+                    print(f"   ❌ Valid JWT token rejected for {role} - CRITICAL ISSUE")
+                    all_success = False
+        
+        # Test various invalid token scenarios
+        invalid_token_tests = [
+            {"token": "invalid.jwt.token", "desc": "Malformed JWT"},
+            {"token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.invalid.signature", "desc": "Invalid Signature"},
+            {"token": "", "desc": "Empty Token"},
+            {"token": "Bearer invalid-format", "desc": "Wrong Format"},
+        ]
+        
+        for test_case in invalid_token_tests:
             success, response = self.run_test(
-                "Valid Token - Get Appointments",
+                f"Invalid Token Test - {test_case['desc']}",
                 "GET",
-                "appointments",
-                200,
-                token=self.tokens['provider']
-            )
-            
-            if success:
-                print("   ✅ Valid JWT token accepted")
-            else:
-                print("   ❌ Valid JWT token rejected - CRITICAL ISSUE")
-                all_success = False
-            
-            # Test invalid token
-            success, response = self.run_test(
-                "Invalid Token - Get Appointments",
-                "GET",
-                "appointments",
+                "users/profile",
                 401,
-                token="invalid.jwt.token"
+                token=test_case['token']
             )
             
             if success:
-                print("   ✅ Invalid JWT token correctly rejected")
+                print(f"   ✅ {test_case['desc']} correctly rejected")
             else:
-                print("   ❌ Invalid JWT token accepted - SECURITY ISSUE")
+                print(f"   ❌ {test_case['desc']} not properly rejected - SECURITY ISSUE")
                 all_success = False
-            
-            # Test missing token
-            success, response = self.run_test(
-                "Missing Token - Get Appointments",
-                "GET",
-                "appointments",
-                403,
-                token=None
-            )
-            
-            if success:
-                print("   ✅ Missing token correctly rejected")
-            else:
-                print("   ❌ Missing token accepted - SECURITY ISSUE")
-                all_success = False
+        
+        # Test missing token
+        success, response = self.run_test(
+            "Missing Token - Profile Access",
+            "GET",
+            "users/profile",
+            403,
+            token=None
+        )
+        
+        if success:
+            print("   ✅ Missing token correctly rejected")
+        else:
+            print("   ❌ Missing token accepted - SECURITY ISSUE")
+            all_success = False
         
         # Test 5: CORS and network accessibility
         print("\n5️⃣ Testing CORS & Network Accessibility")
