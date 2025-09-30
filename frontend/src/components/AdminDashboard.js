@@ -778,6 +778,78 @@ const AdminDashboard = ({ user, onLogout }) => {
   };
 
   // User management functions (Admin only)
+  const handleViewPassword = async (userId, username) => {
+    if (user.role !== 'admin') {
+      alert('Access Denied: Only administrators can view passwords');
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${API}/admin/users/${userId}/password`, getAxiosConfig());
+      alert(`Password for ${username}: ${response.data.password}`);
+    } catch (error) {
+      console.error('Error fetching password:', error);
+      alert(error.response?.data?.detail || 'Failed to fetch password');
+    }
+  };
+
+  const handlePermanentDeleteUser = async (userId, userName) => {
+    if (user.role !== 'admin') {
+      alert('Access Denied: Only administrators can permanently delete users');
+      return;
+    }
+
+    if (userId === user.id) {
+      alert('Error: You cannot delete your own admin account');
+      return;
+    }
+
+    const confirmed = window.confirm(`⚠️ PERMANENT DELETE: Are you sure you want to permanently delete user "${userName}"? This action cannot be undone and will remove all associated data.`);
+    if (!confirmed) return;
+
+    const doubleConfirmed = window.confirm(`🚨 FINAL CONFIRMATION: This will permanently remove "${userName}" and all their data from the system. Type 'PERMANENT DELETE' to proceed.`);
+    if (!doubleConfirmed) return;
+
+    try {
+      console.log('Attempting to permanently delete user:', userId);
+      
+      const response = await axios.delete(`${API}/admin/users/${userId}/permanent`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('Permanent delete response:', response.data);
+      
+      // Force immediate UI update by filtering out the deleted user
+      setUsers(prevUsers => {
+        const updatedUsers = prevUsers.filter(u => u.id !== userId);
+        console.log('Updated users list:', updatedUsers.length, 'users remaining');
+        return updatedUsers;
+      });
+      
+      alert(`User "${userName}" permanently deleted successfully`);
+      
+      // Force multiple refresh attempts to ensure UI updates
+      setTimeout(async () => {
+        console.log('First refresh after permanent user deletion...');
+        await fetchData();
+      }, 100);
+      
+      setTimeout(async () => {
+        console.log('Second refresh after permanent user deletion...');
+        await fetchData();
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Error permanently deleting user:', error);
+      alert(error.response?.data?.detail || 'Failed to permanently delete user');
+      // Refresh data even on error to check current state
+      await fetchData();
+    }
+  };
+
   const handleEditUser = (userId) => {
     if (user.role !== 'admin') {
       alert('Access Denied: Only administrators can edit users');
