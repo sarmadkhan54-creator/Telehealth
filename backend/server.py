@@ -351,8 +351,9 @@ class PatientCreate(BaseModel):
     name: str
     age: int
     gender: str
-    vitals: Dict[str, Any] = Field(default_factory=dict)
-    consultation_reason: str
+    vitals: Dict[str, Any] = Field(default_factory=dict)  # Will include: BP, HR, Temp, O2, Hb, Sugar Level
+    history: str  # Replaced consultation_reason with history
+    area_of_consultation: str  # New field for area of consultation
 
 class Appointment(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
