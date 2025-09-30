@@ -556,9 +556,9 @@ class MedConnectAPITester:
                     print(f"   ❌ Sensitive fields exposed: {exposed_fields}")
                     all_success = False
         
-        # Test 7: Rate limiting and security measures
-        print("\n7️⃣ Testing Rate Limiting & Security Measures")
-        print("-" * 50)
+        # Test 8: Cross-Device Session Management
+        print("\n8️⃣ Testing Cross-Device Session Management")
+        print("-" * 60)
         
         # Test multiple failed login attempts
         failed_attempts = 0
