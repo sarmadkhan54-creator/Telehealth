@@ -70,8 +70,17 @@ const DoctorDashboard = ({ user, onLogout }) => {
     // Set up auto-refresh interval as fallback
     const refreshInterval = setInterval(fetchAppointments, 30000); // Refresh every 30 seconds
     
+    // Listen for appointment updates from notifications
+    const handleAppointmentUpdate = () => {
+      console.log('🔄 Appointment updated - refreshing dashboard');
+      fetchAppointments();
+    };
+
+    window.addEventListener('appointmentUpdated', handleAppointmentUpdate);
+    
     return () => {
       clearInterval(refreshInterval);
+      window.removeEventListener('appointmentUpdated', handleAppointmentUpdate);
     };
   }, []);
 
