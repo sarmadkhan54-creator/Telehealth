@@ -474,9 +474,9 @@ class MedConnectAPITester:
             print(f"   ❌ Network error handling test failed: {str(e)}")
             all_success = False
         
-        # Test 6: Database connection and user records
-        print("\n6️⃣ Testing Database Connection & User Records")
-        print("-" * 50)
+        # Test 7: Authentication Headers and Response Handling
+        print("\n7️⃣ Testing Authentication Headers & Response Handling")
+        print("-" * 60)
         
         if 'admin' in self.tokens:
             success, response = self.run_test(
