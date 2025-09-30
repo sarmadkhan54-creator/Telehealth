@@ -6070,6 +6070,364 @@ def main():
         
         return all_success
 
+    def test_appointment_visibility_and_calling_diagnosis(self):
+        """🎯 DIAGNOSE APPOINTMENT VISIBILITY AND CALLING ISSUES"""
+        print("\n🎯 APPOINTMENT VISIBILITY AND CALLING DIAGNOSIS")
+        print("=" * 80)
+        print("Testing specific issues: appointment visibility and calling functionality")
+        print("Focus: Provider creates appointment → Doctor sees it → Video call works")
+        print("=" * 80)
+        
+        all_success = True
+        
+        # STEP 1: Create new appointment with demo_provider
+        print("\n1️⃣ STEP 1: Create New Appointment with demo_provider/Demo123!")
+        print("-" * 60)
+        
+        if 'provider' not in self.tokens:
+            print("❌ No provider token available")
+            return False
+        
+        # Create realistic appointment data
+        appointment_data = {
+            "patient": {
+                "name": "Sarah Johnson",
+                "age": 28,
+                "gender": "Female",
+                "vitals": {
+                    "blood_pressure": "130/85",
+                    "heart_rate": 88,
+                    "temperature": 99.2,
+                    "oxygen_saturation": 97,
+                    "hb": 12.5,
+                    "sugar_level": 110
+                },
+                "history": "Severe chest pain and shortness of breath for 2 hours",
+                "area_of_consultation": "Emergency Medicine"
+            },
+            "appointment_type": "emergency",
+            "consultation_notes": "URGENT: Patient experiencing severe chest pain, needs immediate attention"
+        }
+        
+        success, response = self.run_test(
+            "Create Emergency Appointment (Provider)",
+            "POST",
+            "appointments",
+            200,
+            data=appointment_data,
+            token=self.tokens['provider']
+        )
+        
+        if not success:
+            print("❌ CRITICAL: Provider cannot create appointment")
+            return False
+        
+        new_appointment_id = response.get('id')
+        print(f"   ✅ Emergency appointment created successfully")
+        print(f"   Appointment ID: {new_appointment_id}")
+        print(f"   Patient: {appointment_data['patient']['name']}")
+        print(f"   Type: {appointment_data['appointment_type']}")
+        print(f"   Provider ID: {self.users['provider']['id']}")
+        
+        # STEP 2: Check if appointment appears in provider's own dashboard
+        print("\n2️⃣ STEP 2: Check Provider's Own Dashboard")
+        print("-" * 60)
+        
+        success, provider_appointments = self.run_test(
+            "Get Provider's Appointments",
+            "GET",
+            "appointments",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if not success:
+            print("❌ CRITICAL: Provider cannot access their own appointments")
+            all_success = False
+        else:
+            # Check if new appointment is visible
+            provider_appointment_ids = [apt.get('id') for apt in provider_appointments]
+            if new_appointment_id in provider_appointment_ids:
+                print(f"   ✅ New appointment visible in provider dashboard")
+                print(f"   Total provider appointments: {len(provider_appointments)}")
+                
+                # Verify filtering logic - all should belong to this provider
+                provider_id = self.users['provider']['id']
+                own_appointments = [apt for apt in provider_appointments if apt.get('provider_id') == provider_id]
+                other_appointments = [apt for apt in provider_appointments if apt.get('provider_id') != provider_id]
+                
+                print(f"   Provider-owned appointments: {len(own_appointments)}")
+                print(f"   Other-owned appointments: {len(other_appointments)}")
+                
+                if len(other_appointments) == 0:
+                    print("   ✅ Provider filtering working correctly (only sees own appointments)")
+                else:
+                    print("   ❌ Provider filtering broken (seeing other providers' appointments)")
+                    all_success = False
+            else:
+                print("   ❌ CRITICAL: New appointment NOT visible in provider dashboard")
+                all_success = False
+        
+        # STEP 3: Check if appointment appears in doctor's dashboard
+        print("\n3️⃣ STEP 3: Check Doctor's Dashboard")
+        print("-" * 60)
+        
+        if 'doctor' not in self.tokens:
+            print("❌ No doctor token available")
+            return False
+        
+        success, doctor_appointments = self.run_test(
+            "Get Doctor's Appointments",
+            "GET",
+            "appointments",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if not success:
+            print("❌ CRITICAL: Doctor cannot access appointments")
+            all_success = False
+        else:
+            # Check if new appointment is visible to doctor
+            doctor_appointment_ids = [apt.get('id') for apt in doctor_appointments]
+            if new_appointment_id in doctor_appointment_ids:
+                print(f"   ✅ New appointment visible in doctor dashboard")
+                print(f"   Total doctor appointments: {len(doctor_appointments)}")
+                
+                # Verify doctor sees ALL appointments (no filtering)
+                print(f"   Doctor sees {len(doctor_appointments)} total appointments")
+                
+                # Find the specific appointment
+                target_appointment = None
+                for apt in doctor_appointments:
+                    if apt.get('id') == new_appointment_id:
+                        target_appointment = apt
+                        break
+                
+                if target_appointment:
+                    print(f"   Appointment status: {target_appointment.get('status', 'unknown')}")
+                    print(f"   Appointment type: {target_appointment.get('appointment_type', 'unknown')}")
+                    print(f"   Patient name: {target_appointment.get('patient', {}).get('name', 'unknown')}")
+                    print("   ✅ Appointment data structure complete")
+                else:
+                    print("   ❌ Could not find appointment details")
+                    all_success = False
+            else:
+                print("   ❌ CRITICAL: New appointment NOT visible in doctor dashboard")
+                all_success = False
+        
+        # STEP 4: Test video call initiation from doctor to provider
+        print("\n4️⃣ STEP 4: Test Video Call Initiation (Doctor → Provider)")
+        print("-" * 60)
+        
+        success, call_response = self.run_test(
+            "Doctor Initiates Video Call",
+            "POST",
+            f"video-call/start/{new_appointment_id}",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if not success:
+            print("❌ CRITICAL: Doctor cannot initiate video call")
+            all_success = False
+        else:
+            call_id = call_response.get('call_id')
+            jitsi_url = call_response.get('jitsi_url')
+            room_name = call_response.get('room_name')
+            provider_notified = call_response.get('provider_notified', False)
+            
+            print(f"   ✅ Video call initiated successfully")
+            print(f"   Call ID: {call_id}")
+            print(f"   Jitsi URL: {jitsi_url}")
+            print(f"   Room Name: {room_name}")
+            print(f"   Provider Notified: {provider_notified}")
+            
+            if not jitsi_url or not room_name:
+                print("   ❌ Missing Jitsi URL or room name")
+                all_success = False
+            
+            if not provider_notified:
+                print("   ❌ Provider was not notified of incoming call")
+                all_success = False
+        
+        # STEP 5: Test WebSocket notification system
+        print("\n5️⃣ STEP 5: Test WebSocket Notification System")
+        print("-" * 60)
+        
+        # Test WebSocket status endpoint
+        success, ws_status = self.run_test(
+            "WebSocket Status Check",
+            "GET",
+            "websocket/status",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if success:
+            total_connections = ws_status.get('websocket_status', {}).get('total_connections', 0)
+            connected_users = ws_status.get('websocket_status', {}).get('connected_users', [])
+            current_user_connected = ws_status.get('current_user_connected', False)
+            
+            print(f"   ✅ WebSocket status accessible")
+            print(f"   Total connections: {total_connections}")
+            print(f"   Connected users: {len(connected_users)}")
+            print(f"   Current user connected: {current_user_connected}")
+        else:
+            print("   ❌ WebSocket status not accessible")
+            all_success = False
+        
+        # Test WebSocket test message
+        success, test_msg_response = self.run_test(
+            "WebSocket Test Message",
+            "POST",
+            "websocket/test-message",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if success:
+            message_sent = test_msg_response.get('message_sent', False)
+            user_connected = test_msg_response.get('user_connected', False)
+            
+            print(f"   ✅ WebSocket test message system working")
+            print(f"   Message sent: {message_sent}")
+            print(f"   User connected: {user_connected}")
+            
+            if not message_sent:
+                print("   ⚠️  WebSocket message delivery may have issues")
+        else:
+            print("   ❌ WebSocket test message failed")
+            all_success = False
+        
+        # STEP 6: Verify appointment filtering logic
+        print("\n6️⃣ STEP 6: Verify Appointment Filtering Logic")
+        print("-" * 60)
+        
+        # Get appointments for all roles and verify filtering
+        roles_data = {}
+        
+        for role in ['provider', 'doctor', 'admin']:
+            if role in self.tokens:
+                success, appointments = self.run_test(
+                    f"Get Appointments ({role.title()})",
+                    "GET",
+                    "appointments",
+                    200,
+                    token=self.tokens[role]
+                )
+                
+                if success:
+                    roles_data[role] = {
+                        'total': len(appointments),
+                        'appointments': appointments
+                    }
+                    print(f"   {role.title()} sees {len(appointments)} appointments")
+                else:
+                    print(f"   ❌ {role.title()} cannot access appointments")
+                    all_success = False
+        
+        # Verify filtering logic
+        if 'provider' in roles_data and 'doctor' in roles_data:
+            provider_count = roles_data['provider']['total']
+            doctor_count = roles_data['doctor']['total']
+            
+            print(f"   Provider appointments: {provider_count}")
+            print(f"   Doctor appointments: {doctor_count}")
+            
+            # Doctor should see same or more appointments than provider
+            if doctor_count >= provider_count:
+                print("   ✅ Doctor sees appropriate number of appointments")
+            else:
+                print("   ❌ Doctor sees fewer appointments than provider (filtering issue)")
+                all_success = False
+            
+            # Verify provider only sees own appointments
+            provider_appointments = roles_data['provider']['appointments']
+            provider_id = self.users['provider']['id']
+            
+            non_own_appointments = [
+                apt for apt in provider_appointments 
+                if apt.get('provider_id') != provider_id
+            ]
+            
+            if len(non_own_appointments) == 0:
+                print("   ✅ Provider filtering working correctly")
+            else:
+                print(f"   ❌ Provider seeing {len(non_own_appointments)} appointments from other providers")
+                all_success = False
+        
+        # STEP 7: Database state verification
+        print("\n7️⃣ STEP 7: Database State Verification")
+        print("-" * 60)
+        
+        # Get detailed appointment information
+        success, appointment_details = self.run_test(
+            "Get Appointment Details",
+            "GET",
+            f"appointments/{new_appointment_id}",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if success:
+            print("   ✅ Appointment details accessible")
+            
+            # Verify appointment structure
+            required_fields = ['id', 'patient_id', 'provider_id', 'appointment_type', 'status']
+            missing_fields = [field for field in required_fields if field not in appointment_details]
+            
+            if not missing_fields:
+                print("   ✅ Appointment has all required fields")
+                
+                # Verify patient data
+                patient_data = appointment_details.get('patient', {})
+                if patient_data:
+                    patient_vitals = patient_data.get('vitals', {})
+                    required_vitals = ['blood_pressure', 'heart_rate', 'temperature', 'oxygen_saturation']
+                    
+                    vitals_present = sum(1 for vital in required_vitals if vital in patient_vitals)
+                    print(f"   Patient vitals present: {vitals_present}/{len(required_vitals)}")
+                    
+                    if vitals_present >= 3:
+                        print("   ✅ Patient data structure adequate")
+                    else:
+                        print("   ❌ Patient data incomplete")
+                        all_success = False
+                else:
+                    print("   ❌ Patient data missing")
+                    all_success = False
+            else:
+                print(f"   ❌ Appointment missing fields: {missing_fields}")
+                all_success = False
+        else:
+            print("   ❌ Cannot access appointment details")
+            all_success = False
+        
+        # Final diagnosis summary
+        print("\n" + "=" * 80)
+        print("🎯 APPOINTMENT VISIBILITY AND CALLING DIAGNOSIS SUMMARY")
+        print("=" * 80)
+        
+        if all_success:
+            print("✅ DIAGNOSIS COMPLETE: ALL SYSTEMS OPERATIONAL")
+            print("✅ Appointment creation working correctly")
+            print("✅ Provider dashboard shows own appointments")
+            print("✅ Doctor dashboard shows all appointments")
+            print("✅ Video call initiation working")
+            print("✅ WebSocket notification system functional")
+            print("✅ Appointment filtering logic correct")
+            print("✅ Database state consistent")
+            print("\n🎯 CONCLUSION: Backend appointment and calling systems are FULLY OPERATIONAL")
+            print("If issues persist, they are likely in FRONTEND implementation")
+        else:
+            print("❌ DIAGNOSIS COMPLETE: ISSUES DETECTED")
+            print("❌ Some appointment visibility or calling functionality failed")
+            print("❌ Check specific failed tests above for details")
+            print("\n🎯 CONCLUSION: Backend issues found that need fixing")
+        
+        return all_success
+
 if __name__ == "__main__":
     # Run the appointment workflow debugging test as requested in review
     tester = MedConnectAPITester()
