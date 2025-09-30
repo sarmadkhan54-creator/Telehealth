@@ -1,77 +1,85 @@
 <analysis>
-The AI engineer's work primarily involved a reactive cycle of bug fixing and feature enhancement based on user reports. Initial efforts focused on fixing authentication (bcrypt incompatibility,  bug), refactoring video calls to Jitsi, and improving notification and admin functionalities. After a comprehensive summary claiming resolution, the user reported new dashboard update and call handling issues, leading to the involvement of a . The agent identified deeper issues like silent WebSocket disconnections, frontend race conditions, and missing server-side call redial logic. The engineer then meticulously implemented fixes for these root causes, including enhancing WebSocket stability, adding call tracking and redialing, improving error handling, and debouncing dashboard updates. The trajectory concludes with a successful backend test of these critical fixes, awaiting user verification or frontend testing.
+The trajectory documents a reactive development cycle, initially driven by user bug reports that turned out to be non-issues or environment-specific problems. The AI engineer first investigated dashboard and call redialing failures (Messages 5-42). Using screenshots and backend testing, the engineer proved the features were working correctly, concluding the issue was likely on the user's end (caching, network).
+
+Next, the user reported a critical bug where admins couldn't add/remove users (Message 43). Again, the engineer conducted a thorough investigation, using backend testing and frontend inspection, and proved that admin CRUD operations were fully functional (Messages 45-68). The issue was attributed to a transient session timeout during testing, not a systemic failure.
+
+The interaction then pivoted from bug fixing to feature enhancement based on a new set of user requests (Message 69). The engineer systematically implemented three key features: (1) Enhanced admin permissions to view passwords and permanently delete users, updating both frontend () and backend (). (2) Fixed appointment visibility logic for doctors and providers by adjusting frontend filtering in  and verifying backend logic. (3) Added the ability for doctors to accept appointments directly from the  and added a real-time update listener to the doctor's dashboard.
+
+The work concluded with comprehensive backend testing and visual verification via screenshots, confirming all new features were successfully implemented and operational (Messages 141-144).
 </analysis>
 
 <product_requirements>
-The telehealth MVP is a responsive, tablet-optimized application (FastAPI, React, MongoDB) supporting Provider, Doctor, and Admin roles with secure authentication. It manages appointments (emergency/non-emergency, CRUD) and utilizes Jitsi Meet for video calls, replacing a problematic WebRTC implementation. A WebSocket-based real-time notification system provides auto-refresh and ringing popups. Recent branding enhancements include Greenstar, robust admin CRUD for users/appointments, and CSV export. The refined appointment workflow involves doctors sending notes and providers managing appointments. Key requirements include PWA conversion, multi-device accessibility with a WhatsApp-like calling experience, comprehensive notifications with categories (All, Calls, Appointments, Unread), provider-specific appointment filtering, real-time dashboard updates for both roles, and automatic call redialing if a call ends.
+The application is a telehealth MVP for Provider, Doctor, and Admin roles, built on FastAPI, React, and MongoDB. The core functionality revolves around managing appointments and conducting video calls via Jitsi.
+
+Initial user requests focused on fixing perceived bugs:
+1.  **Dashboard Failures**: Doctor and Provider dashboards were reported as not showing or updating appointment data.
+2.  **Call Redialing**: The feature for automatically redialing a call after it ends was reported as non-functional.
+3.  **Admin CRUD**: Admins were reportedly unable to add or delete users, despite receiving success messages.
+
+After investigation proved these features were working, the user provided a new set of explicit feature requirements:
+1.  **Enhanced Admin Permissions**: Admins must be able to view user passwords, disable accounts, and permanently delete users, with changes reflected immediately.
+2.  **Correct Doctor Appointment Visibility**: New appointments must appear immediately in the doctor's dashboard to enable call initiation.
+3.  **Provider Appointment Visibility**: Providers must be able to see the appointments they create in their own dashboard.
+4.  **In-Notification Calling**: Doctors should be able to accept appointments and initiate calls directly from the notification panel.
 </product_requirements>
 
 <key_technical_concepts>
-- **Full-Stack:** FastAPI, React.js, MongoDB.
-- **UI/UX:** Tailwind CSS, Responsive Design.
-- **Authentication:** JWT, , , Axios interceptors for 401.
-- **Communication:** WebSockets (with heartbeat and reconnection), Jitsi Meet (video calls).
-- **Mobile Accessibility:** PWA (manifest, service worker).
-- **Deployment:** Kubernetes, Supervisor.
+- **Full-Stack Frameworks**: FastAPI (Python) for the backend, React.js for the frontend.
+- **Database**: MongoDB for data persistence.
+- **Real-Time Communication**: WebSockets for live notifications and dashboard updates.
+- **Authentication**: JWT-based authentication with role-based access control.
+- **Video Conferencing**: Integration with Jitsi Meet for video calls.
+- **UI/Styling**: Tailwind CSS for styling components.
+- **Asynchronous Operations**: Axios for frontend API calls, extensive use of  in both frontend and backend.
 </key_technical_concepts>
 
 <code_architecture>
-The application employs a client-server architecture with React for the frontend, FastAPI for the backend, and MongoDB as the database.
+The application uses a standard client-server architecture. The frontend is a React single-page application that communicates with a FastAPI backend via a RESTful API and WebSockets.
 
 **Directory Structure:**
 
 
--   : Core FastAPI app.
-    -   **Importance**: Centralizes API endpoints, authentication, user/appointment management, and WebSocket communication.
-    -   **Changes**: Refactored video call logic to Jitsi URLs; enhanced notification models/endpoints; modified appointment visibility queries; improved user/appointment deletion logic; temporarily disabled push notifications due to  issues; increased JWT token expiration to 8 hours; added  endpoint; fixed  to log errors instead of silently failing; implemented WebSocket heartbeat; added call tracking for ,  with redial logic.
--   : Handles client-side routing and authentication context.
-    -   **Importance**: Entry point for React app, manages global state, authentication, and routing.
-    -   **Changes**: Fixed a bug clearing  (initially, then confirmed it was not present later); added Axios response interceptor for graceful 401 error handling.
--   : Provider's dashboard.
-    -   **Importance**: Displays provider-specific appointments, notifications, and call options.
-    -   **Changes**: Modified  for Jitsi; integrated  and ; added appointment cancellation functionality; enhanced WebSocket handling for notifications/auto-refresh with reconnection logic and error handling; improved  with robust error handling; fixed WebSocket reconnection logic.
--   : Doctor's dashboard.
-    -   **Importance**: Displays doctor-specific appointments (pending), and call options.
-    -   **Changes**: Modified  for Jitsi; integrated  and ; fixed  redeclaration; enhanced WebSocket handling for  notifications and auto-refresh with reconnection logic and error handling; improved , ,  with better error handling and user feedback; implemented debounced refresh.
--   : Admin interface.
-    -   **Importance**: Provides CRUD operations for users and appointments.
-    -   **Changes**: Fixed  and  for proper UI refresh; added a Clean All Appointments button linked to the new backend endpoint.
--   : **NEW FILE**.
-    -   **Importance**: Implements a comprehensive notification UI with various tabs and direct calling options.
-    -   **Changes**: Added robust error handling, data validation, and storage limits to prevent crashes; enhanced  and  functions.
--   : **NEW FILE**.
-    -   **Importance**: Component for direct calls.
-    -   **Changes**: Enhanced with automatic redialing logic (up to 3 attempts with 30-second delays) and visual feedback.
--   :
-    -   **Importance**: Styling for the application.
-    -   **Changes**: Added CSS for danger buttons and responsive design for 10-inch Android tablets.
+-   ****
+    -   **Importance**: This is the core of the backend, defining all API endpoints, WebSocket logic, database models (Pydantic), and business logic for users, appointments, and authentication.
+    -   **Changes Made**: New endpoints were added to support enhanced admin functionalities: viewing a user's password, disabling a user account, and permanently deleting a user. The logic for fetching appointments was verified to correctly filter by  for providers and show all to doctors.
+
+-   ****
+    -   **Importance**: The UI for all administrative tasks, including user and appointment management.
+    -   **Changes Made**: The UI was significantly updated to support the new admin permissions. View Password, Disable, and Permanent Delete (with a 💀 icon) functionalities were added to the user management table, along with the corresponding API calls to the backend.
+
+-   ****
+    -   **Importance**: The main interface for doctors to view and manage their assigned appointments.
+    -   **Changes Made**: The appointment filtering logic was corrected. The Pending Requests section was updated to show all appointments with a 'pending' status (not just those already assigned), and My Appointments was set to show appointments specifically assigned to the logged-in doctor. An event listener () was added to automatically refresh the data when an appointment's status changes.
+
+-   ****
+    -   **Importance**: The main interface for providers, where they create and view appointments.
+    -   **Changes Made**: The component was investigated to confirm it was correctly fetching appointments. No code changes were ultimately needed as the backend already handled the filtering to show only the provider's own appointments.
+
+-   ****
+    -   **Importance**: A centralized UI for displaying real-time notifications to users.
+    -   **Changes Made**: Functionality was added to allow doctors to directly accept an appointment from within a notification. An  prop was passed down, and a  function was implemented to call the backend API and update the appointment's status and .
 </code_architecture>
 
 <pending_tasks>
-- Ensure the external URL  is accessible and configured correctly for deployment (or revert if needed).
-- Re-enable and fix the push notification system, addressing  compatibility or key generation issues.
-- Implement comprehensive unit and integration tests for newly added components like  and .
-- Comprehensive frontend testing to fully validate UI updates, notification panel stability, and call redialing.
+- Re-enable and fix the push notification system ( issues).
+- Implement comprehensive unit and integration tests for new frontend components and backend endpoints.
+- Ensure the production URL () is correctly configured, as testing was performed on a preview URL.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary, the AI engineer was addressing recurring critical issues related to dashboard updates, call handling, and session persistence, guided by a 's root cause analysis.
+The most recent work cycle involved implementing and verifying a series of user-requested feature enhancements, shifting away from initial bug reports that were found to be invalid.
 
-The user reported:
-1.  **Doctor/Provider Dashboards Issues**: Sections like Pending Requests, My Appointments, Todays Activity", "Todays Summary are not updating or working properly.
-2.  **Call Handling Issue**: Provider does not receive incoming call notification or redial attempts once a call ends.
+1.  **Enhanced Admin Permissions**: The admin dashboard was upgraded to give administrators full control over user accounts. This included adding UI elements and corresponding backend endpoints for viewing user passwords and permanently deleting user accounts. The frontend file  and the backend  were modified.
 
-The AI engineer implemented the following specific fixes:
--   **Backend WebSocket ConnectionManager**: Fixed  to log errors instead of silently disconnecting users during , enhancing WebSocket stability.
--   **WebSocket Heartbeat**: Added a heartbeat mechanism in  to maintain active WebSocket connections.
--   **Frontend Dashboard Race Conditions**: Modified  to use a debounced refresh mechanism within  instead of multiple  calls, preventing update conflicts.
--   **Server-Side Call End Detection and Notification**: Implemented call tracking and redialing logic in  within  and  endpoints. This includes detecting call endings, initiating redials (up to 3 times with 30-second delays), and sending retry notifications to providers.
--   **Call Redialing Logic**: Enhanced  to support automatic redialing attempts (up to 3 times with 30-second delays) and visual feedback for the user.
--   **WebSocket Reconnection Logic**: Enhanced WebSocket implementation in  and  with improved reconnection logic and error handling.
+2.  **Fixed Appointment Visibility**: The logic for displaying appointments was corrected for both doctors and providers.
+    *   **Doctors**: The  component was modified to display all unassigned pending appointments, allowing any available doctor to accept them.
+    *   **Providers**: The existing backend logic, which already filtered appointments by the provider who created them, was verified to be working correctly, ensuring providers only see their own appointments.
 
-The latest backend testing () indicates that these critical fixes for WebSocket connections, heartbeat, call management (auto-redial, end detection), and dashboard data updates (role-based filtering, real-time notifications, debounced refresh) are functioning as expected. The system now reports 14 total appointments, with 8 emergency cases.
+3.  **Actionable Notifications**: The doctor's workflow was improved by making notifications interactive. The  component was enhanced to include an Accept button on new appointment notifications, allowing doctors to claim an appointment directly from the panel. To support this, an  event listener was added to  to ensure the main dashboard view refreshes in real-time after an action is taken in the notification panel.
+
+All these changes were successfully implemented and validated through comprehensive backend testing and frontend visual confirmation via screenshots, which showed the new UI elements and correct data flow.
 </current_work>
 
 <optional_next_step>
-I will await your testing and feedback, or proceed with automated frontend testing to validate UI enhancements and call redialing.
+Confirm with the user that the newly implemented admin permissions, corrected appointment visibility, and actionable notifications meet their requirements and resolve their stated issues.
 </optional_next_step>
