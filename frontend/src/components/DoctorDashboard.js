@@ -557,21 +557,21 @@ const DoctorDashboard = ({ user, onLogout }) => {
           </div>
         )}
 
-        {/* Pending Appointments */}
+        {/* All Appointments */}
         <div className="glass-card mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-            <Clock className="w-7 h-7 mr-3 text-orange-600" />
-            Pending Appointments
+            <Calendar className="w-7 h-7 mr-3 text-blue-600" />
+            All Appointments
           </h2>
 
-          {pendingAppointments.length === 0 ? (
+          {allAppointments.length === 0 ? (
             <div className="text-center py-8">
-              <Clock className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">No pending appointments</p>
+              <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">No appointments available</p>
             </div>
           ) : (
             <div className="space-y-4">
-              {pendingAppointments.map((appointment) => (
+              {allAppointments.map((appointment) => (
                 <div
                   key={appointment.id}
                   className={`appointment-card ${appointment.appointment_type === 'emergency' ? 'emergency' : 'non-emergency'}`}
