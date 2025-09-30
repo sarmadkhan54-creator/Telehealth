@@ -32,20 +32,42 @@ axios.interceptors.request.use(
   }
 );
 
-// Axios response interceptor to handle authentication errors
+// Enhanced response interceptor for better error handling
 axios.interceptors.response.use(
   (response) => {
     return response;
   },
   (error) => {
+    console.error('🔧 Response error:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      message: error.message,
+      url: error.config?.url
+    });
+
     if (error.response && error.response.status === 401) {
-      console.log('🔐 Token expired or invalid - redirecting to login');
-      // Clear authentication data
+      console.log('🔐 Authentication failed - clearing credentials and redirecting');
+      // Clear all authentication data from different storage locations
       localStorage.removeItem('authToken');
       localStorage.removeItem('userData');
-      // Reload page to trigger login
-      window.location.reload();
+      sessionStorage.clear();
+      
+      // Clear cookies if any (cross-device compatibility)
+      document.cookie.split(";").forEach((c) => { 
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+      });
+      
+      // Force reload to clear any cached state
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 100);
     }
+    
+    // Handle CORS and network errors for cross-device access
+    if (error.code === 'ERR_NETWORK' || !error.response) {
+      console.error('🌐 Network error - possible CORS or connectivity issue');
+    }
+    
     return Promise.reject(error);
   }
 );
