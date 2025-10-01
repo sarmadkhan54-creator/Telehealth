@@ -486,6 +486,11 @@ const Dashboard = ({ user, onLogout }) => {
       navigator.vibrate(0);
     }
     
+    // Clear any legacy ringing intervals
+    if (window.ringingInterval) {
+      window.ringingInterval = false;
+    }
+    
     // Legacy audio cleanup (for backward compatibility)
     if (ringingAudio) {
       if (ringingAudio.stop) {
