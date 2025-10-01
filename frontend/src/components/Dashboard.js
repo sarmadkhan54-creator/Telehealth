@@ -250,27 +250,38 @@ const Dashboard = ({ user, onLogout }) => {
         };
 
         ws.onclose = (event) => {
-          console.log('🔌 Provider WebSocket disconnected');
-          console.log('Close event:', event.code, event.reason);
+          console.log('🔌 Provider WebSocket closed - RECONNECTING FOR ALWAYS ONLINE:', event.code, event.reason);
           
-          // Clear existing timeout if any
-          if (reconnectTimeout) {
-            clearTimeout(reconnectTimeout);
-            setReconnectTimeout(null);
+          // Clear heartbeat
+          if (heartbeatInterval) {
+            clearInterval(heartbeatInterval);
+            heartbeatInterval = null;
           }
           
-          // Implement exponential backoff reconnection
+          // Clear any existing timeout
+          if (reconnectTimeout) {
+            clearTimeout(reconnectTimeout);
+          }
+          
+          // Persistent reconnection for "Always Online" mode
           if (reconnectAttempts < maxReconnectAttempts) {
-            const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000); // Max 30 seconds
-            console.log(`🔄 Provider WebSocket reconnecting in ${delay}ms (attempt ${reconnectAttempts + 1}/${maxReconnectAttempts})`);
+            const delay = Math.min(2000 + (reconnectAttempts * 1000), 10000); // Progressive delay, max 10s
+            console.log(`🔄 Provider WebSocket PERSISTENT reconnect in ${delay}ms (attempt ${reconnectAttempts + 1}/${maxReconnectAttempts})`);
             
-            const newTimeout = setTimeout(() => {
+            const timeoutId = setTimeout(() => {
               reconnectAttempts++;
               connectWebSocket();
             }, delay);
-            setReconnectTimeout(newTimeout);
+            
+            setReconnectTimeout(timeoutId);
           } else {
-            console.error('❌ Provider WebSocket max reconnection attempts reached');
+            console.error('❌ Provider WebSocket maximum reconnection attempts reached - resetting counter');
+            // Reset and continue trying (Always Online mode)
+            reconnectAttempts = 0;
+            setTimeout(() => {
+              console.log('🔄 Provider WebSocket restarting reconnection cycle');
+              connectWebSocket();
+            }, 5000);
           }
         };
 
