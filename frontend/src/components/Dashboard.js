@@ -189,6 +189,34 @@ const Dashboard = ({ user, onLogout }) => {
               }
             }
             
+            // Handle REAL-TIME DOCTOR NOTES
+            if (notification.type === 'doctor_note' || notification.type === 'new_note') {
+              console.log('📝 REAL-TIME: Doctor note received:', notification);
+              
+              // Show immediate note notification
+              const noteToast = document.createElement('div');
+              noteToast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-3 rounded-lg shadow-lg z-50 max-w-md';
+              noteToast.innerHTML = `
+                <div class="font-bold">📝 New Note from Dr. ${notification.doctor_name}</div>
+                <div class="text-sm mt-1">${notification.note.substring(0, 100)}${notification.note.length > 100 ? '...' : ''}</div>
+                <div class="text-xs mt-1 opacity-75">Patient: ${notification.patient_name}</div>
+              `;
+              document.body.appendChild(noteToast);
+              
+              // Play notification sound
+              playNotificationSound();
+              
+              // Auto-remove after 5 seconds
+              setTimeout(() => {
+                if (document.body.contains(noteToast)) {
+                  document.body.removeChild(noteToast);
+                }
+              }, 5000);
+              
+              // Refresh appointments to show new note
+              fetchAppointments();
+            }
+
             // Handle WhatsApp-like video call notifications (updated notification type)
             if (notification.type === 'incoming_video_call' || notification.type === 'jitsi_call_invitation') {
               console.log('📞 Received WhatsApp-like video call invitation:', notification);
