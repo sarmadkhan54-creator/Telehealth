@@ -181,9 +181,9 @@ const DoctorDashboard = ({ user, onLogout }) => {
               setTimeout(() => setLoading(false), 50);
               
               // Backup syncs for reliability
-              setTimeout(async () => {
+              setTimeout(() => {
                 console.log('🔄 Doctor secondary sync after 500ms');
-                await fetchAppointments();
+                fetchAppointments();
               }, 500);
               
               // Show visual feedback for new appointments
