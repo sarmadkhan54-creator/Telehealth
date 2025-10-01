@@ -161,7 +161,7 @@ const Dashboard = ({ user, onLogout }) => {
               console.log('📅 REAL-TIME: Appointment sync notification received:', notification.type);
               
               // Immediate sync (no delay for real-time experience)
-              await fetchAppointments();
+              fetchAppointments();
               
               // Force React state update for immediate UI refresh
               setLoading(prev => !prev);
