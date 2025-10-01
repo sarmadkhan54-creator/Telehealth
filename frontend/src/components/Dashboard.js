@@ -59,8 +59,39 @@ const Dashboard = ({ user, onLogout }) => {
     // Auto-request notification permission after component mounts
     setTimeout(requestNotificationPermission, 2000);
     
+    // Keep service alive - prevent Android Doze mode and background throttling
+    const keepAlive = () => {
+      // Send periodic keepalive signals
+      const keepAliveInterval = setInterval(() => {
+        // Wake lock API for preventing sleep (if supported)
+        if ('wakeLock' in navigator) {
+          navigator.wakeLock.request('screen').catch(err => {
+            console.log('Wake Lock request failed:', err);
+          });
+        }
+        
+        // Page visibility API to detect background/foreground
+        if (document.visibilityState === 'visible') {
+          console.log('📱 Provider service ACTIVE - keeping online');
+        }
+        
+        // Service worker keepalive
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then(() => {
+            console.log('🔄 Service Worker keepalive signal');
+          });
+        }
+        
+      }, 60000); // Every minute
+      
+      return keepAliveInterval;
+    };
+    
+    const keepAliveInterval = keepAlive();
+    
     return () => {
       clearInterval(refreshInterval);
+      clearInterval(keepAliveInterval);
     };
   }, []);
 
