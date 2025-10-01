@@ -173,18 +173,38 @@ const DoctorDashboard = ({ user, onLogout }) => {
               
               console.log('📅 REAL-TIME: Doctor appointment sync notification:', notification.type);
               
-              // Immediate sync for real-time experience
+              // AGGRESSIVE REAL-TIME SYNC FOR DOCTORS
+              console.log('🚨 DOCTOR: FORCING IMMEDIATE APPOINTMENT SYNC');
+              
+              // Immediate sync (0ms delay)
               fetchAppointments();
               
-              // Force UI refresh
+              // Force multiple UI refreshes
               setLoading(prev => !prev);
-              setTimeout(() => setLoading(false), 50);
+              setTimeout(() => setLoading(false), 10);
               
-              // Backup syncs for reliability
+              // More aggressive sync attempts
               setTimeout(() => {
-                console.log('🔄 Doctor secondary sync after 500ms');
+                console.log('🔄 DOCTOR AGGRESSIVE sync #1 after 100ms');
+                fetchAppointments();
+                setLoading(prev => !prev);
+                setTimeout(() => setLoading(false), 10);
+              }, 100);
+              
+              setTimeout(() => {
+                console.log('🔄 DOCTOR AGGRESSIVE sync #2 after 500ms');
                 fetchAppointments();
               }, 500);
+              
+              setTimeout(() => {
+                console.log('🔄 DOCTOR AGGRESSIVE sync #3 after 1 second');
+                fetchAppointments();
+              }, 1000);
+              
+              setTimeout(() => {
+                console.log('🔄 DOCTOR FINAL sync after 2 seconds');
+                fetchAppointments();
+              }, 2000);
               
               // Show visual feedback for new appointments
               if (notification.type === 'emergency_appointment' || notification.type === 'new_appointment') {
