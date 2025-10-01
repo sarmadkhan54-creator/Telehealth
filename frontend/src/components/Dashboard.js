@@ -441,6 +441,29 @@ const Dashboard = ({ user, onLogout }) => {
       }
     }
   };
+  const playNotificationSound = () => {
+    try {
+      // Simple notification beep
+      const context = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = context.createOscillator();
+      const gainNode = context.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(context.destination);
+      
+      oscillator.frequency.setValueAtTime(600, context.currentTime);
+      oscillator.type = 'sine';
+      gainNode.gain.setValueAtTime(0.3, context.currentTime);
+      
+      oscillator.start(context.currentTime);
+      oscillator.stop(context.currentTime + 0.2);
+      
+      console.log('🔔 Notification sound played');
+    } catch (error) {
+      console.log('🔔 Notification sound failed (silent mode)');
+    }
+  };
+
   const stopRingingSound = () => {
     console.log('🔇 STOPPING ALL RINGTONES AND VIBRATIONS');
     
