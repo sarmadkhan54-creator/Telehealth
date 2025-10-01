@@ -442,6 +442,28 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
   const stopRingingSound = () => {
+    console.log('🔇 STOPPING ALL RINGTONES AND VIBRATIONS');
+    
+    // Stop the new ringing interval
+    if (window.currentRingingInterval) {
+      clearInterval(window.currentRingingInterval);
+      window.currentRingingInterval = null;
+      console.log('✅ Cleared ringing interval');
+    }
+    
+    // Stop vibration
+    if (window.currentVibration) {
+      clearInterval(window.currentVibration);
+      window.currentVibration = null;
+      console.log('✅ Cleared vibration');
+    }
+    
+    // Stop vibration immediately
+    if (navigator.vibrate) {
+      navigator.vibrate(0);
+    }
+    
+    // Legacy audio cleanup (for backward compatibility)
     if (ringingAudio) {
       if (ringingAudio.stop) {
         ringingAudio.stop(); // Web Audio API
@@ -451,8 +473,9 @@ const Dashboard = ({ user, onLogout }) => {
       }
       setRingingAudio(null);
     }
+    
     setIsRinging(false);
-    console.log('📞 Stopped ringing sound');
+    console.log('🔇 ALL RINGTONES STOPPED');
   };
 
   const handleAcceptVideoCall = () => {
