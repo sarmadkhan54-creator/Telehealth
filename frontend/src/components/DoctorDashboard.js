@@ -140,15 +140,38 @@ const DoctorDashboard = ({ user, onLogout }) => {
             setNotifications(prev => [newNotification, ...prev.slice(0, 9)]);
             setUnreadNotifications(prev => prev + 1);
             
-            // Use debounced refresh for critical appointment updates
+            // ENHANCED: Real-time appointment sync for doctors
             if (notification.type === 'emergency_appointment' || 
-                notification.type === 'new_appointment' ||
+                notification.type === 'new_appointment' || 
+                notification.type === 'appointment_accepted' || 
                 notification.type === 'appointment_updated' ||
                 notification.type === 'appointment_cancelled' ||
-                notification.type === 'video_call_invitation') {
+                notification.type === 'appointment_created' ||
+                notification.type === 'appointment_status_changed') {
               
-              console.log('📅 CRITICAL: Doctor appointment notification - triggering debounced refresh');
-              debouncedRefresh();
+              console.log('📅 REAL-TIME: Doctor appointment sync notification:', notification.type);
+              
+              // Immediate sync for real-time experience
+              await fetchAppointments();
+              
+              // Force UI refresh
+              setLoading(prev => !prev);
+              setTimeout(() => setLoading(false), 50);
+              
+              // Backup syncs for reliability
+              setTimeout(async () => {
+                console.log('🔄 Doctor secondary sync after 500ms');
+                await fetchAppointments();
+              }, 500);
+              
+              // Show visual feedback for new appointments
+              if (notification.type === 'emergency_appointment' || notification.type === 'new_appointment') {
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+                toast.textContent = `🚨 New ${notification.type === 'emergency_appointment' ? 'EMERGENCY' : ''} appointment available!`;
+                document.body.appendChild(toast);
+                setTimeout(() => document.body.removeChild(toast), 4000);
+              }
             }
             
             // Show browser notifications for critical events
