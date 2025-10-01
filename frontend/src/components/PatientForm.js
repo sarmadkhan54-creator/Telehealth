@@ -233,21 +233,33 @@ const PatientForm = ({ user }) => {
                       onChange={handleChange}
                     >
                       <option value="">Select specialty area</option>
-                      <option value="Cardiology">🫀 Cardiology</option>
-                      <option value="Gynecology">👩‍⚕️ Gynecology</option>
+                      <option value="General Medical Services">⚕️ General Medical Services</option>
+                      <option value="Family Medicine / Family Planning">👨‍👩‍👧‍👦 Family Medicine / Family Planning</option>
                       <option value="Pediatrics">👶 Pediatrics</option>
-                      <option value="Dermatology">🩺 Dermatology</option>
-                      <option value="Neurology">🧠 Neurology</option>
-                      <option value="Orthopedics">🦴 Orthopedics</option>
-                      <option value="General Medicine">⚕️ General Medicine</option>
-                      <option value="Emergency Medicine">🚨 Emergency Medicine</option>
-                      <option value="Psychiatry">🧘‍♀️ Psychiatry</option>
-                      <option value="Ophthalmology">👁️ Ophthalmology</option>
-                      <option value="ENT">👂 ENT (Ear, Nose, Throat)</option>
-                      <option value="Gastroenterology">🫄 Gastroenterology</option>
-                      <option value="Pulmonology">🫁 Pulmonology</option>
-                      <option value="Endocrinology">🩺 Endocrinology</option>
-                      <option value="Other">🏥 Other</option>
+                      <option value="Neonatology">🍼 Neonatology</option>
+                      <option value="Obstetrics & Gynaecology">🤱 Obstetrics & Gynaecology</option>
+                      <option value="General Surgery">🔪 General Surgery</option>
+                      <option value="Orthopaedics">🦴 Orthopaedics</option>
+                      <option value="Emergency / Critical Care">🚨 Emergency / Critical Care</option>
+                      <option value="Cardiology / Heart">🫀 Cardiology / Heart</option>
+                      <option value="Pulmonology / Chest">🫁 Pulmonology / Chest</option>
+                      <option value="Endocrinology & Diabetes">💉 Endocrinology & Diabetes</option>
+                      <option value="Gastroenterology & Hepatology">🫄 Gastroenterology & Hepatology</option>
+                      <option value="Nephrology / Kidney">🫘 Nephrology / Kidney</option>
+                      <option value="Neurology / Brain & Spinal Cord">🧠 Neurology / Brain & Spinal Cord</option>
+                      <option value="Rheumatology">🦴 Rheumatology</option>
+                      <option value="Infectious Diseases">🦠 Infectious Diseases</option>
+                      <option value="Dermatology / Skin">🌟 Dermatology / Skin</option>
+                      <option value="Psychiatry & Mental Health">🧘‍♀️ Psychiatry & Mental Health</option>
+                      <option value="Urology">🚰 Urology</option>
+                      <option value="ENT (Ear, Nose, Throat)">👂 ENT (Ear, Nose, Throat)</option>
+                      <option value="Ophthalmology / Eye">👁️ Ophthalmology / Eye</option>
+                      <option value="Radiology & Imaging (X-ray, Ultrasound, CT, MRI)">📻 Radiology & Imaging (X-ray, Ultrasound, CT, MRI)</option>
+                      <option value="Pathology & Laboratory">🧪 Pathology & Laboratory</option>
+                      <option value="Physiotherapy & Rehabilitation">🏃‍♂️ Physiotherapy & Rehabilitation</option>
+                      <option value="Nutrition & Dietetics">🥗 Nutrition & Dietetics</option>
+                      <option value="Vaccination / Immunization">💉 Vaccination / Immunization</option>
+                      <option value="Telehealth / Remote Consultation">💻 Telehealth / Remote Consultation</option>
                     </select>
                   </div>
                 </div>
