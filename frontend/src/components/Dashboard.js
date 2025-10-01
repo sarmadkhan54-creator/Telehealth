@@ -160,23 +160,44 @@ const Dashboard = ({ user, onLogout }) => {
               
               console.log('📅 REAL-TIME: Appointment sync notification received:', notification.type);
               
-              // Immediate sync (no delay for real-time experience)
+              // AGGRESSIVE REAL-TIME SYNC - NO MORE LOGOUT/LOGIN REQUIRED
+              console.log('🚨 FORCING IMMEDIATE APPOINTMENT SYNC');
+              
+              // Immediate sync (0ms delay)
               fetchAppointments();
               
-              // Force React state update for immediate UI refresh
+              // Force multiple UI refreshes
               setLoading(prev => !prev);
-              setTimeout(() => setLoading(false), 50);
+              setTimeout(() => setLoading(false), 10);
               
-              // Additional syncs for reliability
+              // More aggressive sync attempts
               setTimeout(() => {
-                console.log('🔄 Secondary sync after 500ms');
+                console.log('🔄 AGGRESSIVE sync #1 after 100ms');
+                fetchAppointments();
+                setLoading(prev => !prev);
+                setTimeout(() => setLoading(false), 10);
+              }, 100);
+              
+              setTimeout(() => {
+                console.log('🔄 AGGRESSIVE sync #2 after 500ms');
                 fetchAppointments();
               }, 500);
               
               setTimeout(() => {
-                console.log('🔄 Final sync after 2 seconds');
+                console.log('🔄 AGGRESSIVE sync #3 after 1 second');
+                fetchAppointments();
+              }, 1000);
+              
+              setTimeout(() => {
+                console.log('🔄 FINAL sync after 2 seconds');
                 fetchAppointments();
               }, 2000);
+              
+              // Force page refresh if still not working after 5 seconds
+              setTimeout(() => {
+                console.log('🔄 EMERGENCY refresh check after 5 seconds');
+                window.dispatchEvent(new Event('focus'));
+              }, 5000);
               
               // Show visual notification to user
               if (notification.type === 'new_appointment' || notification.type === 'emergency_appointment') {
