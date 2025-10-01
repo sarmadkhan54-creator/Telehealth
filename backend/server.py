@@ -1202,7 +1202,10 @@ async def start_video_call(appointment_id: str, current_user: User = Depends(get
     
     # Create unique Jitsi room name with call attempt
     room_name = f"emergency-{appointment_id}-call-{call_attempt_number}-{int(datetime.now().timestamp())}"
-    jitsi_url = f"https://meet.jit.si/{room_name}"
+    
+    # Enhanced Jitsi URL with automatic moderator settings
+    # Doctor (call initiator) becomes automatic moderator
+    jitsi_url = f"https://meet.jit.si/{room_name}#config.prejoinPageEnabled=false&config.requireDisplayName=false&userInfo.displayName=Dr.{current_user.full_name}&config.startWithVideoMuted=false&config.startWithAudioMuted=false"
     
     # Create new call attempt
     call_attempt = CallAttempt(
