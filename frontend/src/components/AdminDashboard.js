@@ -825,7 +825,7 @@ const AdminDashboard = ({ user, onLogout }) => {
       // Force immediate UI update by filtering out the deleted user
       setUsers(prevUsers => {
         const updatedUsers = prevUsers.filter(u => u.id !== userId);
-        console.log('Updated users list:', updatedUsers.length, 'users remaining');
+        console.log('🗑️ User removed from UI immediately:', updatedUsers.length, 'users remaining');
         return updatedUsers;
       });
       
