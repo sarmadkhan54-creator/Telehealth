@@ -362,10 +362,41 @@ const DoctorDashboard = ({ user, onLogout }) => {
   };
 
   const handleWriteNote = (appointment) => {
-    console.log('Writing note for appointment:', appointment.id);
+    console.log('📝 Opening note composer for appointment:', appointment.id);
     setSelectedAppointment(appointment);
-    setShowAppointmentModal(true);
+    setShowNoteModal(true);
     setNoteText('');
+  };
+
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [noteText, setNoteText] = useState('');
+
+  const handleSendNote = async () => {
+    if (!noteText.trim()) {
+      alert('Please enter a note before sending.');
+      return;
+    }
+
+    try {
+      console.log('📤 Sending note to provider for appointment:', selectedAppointment.id);
+
+      const response = await axios.post(`${API}/appointments/${selectedAppointment.id}/notes`, {
+        note: noteText.trim(),
+        note_type: selectedAppointment.appointment_type === 'emergency' ? 'emergency_note' : 'consultation_note'
+      });
+
+      if (response.status === 200) {
+        alert('✅ Note sent successfully to provider!');
+        setShowNoteModal(false);
+        setNoteText('');
+        
+        // Refresh appointments to show updated notes
+        fetchAppointments();
+      }
+    } catch (error) {
+      console.error('❌ Error sending note:', error);
+      alert('❌ Failed to send note. Please try again.');
+    }
   };
 
   const handleCompleteAppointment = async (appointmentId) => {
