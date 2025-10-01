@@ -785,20 +785,34 @@ const DoctorDashboard = ({ user, onLogout }) => {
                     </div>
 
                     <div className="ml-4 flex flex-col space-y-2">
-                      <button
-                        onClick={() => handleVideoCall(appointment)}
-                        className="btn-primary flex items-center space-x-2"
-                      >
-                        <Video className="w-4 h-4" />
-                        <span>Video Call</span>
-                      </button>
+                      {/* Video Call ONLY for Emergency appointments */}
+                      {appointment.appointment_type === 'emergency' ? (
+                        <button
+                          onClick={() => handleVideoCall(appointment)}
+                          className="btn-primary flex items-center space-x-2 bg-red-600 hover:bg-red-700"
+                        >
+                          <Video className="w-4 h-4" />
+                          <span>Emergency Call</span>
+                        </button>
+                      ) : (
+                        <div className="text-sm text-gray-500 italic">
+                          📝 Non-Emergency: Notes Only
+                        </div>
+                      )}
+                      
+                      {/* Write Note available for ALL appointment types */}
                       <button
                         onClick={() => handleWriteNote(appointment)}
-                        className="btn-secondary flex items-center space-x-2"
+                        className={`flex items-center space-x-2 px-3 py-2 rounded ${
+                          appointment.appointment_type === 'emergency' 
+                            ? 'btn-secondary' 
+                            : 'btn-primary bg-blue-600 hover:bg-blue-700 text-white'
+                        }`}
                       >
                         <MessageSquare className="w-4 h-4" />
-                        <span>Write Note</span>
+                        <span>Send Note to Provider</span>
                       </button>
+                      
                       <button
                         onClick={() => viewAppointmentDetails(appointment)}
                         className="btn-tertiary flex items-center space-x-2"
