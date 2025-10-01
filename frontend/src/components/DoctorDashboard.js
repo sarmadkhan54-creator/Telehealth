@@ -110,8 +110,30 @@ const DoctorDashboard = ({ user, onLogout }) => {
         const ws = new WebSocket(wsUrl);
         
         ws.onopen = () => {
-          console.log('✅ Doctor WebSocket connected successfully');
+          console.log('✅ Doctor WebSocket connected successfully - ALWAYS ONLINE MODE');
           reconnectAttempts = 0; // Reset on successful connection
+          
+          // Start heartbeat to keep connection alive
+          const heartbeatInterval = setInterval(() => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+              console.log('💓 Doctor WebSocket heartbeat sent');
+              ws.send(JSON.stringify({ type: 'heartbeat', timestamp: Date.now() }));
+            }
+          }, 30000); // Heartbeat every 30 seconds
+          
+          // Store interval ID for cleanup
+          ws.heartbeatInterval = heartbeatInterval;
+          
+          // Send initial "online" status
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ 
+              type: 'status_update', 
+              status: 'online',
+              role: 'doctor',
+              user_id: user.id,
+              timestamp: Date.now()
+            }));
+          }
         };
         
         ws.onmessage = (event) => {
