@@ -309,8 +309,16 @@ const DoctorDashboard = ({ user, onLogout }) => {
         console.log(`   Provider notified: ${provider_notified}`);
         console.log(`   Message: ${message}`);
         
-        // Open Jitsi video call in new window
-        window.open(jitsi_url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+        // Enhanced Jitsi opening with moderator settings
+        const enhancedJitsiUrl = `${jitsi_url}&userInfo.displayName=Dr.${user.full_name}&config.enableWelcomePage=false&config.prejoinPageEnabled=false&config.startWithVideoMuted=false&config.startWithAudioMuted=false`;
+        
+        // Open Jitsi video call in new window with enhanced settings
+        const jitsiWindow = window.open(enhancedJitsiUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,location=yes,menubar=no,toolbar=no');
+        
+        // Focus the Jitsi window
+        if (jitsiWindow) {
+          jitsiWindow.focus();
+        }
         
         // Force refresh appointments to update call history
         setTimeout(() => {
