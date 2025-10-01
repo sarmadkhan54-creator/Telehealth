@@ -174,7 +174,7 @@ const DoctorDashboard = ({ user, onLogout }) => {
               console.log('📅 REAL-TIME: Doctor appointment sync notification:', notification.type);
               
               // Immediate sync for real-time experience
-              await fetchAppointments();
+              fetchAppointments();
               
               // Force UI refresh
               setLoading(prev => !prev);
