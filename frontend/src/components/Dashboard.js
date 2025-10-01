@@ -96,36 +96,45 @@ const Dashboard = ({ user, onLogout }) => {
             const notification = JSON.parse(event.data);
             console.log('📨 Provider received WebSocket notification:', notification);
             
-            // CRITICAL: Force immediate dashboard updates with multiple attempts
+            // ENHANCED: Real-time appointment sync for instant updates
             if (notification.type === 'emergency_appointment' || 
-                notification.type === 'new_appointment' ||
+                notification.type === 'new_appointment' || 
                 notification.type === 'appointment_accepted' || 
                 notification.type === 'appointment_updated' ||
                 notification.type === 'appointment_cancelled' ||
-                notification.type === 'video_call_invitation') {
+                notification.type === 'video_call_invitation' ||
+                notification.type === 'appointment_created' ||
+                notification.type === 'appointment_status_changed') {
               
-              console.log('📅 CRITICAL: Provider appointment notification received, forcing multiple refreshes...');
+              console.log('📅 REAL-TIME: Appointment sync notification received:', notification.type);
               
-              // Immediate refresh
+              // Immediate sync (no delay for real-time experience)
+              await fetchAppointments();
+              
+              // Force React state update for immediate UI refresh
+              setLoading(prev => !prev);
+              setTimeout(() => setLoading(false), 50);
+              
+              // Additional syncs for reliability
               setTimeout(async () => {
-                console.log('🔄 First forced refresh after provider notification');
+                console.log('🔄 Secondary sync after 500ms');
                 await fetchAppointments();
-                // Force React re-render
-                setLoading(prev => prev === false ? true : false);
-                setTimeout(() => setLoading(false), 100);
-              }, 100);
+              }, 500);
               
-              // Second refresh after 1 second
               setTimeout(async () => {
-                console.log('🔄 Second forced refresh after provider notification');
+                console.log('🔄 Final sync after 2 seconds');
                 await fetchAppointments();
-              }, 1000);
+              }, 2000);
               
-              // Final refresh after 3 seconds
-              setTimeout(async () => {
-                console.log('🔄 Final forced refresh after provider notification');
-                await fetchAppointments();
-              }, 3000);
+              // Show visual notification to user
+              if (notification.type === 'new_appointment' || notification.type === 'emergency_appointment') {
+                // Create instant visual feedback
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+                toast.textContent = '✅ New appointment received - Dashboard updated!';
+                document.body.appendChild(toast);
+                setTimeout(() => document.body.removeChild(toast), 3000);
+              }
             }
             
             // Handle WhatsApp-like video call notifications (updated notification type)
