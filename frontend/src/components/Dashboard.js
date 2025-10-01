@@ -168,14 +168,14 @@ const Dashboard = ({ user, onLogout }) => {
               setTimeout(() => setLoading(false), 50);
               
               // Additional syncs for reliability
-              setTimeout(async () => {
+              setTimeout(() => {
                 console.log('🔄 Secondary sync after 500ms');
-                await fetchAppointments();
+                fetchAppointments();
               }, 500);
               
-              setTimeout(async () => {
+              setTimeout(() => {
                 console.log('🔄 Final sync after 2 seconds');
-                await fetchAppointments();
+                fetchAppointments();
               }, 2000);
               
               // Show visual notification to user
