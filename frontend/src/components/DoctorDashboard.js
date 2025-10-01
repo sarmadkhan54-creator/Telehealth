@@ -993,6 +993,71 @@ const DoctorDashboard = ({ user, onLogout }) => {
         </div>
       </div>
 
+      {/* Note Compose Modal */}
+      {showNoteModal && selectedAppointment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-900">
+                  📝 Send Note to Provider
+                </h2>
+                <button
+                  onClick={() => setShowNoteModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="mb-4">
+                <p className="text-sm text-gray-600">
+                  <strong>Patient:</strong> {selectedAppointment.patient?.name}
+                </p>
+                <p className="text-sm text-gray-600">
+                  <strong>Type:</strong> {selectedAppointment.appointment_type === 'emergency' ? '🚨 Emergency' : '📅 Non-Emergency'}
+                </p>
+                <p className="text-sm text-gray-600">
+                  <strong>Provider:</strong> {selectedAppointment.provider_name || 'Unknown Provider'}
+                </p>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Your Note/Message to Provider:
+                </label>
+                <textarea
+                  value={noteText}
+                  onChange={(e) => setNoteText(e.target.value)}
+                  rows={6}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter your consultation notes, recommendations, or questions for the provider..."
+                  maxLength={1000}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {noteText.length}/1000 characters
+                </p>
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleSendNote}
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  📤 Send Note
+                </button>
+                <button
+                  onClick={() => setShowNoteModal(false)}
+                  className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Appointment Details Modal */}
       {showAppointmentModal && selectedAppointment && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
