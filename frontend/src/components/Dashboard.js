@@ -66,7 +66,9 @@ const Dashboard = ({ user, onLogout }) => {
 
   const setupWebSocket = () => {
     let reconnectAttempts = 0;
-    const maxReconnectAttempts = 10;
+    const maxReconnectAttempts = 50; // Increased for persistence
+    let heartbeatInterval = null;
+    let ws = null;
     
     const connectWebSocket = () => {
       try {
@@ -84,11 +86,30 @@ const Dashboard = ({ user, onLogout }) => {
         
         console.log(`🔌 Provider WebSocket connecting (attempt ${reconnectAttempts + 1}):`, wsUrl);
         
-        const ws = new WebSocket(wsUrl);
+        ws = new WebSocket(wsUrl);
         
         ws.onopen = () => {
-          console.log('✅ Provider WebSocket connected successfully');
+          console.log('✅ Provider WebSocket connected successfully - ALWAYS ONLINE MODE');
           reconnectAttempts = 0; // Reset on successful connection
+          
+          // Start heartbeat to keep connection alive
+          heartbeatInterval = setInterval(() => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+              console.log('💓 Provider WebSocket heartbeat sent');
+              ws.send(JSON.stringify({ type: 'heartbeat', timestamp: Date.now() }));
+            }
+          }, 30000); // Heartbeat every 30 seconds
+          
+          // Send initial "online" status
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ 
+              type: 'status_update', 
+              status: 'online',
+              role: 'provider',
+              user_id: user.id,
+              timestamp: Date.now()
+            }));
+          }
         };
       
         ws.onmessage = (event) => {
