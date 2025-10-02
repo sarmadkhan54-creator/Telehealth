@@ -441,7 +441,6 @@ const DoctorDashboard = ({ user, onLogout }) => {
   };
 
   const [showNoteModal, setShowNoteModal] = useState(false);
-  const [noteText, setNoteText] = useState('');
 
   const handleSendNote = async () => {
     if (!noteText.trim()) {
