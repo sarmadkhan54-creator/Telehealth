@@ -492,12 +492,7 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
                     notification.type === 'new_appointment' || notification.type === 'new_appointment_created' ? 'border-blue-500 bg-blue-50' :
                     'border-gray-300 bg-gray-50'
                   }`}
-                  onClick={() => {
-                    if (notification.appointment) {
-                      setSelectedNotificationAppointment(notification.appointment);
-                      setShowAppointmentDetailsModal(true);
-                    }
-                  }}
+                  onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
