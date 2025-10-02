@@ -97,6 +97,27 @@ class ConnectionManager:
         print(f"📡 Broadcast completed: {success_count} successful, {len(failed_users)} failed")
         return success_count
     
+    async def broadcast(self, message: dict):
+        """Broadcast message to ALL connected users"""
+        failed_users = []
+        success_count = 0
+        
+        for user_id, websocket in self.active_connections.items():
+            try:
+                await websocket.send_text(json.dumps(message))
+                success_count += 1
+                print(f"✅ Broadcast sent to user {user_id}")
+            except Exception as e:
+                print(f"❌ Broadcast failed for user {user_id}: {e}")
+                failed_users.append(user_id)
+        
+        # Clean up failed connections
+        for user_id in failed_users:
+            self.disconnect(user_id)
+            
+        print(f"📡 Broadcast completed: {success_count} successful, {len(failed_users)} failed")
+        return success_count
+    
     def get_connection_status(self):
         """Get current WebSocket connection status"""
         return {
