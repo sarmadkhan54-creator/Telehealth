@@ -441,6 +441,7 @@ const DoctorDashboard = ({ user, onLogout }) => {
   };
 
   const [showNoteModal, setShowNoteModal] = useState(false);
+  const [noteText, setNoteText] = useState('');
 
   const handleSendNote = async () => {
     if (!noteText.trim()) {
@@ -448,25 +449,36 @@ const DoctorDashboard = ({ user, onLogout }) => {
       return;
     }
 
+    if (!selectedAppointment) {
+      alert('No appointment selected.');
+      return;
+    }
+
     try {
       console.log('📤 Sending note to provider for appointment:', selectedAppointment.id);
+      console.log('📝 Note content:', noteText.trim());
 
       const response = await axios.post(`${API}/appointments/${selectedAppointment.id}/notes`, {
         note: noteText.trim(),
-        note_type: selectedAppointment.appointment_type === 'emergency' ? 'emergency_note' : 'consultation_note'
+        note_type: selectedAppointment.appointment_type === 'emergency' ? 'emergency_note' : 'consultation_note',
+        sender_role: 'doctor',
+        timestamp: new Date().toISOString()
       });
 
-      if (response.status === 200) {
-        alert('✅ Note sent successfully to provider!');
-        setShowNoteModal(false);
-        setNoteText('');
-        
-        // Refresh appointments to show updated notes
-        fetchAppointments();
-      }
+      console.log('✅ Note sent successfully:', response.data);
+      
+      alert('✅ Note sent successfully to provider!');
+      setShowNoteModal(false);
+      setNoteText('');
+      setSelectedAppointment(null);
+      
+      // Force refresh appointments and trigger WebSocket notification
+      fetchAppointments();
+      
     } catch (error) {
       console.error('❌ Error sending note:', error);
-      alert('❌ Failed to send note. Please try again.');
+      console.error('❌ Error details:', error.response?.data);
+      alert(`❌ Failed to send note: ${error.response?.data?.detail || error.message}`);
     }
   };
 
