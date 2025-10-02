@@ -578,6 +578,141 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
             </div>
           )}
         </div>
+
+      {/* Appointment Details Modal from Notification */}
+      {showAppointmentDetailsModal && selectedNotificationAppointment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-900">
+                  📋 Appointment Details
+                </h2>
+                <button
+                  onClick={() => setShowAppointmentDetailsModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Full Appointment Information */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Patient Name</label>
+                    <p className="text-lg font-semibold">{selectedNotificationAppointment.patient?.name}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Age & Gender</label>
+                    <p>{selectedNotificationAppointment.patient?.age} years, {selectedNotificationAppointment.patient?.gender}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Appointment Type</label>
+                    <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                      selectedNotificationAppointment.appointment_type === 'emergency' 
+                        ? 'bg-red-100 text-red-800' 
+                        : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      🚨 {selectedNotificationAppointment.appointment_type?.toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Provider</label>
+                    <p>{selectedNotificationAppointment.provider_name}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Area of Consultation</label>
+                  <p className="font-medium">{selectedNotificationAppointment.patient?.area_of_consultation}</p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Patient History</label>
+                  <p className="bg-gray-50 p-3 rounded-lg">{selectedNotificationAppointment.patient?.history}</p>
+                </div>
+
+                {/* Vitals Section */}
+                {selectedNotificationAppointment.patient?.vitals && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Patient Vitals</label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+                      {selectedNotificationAppointment.patient.vitals.blood_pressure && (
+                        <div className="bg-blue-50 p-2 rounded text-center">
+                          <p className="text-xs text-blue-600">Blood Pressure</p>
+                          <p className="font-semibold">{selectedNotificationAppointment.patient.vitals.blood_pressure}</p>
+                        </div>
+                      )}
+                      {selectedNotificationAppointment.patient.vitals.heart_rate && (
+                        <div className="bg-red-50 p-2 rounded text-center">
+                          <p className="text-xs text-red-600">Heart Rate</p>
+                          <p className="font-semibold">{selectedNotificationAppointment.patient.vitals.heart_rate} BPM</p>
+                        </div>
+                      )}
+                      {selectedNotificationAppointment.patient.vitals.temperature && (
+                        <div className="bg-orange-50 p-2 rounded text-center">
+                          <p className="text-xs text-orange-600">Temperature</p>
+                          <p className="font-semibold">{selectedNotificationAppointment.patient.vitals.temperature}°F</p>
+                        </div>
+                      )}
+                      {selectedNotificationAppointment.patient.vitals.hb && (
+                        <div className="bg-green-50 p-2 rounded text-center">
+                          <p className="text-xs text-green-600">💉 Hemoglobin</p>
+                          <p className="font-semibold">{selectedNotificationAppointment.patient.vitals.hb} g/dL</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex space-x-3 pt-4 border-t">
+                  {user.role === 'doctor' && (
+                    <>
+                      {selectedNotificationAppointment.appointment_type === 'emergency' ? (
+                        <button
+                          onClick={() => {
+                            // Handle video call
+                            console.log('Starting video call for:', selectedNotificationAppointment.id);
+                            setShowAppointmentDetailsModal(false);
+                          }}
+                          className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        >
+                          🚨 Emergency Video Call
+                        </button>
+                      ) : (
+                        <div className="flex-1 bg-gray-100 text-gray-500 px-4 py-2 rounded-lg text-center">
+                          📝 Non-Emergency (Notes Only)
+                        </div>
+                      )}
+                      <button
+                        onClick={() => {
+                          // Handle write note
+                          console.log('Writing note for:', selectedNotificationAppointment.id);
+                          setShowAppointmentDetailsModal(false);
+                        }}
+                        className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        📝 Write Note
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => setShowAppointmentDetailsModal(false)}
+                    className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );
