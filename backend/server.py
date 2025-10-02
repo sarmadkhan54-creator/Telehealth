@@ -872,30 +872,41 @@ async def create_appointment(appointment_data: AppointmentCreate, current_user: 
     
     await db.appointments.insert_one(appointment.dict())
     
-    # Send notification to doctors for both emergency and non-emergency appointments
-    doctors = await db.users.find({"role": "doctor", "is_active": True}).to_list(1000)
-    notification = {
-        "type": "emergency_appointment" if appointment_data.appointment_type == "emergency" else "new_appointment",
+    # Send DETAILED notification to ALL users for INSTANT sync
+    full_appointment_data = {
+        "type": "new_appointment_created",
         "appointment_id": appointment.id,
-        "appointment_type": appointment_data.appointment_type,
-        "patient_name": patient.name,
-        "provider_name": current_user.full_name,
-        "provider_district": current_user.district,
-        "history": patient.history,  # Updated from consultation_reason
-        "area_of_consultation": patient.area_of_consultation,  # New field
-        "patient": {
-            "name": patient.name,
-            "age": patient.age,
-            "gender": patient.gender,
-            "history": patient.history,  # Updated field
-            "area_of_consultation": patient.area_of_consultation,  # New field
-            "vitals": patient.vitals if hasattr(patient, 'vitals') and patient.vitals else {}
+        "appointment": {
+            "id": appointment.id,
+            "patient": {
+                "name": patient.name,
+                "age": patient.age,
+                "gender": patient.gender,
+                "history": patient.history,
+                "area_of_consultation": patient.area_of_consultation,
+                "vitals": patient.vitals
+            },
+            "provider_id": current_user.id,
+            "provider_name": current_user.full_name,
+            "appointment_type": appointment.appointment_type,
+            "status": "pending",
+            "consultation_notes": appointment.consultation_notes,
+            "created_at": appointment.created_at.isoformat(),
+            "call_history": []
         },
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "message": f"🚨 NEW {appointment.appointment_type.upper()} APPOINTMENT: {patient.name}",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "force_refresh": True,  # Flag to force immediate refresh
+        "show_in_notification": True  # Show full details in notification panel
     }
     
-    for doctor in doctors:
-        await manager.send_personal_message(notification, doctor["id"])
+    # Broadcast to ALL connected users (doctors AND providers)
+    await manager.broadcast(full_appointment_data)
+    
+    print(f"📡 BROADCAST: New appointment notification sent to all users")
+    print(f"   Patient: {patient.name}")
+    print(f"   Type: {appointment.appointment_type}")
+    print(f"   Provider: {current_user.full_name}")
     
     return appointment
 
