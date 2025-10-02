@@ -529,17 +529,20 @@ const DoctorDashboard = ({ user, onLogout }) => {
       
       console.log(`Starting configured Jitsi meeting: ${configuredJitsiUrl}`);
       
-      // Mobile-friendly approach: Use location.href for better mobile compatibility
-      if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-        // On mobile devices, open in same tab for better reliability
-        window.location.href = configuredJitsiUrl;
-      } else {
-        // On desktop, try new window first, fallback to same tab
-        const newWindow = window.open(configuredJitsiUrl, '_blank', 'width=1200,height=800');
-        if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
-          // Popup blocked, use same tab
+      // Universal approach: Always open in new window/tab for better compatibility across all devices
+      try {
+        const newWindow = window.open(configuredJitsiUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+        if (newWindow) {
+          newWindow.focus();
+          console.log('✅ Video call opened in new window');
+        } else {
+          // Fallback for popup blockers
+          console.log('⚠️ Popup blocked, using location.href fallback');
           window.location.href = configuredJitsiUrl;
         }
+      } catch (error) {
+        console.error('❌ Error opening video call, using fallback:', error);
+        window.location.href = configuredJitsiUrl;
       }
       
     } catch (error) {
