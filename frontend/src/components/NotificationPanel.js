@@ -5,6 +5,8 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
   const [notifications, setNotifications] = useState([]);
   const [activeTab, setActiveTab] = useState('all');
   const [ws, setWs] = useState(null);
+  const [selectedNotificationAppointment, setSelectedNotificationAppointment] = useState(null);
+  const [showAppointmentDetailsModal, setShowAppointmentDetailsModal] = useState(false);
 
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
   const API = `${BACKEND_URL}/api`;
