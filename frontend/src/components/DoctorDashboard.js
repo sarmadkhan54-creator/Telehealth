@@ -564,27 +564,7 @@ const DoctorDashboard = ({ user, onLogout }) => {
     }
   };
 
-  const sendNoteToProvider = async () => {
-    if (!noteText.trim() || !selectedAppointment) return;
-
-    try {
-      await axios.post(`${API}/appointments/${selectedAppointment.id}/notes`, {
-        note: noteText,
-        sender_role: 'doctor',
-        timestamp: new Date().toISOString()
-      });
-
-      alert('Note sent to provider successfully!');
-      setNoteText('');
-      
-      // Refresh notes
-      const notesResponse = await axios.get(`${API}/appointments/${selectedAppointment.id}/notes`);
-      setAppointmentNotes(notesResponse.data);
-    } catch (error) {
-      console.error('Error sending note:', error);
-      alert('Error sending note to provider');
-    }
-  };
+  // Note: sendNoteToProvider function removed - using handleSendNote instead
 
   const callProvider = (appointment) => {
     if (appointment.provider?.phone) {
