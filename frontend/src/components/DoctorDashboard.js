@@ -1298,7 +1298,7 @@ const DoctorDashboard = ({ user, onLogout }) => {
                     placeholder="Type your note to the provider..."
                   />
                   <button
-                    onClick={sendNoteToProvider}
+                    onClick={handleSendNote}
                     disabled={!noteText.trim()}
                     className="btn-primary flex items-center space-x-2 self-start disabled:opacity-50"
                   >
