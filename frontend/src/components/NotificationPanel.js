@@ -431,14 +431,20 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
         const data = await response.json();
         const configuredJitsiUrl = `${data.jitsi_url}#config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.requireDisplayName=false&config.enableWelcomePage=false&config.prejoinPageEnabled=false&config.enableModeratedDiscussion=false&config.disableModeratorIndicator=true&userInfo.displayName=${user.full_name}`;
         
-        // Open video call
-        if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-          window.location.href = configuredJitsiUrl;
-        } else {
-          const newWindow = window.open(configuredJitsiUrl, '_blank', 'width=1200,height=800');
-          if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+        // Universal video call opening - works on all devices consistently
+        try {
+          const newWindow = window.open(configuredJitsiUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+          if (newWindow) {
+            newWindow.focus();
+            console.log('✅ Video call opened from notification');
+          } else {
+            // Fallback for popup blockers
+            console.log('⚠️ Popup blocked, using location.href fallback');
             window.location.href = configuredJitsiUrl;
           }
+        } catch (error) {
+          console.error('❌ Error opening video call, using fallback:', error);
+          window.location.href = configuredJitsiUrl;
         }
       }
     } catch (error) {
