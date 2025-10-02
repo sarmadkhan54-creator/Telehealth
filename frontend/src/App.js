@@ -10,24 +10,25 @@ import AdminDashboard from './components/AdminDashboard';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import { pushNotificationManager } from './utils/pushNotifications';
 
-// Enhanced backend URL detection for cross-device compatibility
+// Cross-device compatible backend URL configuration
 const getBackendURL = () => {
-  // First try environment variable
-  if (process.env.REACT_APP_BACKEND_URL) {
+  // If environment variable is set and not empty, use it
+  if (process.env.REACT_APP_BACKEND_URL && process.env.REACT_APP_BACKEND_URL.trim() !== '') {
+    console.log('🔗 Using configured backend URL:', process.env.REACT_APP_BACKEND_URL);
     return process.env.REACT_APP_BACKEND_URL;
   }
   
-  // Fallback to current domain for production deployment
+  // Use current domain (works for any deployment)
   const currentOrigin = window.location.origin;
-  console.log('🌐 Using dynamic backend URL based on current origin:', currentOrigin);
+  console.log('🌐 Using dynamic backend URL (same origin):', currentOrigin);
   return currentOrigin;
 };
 
 const BACKEND_URL = getBackendURL();
 const API = `${BACKEND_URL}/api`;
 
-console.log('🔗 Backend URL configured:', BACKEND_URL);
-console.log('🔗 API URL configured:', API);
+console.log('✅ Final Backend URL:', BACKEND_URL);
+console.log('✅ Final API URL:', API);
 
 // Enhanced Axios interceptor for cross-device compatibility
 axios.interceptors.request.use(
