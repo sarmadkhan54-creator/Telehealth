@@ -478,148 +478,99 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
         {/* Notifications List */}
         <div className="flex-1 overflow-y-auto">
           {filteredNotifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500">
-              <div className="text-6xl mb-4">🔔</div>
-              <p className="text-lg font-medium">No notifications</p>
-              <p className="text-sm">You're all caught up!</p>
+            <div className="text-center py-8">
+              <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500">No notifications</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-200">
-              {filteredNotifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
-                    !notification.isRead ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
-                  } ${
-                    notification.priority === 'urgent' ? 'bg-red-50 border-l-4 border-l-red-500' : ''
+            <div className="space-y-3">
+              {filteredNotifications.map((notification, index) => (
+                <div 
+                  key={index}
+                  className={`p-4 rounded-lg border-l-4 cursor-pointer hover:bg-gray-100 transition-colors ${
+                    notification.type === 'emergency_appointment' || notification.type === 'new_appointment_created' && notification.appointment?.appointment_type === 'emergency' ? 'border-red-500 bg-red-50' : 
+                    notification.type === 'new_appointment' || notification.type === 'new_appointment_created' ? 'border-blue-500 bg-blue-50' :
+                    'border-gray-300 bg-gray-50'
                   }`}
-                  onClick={() => handleNotificationClick(notification)}
+                  onClick={() => {
+                    if (notification.appointment) {
+                      setSelectedNotificationAppointment(notification.appointment);
+                      setShowAppointmentDetailsModal(true);
+                    }
+                  }}
                 >
-                  <div className="flex items-start space-x-3">
-                    <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                      notification.priority === 'urgent' ? 'bg-red-100' :
-                      notification.priority === 'high' ? 'bg-orange-100' : 'bg-green-100'
-                    }`}>
-                      {notification.type === 'jitsi_call_invitation' || notification.type === 'video_call_invitation' ? (
-                        <Phone className={`w-5 h-5 ${
-                          notification.priority === 'urgent' ? 'text-red-600' : 'text-green-600'
-                        }`} />
-                      ) : notification.type === 'emergency_appointment' ? (
-                        <AlertTriangle className="w-5 h-5 text-red-600" />
-                      ) : (
-                        <User className="w-5 h-5 text-green-600" />
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold text-gray-900 truncate">
-                          {notification.title}
-                        </p>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xs text-gray-500">
-                            {notification.timestamp.toLocaleTimeString([], { 
-                              hour: '2-digit', 
-                              minute: '2-digit' 
-                            })}
-                          </span>
-                          {!notification.isRead && (
-                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <p className="text-sm text-gray-600 mt-1">
-                        {notification.message}
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">
+                        {getNotificationIcon(notification.type)} {notification.message}
                       </p>
-
-                      {/* Action Buttons for Video Call Invitations */}
-                      {(notification.type === 'jitsi_call_invitation' || notification.type === 'video_call_invitation') && (
-                        <div className="flex items-center space-x-2 mt-3">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (notification.data.jitsi_url) {
-                                window.open(notification.data.jitsi_url, '_blank', 'width=1200,height=800');
-                              } else if (notification.data.appointment_id) {
-                                startVideoCall(notification.data.appointment_id);
-                              }
-                              markAsRead(notification.id);
-                            }}
-                            className="flex items-center space-x-1 px-3 py-1 bg-green-500 text-white text-xs rounded-full hover:bg-green-600 transition-colors"
-                          >
-                            <Phone className="w-3 h-3" />
-                            <span>Join Call</span>
-                          </button>
+                      
+                      {/* FULL APPOINTMENT DETAILS IN NOTIFICATION */}
+                      {notification.appointment && (
+                        <div className="mt-3 p-3 bg-white rounded-lg border">
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                              <span className="font-medium text-gray-600">Patient:</span> {notification.appointment.patient?.name}
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-600">Age:</span> {notification.appointment.patient?.age}
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-600">Type:</span> 
+                              <span className={`ml-1 px-2 py-1 rounded text-xs ${
+                                notification.appointment.appointment_type === 'emergency' 
+                                  ? 'bg-red-100 text-red-800' 
+                                  : 'bg-blue-100 text-blue-800'
+                              }`}>
+                                {notification.appointment.appointment_type?.toUpperCase()}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-600">Provider:</span> {notification.appointment.provider_name}
+                            </div>
+                          </div>
                           
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              markAsRead(notification.id);
-                            }}
-                            className="flex items-center space-x-1 px-3 py-1 bg-red-500 text-white text-xs rounded-full hover:bg-red-600 transition-colors"
-                          >
-                            <PhoneOff className="w-3 h-3" />
-                            <span>Decline</span>
-                          </button>
+                          <div className="mt-2">
+                            <span className="font-medium text-gray-600">Area:</span> {notification.appointment.patient?.area_of_consultation}
+                          </div>
                           
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (notification.data.appointment_id) {
-                                startVideoCall(notification.data.appointment_id);
-                              }
-                              markAsRead(notification.id);
-                            }}
-                            className="flex items-center space-x-1 px-3 py-1 bg-blue-500 text-white text-xs rounded-full hover:bg-blue-600 transition-colors"
-                          >
-                            <Phone className="w-3 h-3" />
-                            <span>Call Back</span>
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Action Buttons for Appointments */}
-                      {(notification.type === 'emergency_appointment' || notification.type === 'new_appointment') && notification.data.appointment_id && (
-                        <div className="flex items-center space-x-2 mt-3">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              startVideoCall(notification.data.appointment_id);
-                              markAsRead(notification.id);
-                            }}
-                            className="flex items-center space-x-1 px-3 py-1 bg-green-500 text-white text-xs rounded-full hover:bg-green-600 transition-colors"
-                          >
-                            <Phone className="w-3 h-3" />
-                            <span>Call Provider</span>
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Patient Info for Appointments */}
-                      {(notification.type === 'emergency_appointment' || notification.type === 'new_appointment') && notification.data.patient && (
-                        <div className={`mt-3 p-2 rounded-lg ${
-                          notification.type === 'emergency_appointment' ? 'bg-red-50' : 'bg-blue-50'
-                        }`}>
-                          <p className={`text-xs font-medium ${
-                            notification.type === 'emergency_appointment' ? 'text-red-800' : 'text-blue-800'
-                          }`}>
-                            Patient: {notification.data.patient.name} ({notification.data.patient.age}y, {notification.data.patient.gender})
-                          </p>
-                          <p className={`text-xs ${
-                            notification.type === 'emergency_appointment' ? 'text-red-700' : 'text-blue-700'
-                          }`}>
-                            Reason: {notification.data.patient.consultation_reason}
-                          </p>
-                          {notification.data.provider_name && (
-                            <p className={`text-xs ${
-                              notification.type === 'emergency_appointment' ? 'text-red-600' : 'text-blue-600'
-                            }`}>
-                              Provider: {notification.data.provider_name} ({notification.data.provider_district})
-                            </p>
+                          {notification.appointment.patient?.history && (
+                            <div className="mt-2">
+                              <span className="font-medium text-gray-600">History:</span>
+                              <p className="text-gray-800 text-sm mt-1">{notification.appointment.patient.history}</p>
+                            </div>
                           )}
+                          
+                          {/* Vitals Display */}
+                          {notification.appointment.patient?.vitals && (
+                            <div className="mt-3">
+                              <span className="font-medium text-gray-600">Vitals:</span>
+                              <div className="grid grid-cols-2 gap-1 mt-1 text-xs">
+                                {notification.appointment.patient.vitals.blood_pressure && (
+                                  <div>BP: {notification.appointment.patient.vitals.blood_pressure}</div>
+                                )}
+                                {notification.appointment.patient.vitals.heart_rate && (
+                                  <div>HR: {notification.appointment.patient.vitals.heart_rate}</div>
+                                )}
+                                {notification.appointment.patient.vitals.temperature && (
+                                  <div>Temp: {notification.appointment.patient.vitals.temperature}°F</div>
+                                )}
+                                {notification.appointment.patient.vitals.hb && (
+                                  <div>Hb: {notification.appointment.patient.vitals.hb} g/dL</div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="mt-3 pt-2 border-t">
+                            <p className="text-xs text-gray-500">💡 Click to view full details and take action</p>
+                          </div>
                         </div>
                       )}
+                      
+                      <p className="text-sm text-gray-600 mt-2">
+                        {formatDateTime(notification.timestamp)}
+                      </p>
                     </div>
                   </div>
                 </div>
