@@ -162,7 +162,59 @@ const DoctorDashboard = ({ user, onLogout }) => {
             setNotifications(prev => [newNotification, ...prev.slice(0, 9)]);
             setUnreadNotifications(prev => prev + 1);
             
-            // ENHANCED: Real-time appointment sync for doctors
+            // CRITICAL: Handle new appointment creation for DOCTOR INSTANT sync
+            if (notification.type === 'new_appointment_created') {
+              console.log('🚨 DOCTOR: NEW APPOINTMENT CREATED - FORCING IMMEDIATE SYNC:', notification);
+              
+              // Add appointment directly to doctor's state for INSTANT display
+              if (notification.appointment) {
+                setAppointments(prevAppointments => {
+                  const newAppointment = notification.appointment;
+                  // Check if appointment already exists to prevent duplicates
+                  const exists = prevAppointments.some(apt => apt.id === newAppointment.id);
+                  if (!exists) {
+                    console.log('➕ DOCTOR: Adding new appointment to state immediately:', newAppointment.patient?.name);
+                    return [...prevAppointments, newAppointment];
+                  }
+                  return prevAppointments;
+                });
+              }
+              
+              // Force immediate refresh
+              fetchAppointments();
+              
+              // Show notification with full appointment details for doctors
+              if (notification.show_in_notification) {
+                setNotifications(prev => [{
+                  id: Date.now(),
+                  type: notification.type,
+                  message: notification.message,
+                  appointment: notification.appointment,
+                  timestamp: notification.timestamp,
+                  read: false
+                }, ...prev]);
+                
+                setUnreadNotifications(prev => prev + 1);
+              }
+              
+              // Visual toast notification for doctors
+              const toast = document.createElement('div');
+              toast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-3 rounded-lg shadow-lg z-50 max-w-md';
+              toast.innerHTML = `
+                <div class="font-bold">🩺 New Patient Available!</div>
+                <div class="text-sm">${notification.appointment?.patient?.name} - ${notification.appointment?.appointment_type?.toUpperCase()}</div>
+                <div class="text-xs mt-1">From: ${notification.appointment?.provider_name}</div>
+                <div class="text-xs">Area: ${notification.appointment?.patient?.area_of_consultation}</div>
+              `;
+              document.body.appendChild(toast);
+              setTimeout(() => {
+                if (document.body.contains(toast)) {
+                  document.body.removeChild(toast);
+                }
+              }, 6000);
+            }
+
+            // ENHANCED: Real-time appointment sync for other doctor updates
             if (notification.type === 'emergency_appointment' || 
                 notification.type === 'new_appointment' || 
                 notification.type === 'appointment_accepted' || 
