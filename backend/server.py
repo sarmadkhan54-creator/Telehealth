@@ -32,7 +32,7 @@ app = FastAPI(title="MedConnect Telehealth API", version="1.0.0")
 api_router = APIRouter(prefix="/api")
 
 # Security
-SECRET_KEY = "your-secret-key-change-this-in-production"
+SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-production')
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 480  # 8 hours to prevent frequent logouts
 
