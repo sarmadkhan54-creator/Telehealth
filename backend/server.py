@@ -1070,6 +1070,33 @@ async def add_appointment_note(appointment_id: str, note_data: AppointmentNote, 
             {"$set": {"doctor_notes": note_data.note, "updated_at": datetime.now(timezone.utc)}}
         )
     
+    # CRITICAL: Send real-time notification about new note
+    note_notification = {
+        "type": "new_note" if current_user.role == "doctor" else "provider_note",
+        "appointment_id": appointment_id,
+        "note_id": note_doc["id"],
+        "sender_name": current_user.full_name,
+        "sender_role": current_user.role,
+        "note": note_data.note,
+        "patient_name": appointment.get("patient", {}).get("name", "Unknown Patient"),
+        "appointment_type": appointment.get("appointment_type", "unknown"),
+        "message": f"📝 New note from {current_user.role.title()}: {current_user.full_name}",
+        "timestamp": note_doc["timestamp"].isoformat(),
+        "force_refresh": True
+    }
+    
+    # Send to the other party (doctor → provider or provider → doctor)
+    if current_user.role == "doctor":
+        # Doctor sent note, notify provider
+        await manager.send_personal_message(note_notification, appointment["provider_id"])
+        print(f"📤 Note notification sent to provider: {appointment['provider_id']}")
+    else:
+        # Provider sent note, notify doctor if assigned
+        if appointment.get("doctor_id"):
+            await manager.send_personal_message(note_notification, appointment["doctor_id"])
+            print(f"📤 Note notification sent to doctor: {appointment['doctor_id']}")
+    
+    print(f"✅ Note saved and notification sent - ID: {note_doc['id']}")
     return {"message": "Note added successfully", "note_id": note_doc["id"]}
 
 @api_router.get("/appointments/{appointment_id}/notes")
