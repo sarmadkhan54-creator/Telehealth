@@ -611,16 +611,20 @@ const Dashboard = ({ user, onLogout }) => {
       // Enhanced Jitsi URL for provider with automatic participant settings
       const providerJitsiUrl = `${videoCallInvitation.jitsiUrl}&userInfo.displayName=${user.full_name}&config.prejoinPageEnabled=false&config.enableWelcomePage=false&config.startWithVideoMuted=false&config.startWithAudioMuted=false`;
       
-      // Mobile-friendly approach for accepting video calls
-      if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-        // On mobile devices, open in same tab for better reliability
-        window.location.href = providerJitsiUrl;
-      } else {
-        // On desktop, open in new tab with focus
+      // Universal approach: Works consistently on all devices and browsers
+      try {
         const jitsiWindow = window.open(providerJitsiUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,location=yes');
         if (jitsiWindow) {
           jitsiWindow.focus();
+          console.log('✅ Video call joined in new window');
+        } else {
+          // Fallback for popup blockers
+          console.log('⚠️ Popup blocked, using location.href fallback');
+          window.location.href = providerJitsiUrl;
         }
+      } catch (error) {
+        console.error('❌ Error opening video call, using fallback:', error);
+        window.location.href = providerJitsiUrl;
       }
       
       setShowVideoCallInvitation(false);
