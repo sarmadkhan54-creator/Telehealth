@@ -148,7 +148,58 @@ const Dashboard = ({ user, onLogout }) => {
             const notification = JSON.parse(event.data);
             console.log('📨 Provider received WebSocket notification:', notification);
             
-            // ENHANCED: Real-time appointment sync for instant updates
+            // CRITICAL: Handle new appointment creation for INSTANT sync
+            if (notification.type === 'new_appointment_created') {
+              console.log('🚨 NEW APPOINTMENT CREATED - FORCING IMMEDIATE SYNC:', notification);
+              
+              // Add appointment directly to state for INSTANT display
+              if (notification.appointment) {
+                setAppointments(prevAppointments => {
+                  const newAppointment = notification.appointment;
+                  // Check if appointment already exists to prevent duplicates
+                  const exists = prevAppointments.some(apt => apt.id === newAppointment.id);
+                  if (!exists) {
+                    console.log('➕ Adding new appointment to state immediately:', newAppointment.patient?.name);
+                    return [...prevAppointments, newAppointment];
+                  }
+                  return prevAppointments;
+                });
+              }
+              
+              // Force immediate refresh
+              fetchAppointments();
+              
+              // Show notification with full appointment details
+              if (notification.show_in_notification) {
+                setNotifications(prev => [{
+                  id: Date.now(),
+                  type: notification.type,
+                  message: notification.message,
+                  appointment: notification.appointment,
+                  timestamp: notification.timestamp,
+                  read: false
+                }, ...prev]);
+                
+                setUnreadNotifications(prev => prev + 1);
+              }
+              
+              // Visual toast notification
+              const toast = document.createElement('div');
+              toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg z-50 max-w-md';
+              toast.innerHTML = `
+                <div class="font-bold">✅ New Appointment Added!</div>
+                <div class="text-sm">${notification.appointment?.patient?.name} - ${notification.appointment?.appointment_type}</div>
+                <div class="text-xs mt-1">Provider: ${notification.appointment?.provider_name}</div>
+              `;
+              document.body.appendChild(toast);
+              setTimeout(() => {
+                if (document.body.contains(toast)) {
+                  document.body.removeChild(toast);
+                }
+              }, 5000);
+            }
+
+            // ENHANCED: Real-time appointment sync for other updates
             if (notification.type === 'emergency_appointment' || 
                 notification.type === 'new_appointment' || 
                 notification.type === 'appointment_accepted' || 
