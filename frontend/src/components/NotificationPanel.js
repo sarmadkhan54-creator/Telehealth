@@ -318,26 +318,79 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
   };
 
   const handleNotificationClick = (notification) => {
+    console.log('🔔 Notification clicked:', notification);
+    
     switch (notification.type) {
       case 'jitsi_call_invitation':
-        // Answer the call
-        if (notification.data.jitsi_url) {
-          window.open(notification.data.jitsi_url, '_blank', 'width=1200,height=800');
+      case 'video_call_invitation':
+      case 'incoming_video_call':
+        // Handle video call invitation
+        if (notification.jitsi_url) {
+          window.open(notification.jitsi_url, '_blank');
         }
+        markAsRead(notification.id);
         break;
+        
+      case 'new_appointment_created':
       case 'emergency_appointment':
-        // Open appointment details
-        if (notification.data.appointment_id) {
-          // You can trigger opening appointment modal here
-          console.log('Opening appointment:', notification.data.appointment_id);
+      case 'new_appointment':
+        // Navigate to appointment details
+        if (notification.appointment) {
+          setSelectedNotificationAppointment(notification.appointment);
+          setShowAppointmentDetailsModal(true);
+        } else if (notification.appointment_id) {
+          // Fetch appointment details and show modal
+          fetchAppointmentDetails(notification.appointment_id);
         }
+        markAsRead(notification.id);
         break;
+        
+      case 'new_note':
+      case 'doctor_note':
+      case 'provider_note':
+        // Navigate to appointment with note focus
+        if (notification.appointment_id) {
+          fetchAppointmentDetails(notification.appointment_id, 'notes');
+        }
+        markAsRead(notification.id);
+        break;
+        
+      case 'user_deleted':
+      case 'appointment_cancelled':
+        // Show acknowledgment and refresh
+        alert(`${notification.message} - Data will be refreshed`);
+        if (typeof window.location.reload === 'function') {
+          setTimeout(() => window.location.reload(), 1000);
+        }
+        markAsRead(notification.id);
+        break;
+        
       default:
-        console.log('Notification clicked:', notification);
+        // Generic notification - show details if available
+        if (notification.appointment || notification.appointment_id) {
+          if (notification.appointment) {
+            setSelectedNotificationAppointment(notification.appointment);
+            setShowAppointmentDetailsModal(true);
+          } else {
+            fetchAppointmentDetails(notification.appointment_id);
+          }
+        }
+        markAsRead(notification.id);
     }
+  };
 
-    // Mark as read
-    markAsRead(notification.id);
+  const fetchAppointmentDetails = async (appointmentId, focusTab = 'details') => {
+    try {
+      console.log('📋 Fetching appointment details for:', appointmentId);
+      const response = await axios.get(`${API}/appointments/${appointmentId}`);
+      if (response.data) {
+        setSelectedNotificationAppointment(response.data);
+        setShowAppointmentDetailsModal(true);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching appointment details:', error);
+      alert('❌ Could not load appointment details. Please try again.');
+    }
   };
 
   const markAsRead = (notificationId) => {
