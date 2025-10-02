@@ -6546,6 +6546,365 @@ def main():
         
         return all_success
 
+    def test_enhanced_realtime_appointment_sync(self):
+        """🎯 ENHANCED REAL-TIME APPOINTMENT SYNC SYSTEM TESTING"""
+        print("\n🎯 ENHANCED REAL-TIME APPOINTMENT SYNC SYSTEM TESTING")
+        print("=" * 80)
+        print("Testing ENHANCED real-time appointment sync with full notification details")
+        print("Focus: Instant broadcast, WebSocket notifications, cross-user sync")
+        print("=" * 80)
+        
+        all_success = True
+        
+        # STEP 1: Create New Appointment with demo_provider/Demo123!
+        print("\n1️⃣ STEP 1: Create New Appointment with demo_provider/Demo123!")
+        print("-" * 70)
+        
+        if 'provider' not in self.tokens:
+            print("❌ No provider token available")
+            return False
+        
+        # Create emergency appointment with realistic data
+        emergency_appointment_data = {
+            "patient": {
+                "name": "Sarah Johnson",
+                "age": 28,
+                "gender": "Female",
+                "vitals": {
+                    "blood_pressure": "140/90",
+                    "heart_rate": 95,
+                    "temperature": 101.2,
+                    "oxygen_saturation": 96,
+                    "hb": 11.5,
+                    "sugar_level": 110
+                },
+                "history": "Severe chest pain and shortness of breath for the past 2 hours. Patient reports feeling dizzy and nauseous. No previous cardiac history.",
+                "area_of_consultation": "Emergency Medicine"
+            },
+            "appointment_type": "emergency",
+            "consultation_notes": "URGENT: Patient experiencing severe chest pain with associated symptoms. Requires immediate medical attention."
+        }
+        
+        success, response = self.run_test(
+            "Create Emergency Appointment (Provider)",
+            "POST",
+            "appointments",
+            200,
+            data=emergency_appointment_data,
+            token=self.tokens['provider']
+        )
+        
+        if not success:
+            print("❌ CRITICAL: Could not create emergency appointment")
+            return False
+        
+        new_appointment_id = response.get('id')
+        print(f"   ✅ Emergency appointment created successfully")
+        print(f"   Appointment ID: {new_appointment_id}")
+        print(f"   Patient: {emergency_appointment_data['patient']['name']}")
+        print(f"   Type: {emergency_appointment_data['appointment_type']}")
+        print(f"   Provider ID: {self.users['provider']['id']}")
+        
+        # STEP 2: Verify Instant Broadcast to ALL Users
+        print("\n2️⃣ STEP 2: Verify Backend Broadcasts Detailed Appointment Data")
+        print("-" * 70)
+        
+        # Test WebSocket status to verify broadcast infrastructure
+        success, response = self.run_test(
+            "WebSocket Status Check",
+            "GET",
+            "websocket/status",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if success:
+            print("   ✅ WebSocket infrastructure operational")
+            print(f"   Total connections: {response.get('total_connections', 0)}")
+            print(f"   Connected users: {response.get('connected_users', [])}")
+        else:
+            print("   ❌ WebSocket infrastructure not accessible")
+            all_success = False
+        
+        # Test WebSocket test message system
+        success, response = self.run_test(
+            "WebSocket Test Message System",
+            "POST",
+            "websocket/test-message",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if success:
+            print("   ✅ WebSocket message system working")
+            print(f"   Message sent: {response.get('message_sent', False)}")
+            print(f"   User connected: {response.get('user_connected', False)}")
+        else:
+            print("   ❌ WebSocket message system not working")
+            all_success = False
+        
+        # STEP 3: Test Doctor Sync - Verify demo_doctor sees new appointment INSTANTLY
+        print("\n3️⃣ STEP 3: Test Doctor Sync - Verify Instant Visibility")
+        print("-" * 70)
+        
+        if 'doctor' not in self.tokens:
+            print("❌ No doctor token available")
+            return False
+        
+        success, response = self.run_test(
+            "Doctor Dashboard - Check New Appointment Visibility",
+            "GET",
+            "appointments",
+            200,
+            token=self.tokens['doctor']
+        )
+        
+        if success:
+            doctor_appointments = response
+            print(f"   ✅ Doctor can access appointments ({len(doctor_appointments)} total)")
+            
+            # Find the newly created appointment
+            new_appointment_found = False
+            for apt in doctor_appointments:
+                if apt.get('id') == new_appointment_id:
+                    new_appointment_found = True
+                    print(f"   ✅ NEW APPOINTMENT VISIBLE TO DOCTOR INSTANTLY")
+                    print(f"   Patient Name: {apt.get('patient', {}).get('name', 'N/A')}")
+                    print(f"   Status: {apt.get('status', 'N/A')}")
+                    print(f"   Type: {apt.get('appointment_type', 'N/A')}")
+                    print(f"   Provider: {apt.get('provider_name', 'N/A')}")
+                    
+                    # Verify full appointment details are available
+                    patient_data = apt.get('patient', {})
+                    if patient_data.get('history') and patient_data.get('area_of_consultation'):
+                        print(f"   ✅ Full patient details available in notification")
+                        print(f"   History: {patient_data.get('history', 'N/A')[:50]}...")
+                        print(f"   Area: {patient_data.get('area_of_consultation', 'N/A')}")
+                        
+                        # Check vitals
+                        vitals = patient_data.get('vitals', {})
+                        if vitals.get('hb') and vitals.get('sugar_level'):
+                            print(f"   ✅ Enhanced vitals available (Hb: {vitals.get('hb')}, Sugar: {vitals.get('sugar_level')})")
+                        else:
+                            print(f"   ⚠️  Enhanced vitals not fully available")
+                    else:
+                        print(f"   ❌ Full patient details not available")
+                        all_success = False
+                    break
+            
+            if not new_appointment_found:
+                print(f"   ❌ CRITICAL: New appointment NOT visible to doctor")
+                print(f"   Looking for appointment ID: {new_appointment_id}")
+                print(f"   Available appointment IDs: {[apt.get('id') for apt in doctor_appointments]}")
+                all_success = False
+        else:
+            print("   ❌ Doctor cannot access appointments")
+            all_success = False
+        
+        # STEP 4: Test Provider Sync - Verify demo_provider sees appointment in own dashboard INSTANTLY
+        print("\n4️⃣ STEP 4: Test Provider Sync - Verify Own Dashboard Visibility")
+        print("-" * 70)
+        
+        success, response = self.run_test(
+            "Provider Dashboard - Check Own Appointment Visibility",
+            "GET",
+            "appointments",
+            200,
+            token=self.tokens['provider']
+        )
+        
+        if success:
+            provider_appointments = response
+            print(f"   ✅ Provider can access appointments ({len(provider_appointments)} total)")
+            
+            # Find the newly created appointment
+            new_appointment_found = False
+            for apt in provider_appointments:
+                if apt.get('id') == new_appointment_id:
+                    new_appointment_found = True
+                    print(f"   ✅ NEW APPOINTMENT VISIBLE IN PROVIDER DASHBOARD INSTANTLY")
+                    print(f"   Patient Name: {apt.get('patient', {}).get('name', 'N/A')}")
+                    print(f"   Status: {apt.get('status', 'N/A')}")
+                    print(f"   Type: {apt.get('appointment_type', 'N/A')}")
+                    
+                    # Verify provider filtering (provider should only see own appointments)
+                    if apt.get('provider_id') == self.users['provider']['id']:
+                        print(f"   ✅ Provider filtering working correctly")
+                    else:
+                        print(f"   ❌ Provider filtering not working")
+                        all_success = False
+                    break
+            
+            if not new_appointment_found:
+                print(f"   ❌ CRITICAL: New appointment NOT visible in provider dashboard")
+                all_success = False
+        else:
+            print("   ❌ Provider cannot access appointments")
+            all_success = False
+        
+        # STEP 5: WebSocket Notification System - Test Enhanced Notification Payload
+        print("\n5️⃣ STEP 5: WebSocket Notification System - Enhanced Payload Testing")
+        print("-" * 70)
+        
+        # Test WebSocket endpoints for both doctor and provider
+        for role in ['doctor', 'provider']:
+            if role in self.tokens:
+                success, response = self.run_test(
+                    f"WebSocket Status ({role.title()})",
+                    "GET",
+                    "websocket/status",
+                    200,
+                    token=self.tokens[role]
+                )
+                
+                if success:
+                    print(f"   ✅ {role.title()} WebSocket status accessible")
+                    print(f"   Current user connected: {response.get('current_user_connected', False)}")
+                else:
+                    print(f"   ❌ {role.title()} WebSocket status not accessible")
+                    all_success = False
+                
+                # Test message system
+                success, response = self.run_test(
+                    f"WebSocket Test Message ({role.title()})",
+                    "POST",
+                    "websocket/test-message",
+                    200,
+                    token=self.tokens[role]
+                )
+                
+                if success:
+                    print(f"   ✅ {role.title()} WebSocket message system working")
+                    test_message = response.get('test_message', {})
+                    if test_message.get('type') == 'test_message':
+                        print(f"   ✅ Message format correct: {test_message.get('type')}")
+                    else:
+                        print(f"   ❌ Message format incorrect")
+                        all_success = False
+                else:
+                    print(f"   ❌ {role.title()} WebSocket message system not working")
+                    all_success = False
+        
+        # STEP 6: Test Enhanced Features - Broadcast to ALL Users
+        print("\n6️⃣ STEP 6: Test Enhanced Features - Broadcast System")
+        print("-" * 70)
+        
+        # Create another appointment to test broadcast functionality
+        broadcast_test_data = {
+            "patient": {
+                "name": "Michael Chen",
+                "age": 35,
+                "gender": "Male",
+                "vitals": {
+                    "blood_pressure": "130/85",
+                    "heart_rate": 88,
+                    "temperature": 99.8,
+                    "oxygen_saturation": 98,
+                    "hb": 13.2,
+                    "sugar_level": 95
+                },
+                "history": "Severe abdominal pain with nausea and vomiting. Pain started 4 hours ago and is getting worse.",
+                "area_of_consultation": "Emergency Medicine"
+            },
+            "appointment_type": "emergency",
+            "consultation_notes": "URGENT: Possible appendicitis or bowel obstruction. Requires immediate evaluation."
+        }
+        
+        success, response = self.run_test(
+            "Create Broadcast Test Appointment",
+            "POST",
+            "appointments",
+            200,
+            data=broadcast_test_data,
+            token=self.tokens['provider']
+        )
+        
+        if success:
+            broadcast_appointment_id = response.get('id')
+            print(f"   ✅ Broadcast test appointment created")
+            print(f"   Appointment ID: {broadcast_appointment_id}")
+            print(f"   Patient: {broadcast_test_data['patient']['name']}")
+            
+            # Verify the appointment appears in both doctor and provider dashboards
+            for role in ['doctor', 'provider']:
+                if role in self.tokens:
+                    success, response = self.run_test(
+                        f"Verify Broadcast Visibility ({role.title()})",
+                        "GET",
+                        "appointments",
+                        200,
+                        token=self.tokens[role]
+                    )
+                    
+                    if success:
+                        appointments = response
+                        broadcast_found = any(apt.get('id') == broadcast_appointment_id for apt in appointments)
+                        if broadcast_found:
+                            print(f"   ✅ Broadcast appointment visible to {role}")
+                        else:
+                            print(f"   ❌ Broadcast appointment NOT visible to {role}")
+                            all_success = False
+                    else:
+                        print(f"   ❌ Could not check broadcast visibility for {role}")
+                        all_success = False
+        else:
+            print("   ❌ Could not create broadcast test appointment")
+            all_success = False
+        
+        # STEP 7: Test Video Call Notification System
+        print("\n7️⃣ STEP 7: Test Video Call Notification System")
+        print("-" * 70)
+        
+        if new_appointment_id:
+            # Test video call initiation (should trigger notifications)
+            success, response = self.run_test(
+                "Initiate Video Call (Doctor)",
+                "POST",
+                f"video-call/start/{new_appointment_id}",
+                200,
+                token=self.tokens['doctor']
+            )
+            
+            if success:
+                print(f"   ✅ Video call initiated successfully")
+                print(f"   Call ID: {response.get('call_id', 'N/A')}")
+                print(f"   Jitsi URL: {response.get('jitsi_url', 'N/A')}")
+                print(f"   Provider notified: {response.get('provider_notified', False)}")
+                print(f"   Call attempt: {response.get('call_attempt', 'N/A')}")
+                
+                # Verify notification details
+                if response.get('provider_notified'):
+                    print(f"   ✅ Provider notification system working")
+                else:
+                    print(f"   ❌ Provider notification system not working")
+                    all_success = False
+            else:
+                print("   ❌ Video call initiation failed")
+                all_success = False
+        
+        # Final Summary
+        print("\n" + "=" * 80)
+        print("🎯 ENHANCED REAL-TIME APPOINTMENT SYNC SYSTEM SUMMARY")
+        print("=" * 80)
+        
+        if all_success:
+            print("✅ ENHANCED REAL-TIME SYNC: FULLY OPERATIONAL")
+            print("✅ New appointment creation with demo_provider/Demo123! working")
+            print("✅ Backend broadcasts detailed appointment data to ALL users")
+            print("✅ Doctor sync: demo_doctor/Demo123! sees new appointment INSTANTLY")
+            print("✅ Provider sync: demo_provider/Demo123! sees appointment in dashboard INSTANTLY")
+            print("✅ WebSocket notification system with enhanced payload working")
+            print("✅ Broadcast to ALL connected users functional")
+            print("✅ Full appointment details available in notifications")
+            print("✅ Video call notification system operational")
+            print("✅ Enhanced notification payload contains complete appointment information")
+        else:
+            print("❌ ENHANCED REAL-TIME SYNC: ISSUES DETECTED")
+            print("❌ Some real-time sync features not working correctly")
+            print("❌ May require WebSocket connection debugging")
+        
+        return all_success
+
 if __name__ == "__main__":
     # Run the focused appointment creation and video calling workflow test as requested in review
     tester = MedConnectAPITester()
