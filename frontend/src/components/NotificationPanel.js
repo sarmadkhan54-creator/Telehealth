@@ -296,6 +296,27 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
     }
   };
 
+  const getNotificationIcon = (type) => {
+    switch (type) {
+      case 'emergency_appointment':
+      case 'new_appointment_created':
+        return '🚨';
+      case 'new_appointment':
+        return '📅';
+      case 'jitsi_call_invitation':
+      case 'video_call_invitation':
+        return '📞';
+      default:
+        return '📨';
+    }
+  };
+
+  const formatDateTime = (timestamp) => {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    return date.toLocaleString();
+  };
+
   const handleNotificationClick = (notification) => {
     switch (notification.type) {
       case 'jitsi_call_invitation':
