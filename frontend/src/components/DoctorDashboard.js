@@ -14,7 +14,8 @@ import {
   Video,
   Eye,
   Send,
-  PhoneCall
+  PhoneCall,
+  X
 } from 'lucide-react';
 import NotificationPanel from './NotificationPanel';
 import CallButton from './CallButton';
