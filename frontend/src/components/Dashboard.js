@@ -1567,6 +1567,70 @@ const Dashboard = ({ user, onLogout }) => {
         onClose={() => setShowNotificationPanel(false)}
       />
 
+      {/* Provider Note Modal */}
+      {showProviderNoteModal && selectedAppointment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="glass-card max-w-lg w-full mx-4">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900">Send Note to Doctor</h3>
+              <button
+                onClick={() => {
+                  setShowProviderNoteModal(false);
+                  setProviderNoteText('');
+                  setSelectedAppointment(null);
+                }}
+                className="text-gray-500 hover:text-gray-700 text-xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">
+                <strong>Patient:</strong> {selectedAppointment.patient?.name}
+              </p>
+              <p className="text-sm text-gray-600 mb-4">
+                <strong>Appointment Type:</strong> {selectedAppointment.appointment_type}
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Your Note to Doctor
+              </label>
+              <textarea
+                value={providerNoteText}
+                onChange={(e) => setProviderNoteText(e.target.value)}
+                className="w-full form-input"
+                rows={6}
+                placeholder="Enter your note for the doctor about this patient..."
+              />
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowProviderNoteModal(false);
+                  setProviderNoteText('');
+                  setSelectedAppointment(null);
+                }}
+                className="btn-secondary"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendProviderNote}
+                disabled={!providerNoteText.trim()}
+                className="btn-primary flex items-center space-x-2 disabled:opacity-50"
+              >
+                <Send className="w-4 h-4" />
+                <span>Send Note</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Notification Settings Modal */}
       <NotificationSettings 
         isOpen={showNotificationSettings}
