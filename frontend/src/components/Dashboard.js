@@ -1144,26 +1144,15 @@ const Dashboard = ({ user, onLogout }) => {
                         <span>View Details</span>
                       </button>
 
+                      {/* Only cancel allowed for providers - delete restricted to doctors only */}
                       {(appointment.status === 'pending' || appointment.status === 'accepted') && (
-                        <>
-                          <button
-                            onClick={() => handleCancelAppointment(appointment.id)}
-                            className="btn-secondary flex items-center space-x-2 text-orange-600 hover:text-orange-800"
-                          >
-                            <X className="w-4 h-4" />
-                            <span>Cancel</span>
-                          </button>
-                          
-                          {appointment.status === 'pending' && (
-                            <button
-                              onClick={() => handleDeleteAppointment(appointment.id, appointment.patient?.name)}
-                              className="btn-secondary flex items-center space-x-2 text-red-600 hover:text-red-800"
-                            >
-                              <X className="w-4 h-4" />
-                              <span>Delete</span>
-                            </button>
-                          )}
-                        </>
+                        <button
+                          onClick={() => handleCancelAppointment(appointment.id)}
+                          className="btn-secondary flex items-center space-x-2 text-orange-600 hover:text-orange-800"
+                        >
+                          <X className="w-4 h-4" />
+                          <span>Cancel</span>
+                        </button>
                       )}
                     </div>
                   </div>
