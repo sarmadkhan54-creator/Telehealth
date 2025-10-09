@@ -1095,8 +1095,26 @@ async def add_appointment_note(appointment_id: str, note_data: AppointmentNote, 
         if appointment.get("doctor_id"):
             await manager.send_personal_message(note_notification, appointment["doctor_id"])
             print(f"📤 Note notification sent to doctor: {appointment['doctor_id']}")
+        else:
+            # If no doctor assigned yet, broadcast to all doctors
+            await manager.broadcast({
+                **note_notification,
+                "broadcast_to": "doctors",
+                "message": f"📝 New provider note (unassigned): {current_user.full_name}"
+            })
     
-    print(f"✅ Note saved and notification sent - ID: {note_doc['id']}")
+    # Also broadcast to admin panel for real-time updates
+    await manager.broadcast({
+        "type": "note_activity",
+        "action": "note_added",
+        "appointment_id": appointment_id,
+        "sender": current_user.full_name,
+        "sender_role": current_user.role,
+        "timestamp": note_doc["timestamp"].isoformat(),
+        "force_refresh": True
+    })
+    
+    print(f"✅ Note saved and notifications sent - ID: {note_doc['id']}")
     return {"message": "Note added successfully", "note_id": note_doc["id"]}
 
 @api_router.get("/appointments/{appointment_id}/notes")
