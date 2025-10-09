@@ -708,6 +708,52 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
+  const handleProviderNote = (appointment) => {
+    console.log('📝 Provider opening note composer for appointment:', appointment.id);
+    setSelectedAppointment(appointment);
+    setShowProviderNoteModal(true);
+    setProviderNoteText('');
+  };
+
+  const handleSendProviderNote = async () => {
+    if (!providerNoteText.trim()) {
+      alert('Please enter a note before sending.');
+      return;
+    }
+
+    if (!selectedAppointment) {
+      alert('No appointment selected.');
+      return;
+    }
+
+    try {
+      console.log('📤 Provider sending note for appointment:', selectedAppointment.id);
+      console.log('📝 Note content:', providerNoteText.trim());
+
+      const response = await axios.post(`${API}/appointments/${selectedAppointment.id}/notes`, {
+        note: providerNoteText.trim(),
+        note_type: selectedAppointment.appointment_type === 'emergency' ? 'emergency_provider_note' : 'provider_note',
+        sender_role: 'provider',
+        timestamp: new Date().toISOString()
+      });
+
+      console.log('✅ Provider note sent successfully:', response.data);
+      
+      alert('✅ Note sent successfully to doctor!');
+      setShowProviderNoteModal(false);
+      setProviderNoteText('');
+      setSelectedAppointment(null);
+      
+      // Force refresh appointments 
+      fetchAppointments();
+      
+    } catch (error) {
+      console.error('❌ Error sending provider note:', error);
+      console.error('❌ Error details:', error.response?.data);
+      alert(`❌ Failed to send note: ${error.response?.data?.detail || error.message}`);
+    }
+  };
+
   const handleDeleteAppointment = async (appointmentId, patientName) => {
     const confirmed = window.confirm(`Are you sure you want to delete the appointment for ${patientName}? This action cannot be undone.`);
     if (!confirmed) return;
