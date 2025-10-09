@@ -263,23 +263,28 @@ const Dashboard = ({ user, onLogout }) => {
               }
             }
             
-            // Handle REAL-TIME DOCTOR NOTES - FIXED
-            if (notification.type === 'new_note' || notification.type === 'doctor_note' || notification.type === 'provider_note') {
-              console.log('📝 REAL-TIME: New note received:', notification);
+            // Handle REAL-TIME DOCTOR NOTES - ENHANCED NOTIFICATIONS
+            if (notification.type === 'new_note' || notification.type === 'doctor_note' || notification.type === 'provider_note' || notification.type === 'emergency_provider_note') {
+              console.log('📝 REAL-TIME: Enhanced note notification received:', notification);
               
-              // Add note to notifications list for easy access
+              // Add enhanced note to notifications list
               setNotifications(prev => [{
                 id: notification.note_id || Date.now(),
                 type: notification.type,
+                title: `📝 New Note from ${notification.sender_role === 'doctor' ? 'Dr.' : ''} ${notification.sender_name}`,
                 message: notification.message,
-                note: notification.note,
-                sender_name: notification.sender_name,
-                sender_role: notification.sender_role,
-                patient_name: notification.patient_name,
-                appointment_id: notification.appointment_id,
+                fullDetails: {
+                  note: notification.note,
+                  sender_name: notification.sender_name,
+                  sender_role: notification.sender_role,
+                  patient_name: notification.patient_name,
+                  appointment_id: notification.appointment_id,
+                  appointment_type: notification.appointment_type
+                },
                 timestamp: notification.timestamp,
                 read: false,
-                clickable: true
+                clickable: true,
+                actionable: true
               }, ...prev]);
               
               setUnreadNotifications(prev => prev + 1);
