@@ -92,7 +92,6 @@ const LoginPage = ({ onLogin }) => {
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">Greenstar Telehealth</h2>
             <p className="text-gray-600 font-medium">health • prosperity • future</p>
-            <p className="text-xs text-green-600 mt-1">✅ v2.0 - Latest Version (Oct 2024)</p>
           </div>
 
           {error && (
