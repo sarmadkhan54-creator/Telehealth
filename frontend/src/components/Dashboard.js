@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Clock, AlertTriangle, User, LogOut, Calendar, Phone, PhoneOff, X, Eye, Send, Bell } from 'lucide-react';
+import { Plus, Clock, AlertTriangle, User, LogOut, Calendar, Phone, PhoneOff, X, Eye, Send, Bell, MessageSquare } from 'lucide-react';
 import NotificationSettings from './NotificationSettings';
 import NotificationPanel from './NotificationPanel';
 import CallButton from './CallButton';
