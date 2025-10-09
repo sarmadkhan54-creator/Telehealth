@@ -14,6 +14,8 @@ const Dashboard = ({ user, onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  const [showProviderNoteModal, setShowProviderNoteModal] = useState(false);
+  const [providerNoteText, setProviderNoteText] = useState('');
   const [noteText, setNoteText] = useState('');
   const [appointmentNotes, setAppointmentNotes] = useState([]);
   const [notifications, setNotifications] = useState([]);
