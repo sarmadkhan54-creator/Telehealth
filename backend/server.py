@@ -722,9 +722,9 @@ async def get_user_password(user_id: str, current_user: User = Depends(get_curre
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Note: In production, you should decrypt/unhash password if using proper password hashing
-    # For demo purposes, we'll return a placeholder or the actual password field
-    return {"password": "Demo123!", "username": user["username"]}
+    # Return the actual password from the database
+    actual_password = user.get("password", "Demo123!")  # Fallback to default only if no password set
+    return {"password": actual_password, "username": user["username"]}
 
 @api_router.delete("/users/{user_id}")
 async def delete_user(user_id: str, current_user: User = Depends(get_current_user)):
