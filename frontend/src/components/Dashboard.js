@@ -1081,6 +1081,14 @@ const Dashboard = ({ user, onLogout }) => {
                       )}
 
                       <button
+                        onClick={() => handleProviderNote(appointment)}
+                        className="btn-primary flex items-center space-x-2 bg-blue-600 hover:bg-blue-700"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        <span>Send Note to Doctor</span>
+                      </button>
+                      
+                      <button
                         onClick={() => viewAppointmentDetails(appointment)}
                         className="btn-secondary flex items-center space-x-2"
                       >
