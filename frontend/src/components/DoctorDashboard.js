@@ -67,9 +67,15 @@ const DoctorDashboard = ({ user, onLogout }) => {
 
   useEffect(() => {
     fetchAppointments();
-    
-    // Set up auto-refresh interval as fallback
-    const refreshInterval = setInterval(fetchAppointments, 30000); // Refresh every 30 seconds
+  }, []);
+
+  useEffect(() => {
+    // AGGRESSIVE Auto-refresh appointments every 5 seconds for real-time sync
+    console.log('🔄 Setting up aggressive 5-second polling for Doctor Dashboard');
+    const refreshInterval = setInterval(() => {
+      console.log('⏰ Auto-refresh triggered (5s interval)');
+      fetchAppointments();
+    }, 5000); // Refresh every 5 seconds for real-time feel
     
     // Listen for appointment updates from notifications
     const handleAppointmentUpdate = () => {
