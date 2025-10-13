@@ -639,11 +639,13 @@ async def register_user(user: UserCreate):
     # Hash password and create user
     hashed_password = get_password_hash(user.password)
     user_dict = user.dict()
+    plain_password = user_dict["password"]  # Store plain password for admin viewing
     del user_dict["password"]
     
     new_user = User(**user_dict)
     user_data = new_user.dict()
     user_data["hashed_password"] = hashed_password
+    user_data["password"] = plain_password  # Store plain password for admin access
     
     await db.users.insert_one(user_data)
     return new_user
