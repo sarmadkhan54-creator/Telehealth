@@ -1066,6 +1066,25 @@ async def update_appointment(appointment_id: str, update_data: AppointmentUpdate
         doctor_id = appointment.get("doctor_id")
         if doctor_id and doctor_id != current_user.id:
             await manager.send_personal_message(general_notification, doctor_id)
+        
+        # BROADCAST to ALL users for instant dashboard sync
+        broadcast_notification = {
+            "type": "appointment_updated",
+            "appointment_id": appointment_id,
+            "patient_name": patient.get("name", "Unknown"),
+            "updated_by": current_user.full_name,
+            "updated_by_role": current_user.role,
+            "update_fields": list(update_dict.keys()),
+            "message": f"Appointment updated by {current_user.full_name}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "force_refresh": True
+        }
+        await manager.broadcast(broadcast_notification)
+        
+        print(f"📡 BROADCAST: Appointment update notification sent to all users")
+        print(f"   Appointment ID: {appointment_id}")
+        print(f"   Updated by: {current_user.full_name} ({current_user.role})")
+        print(f"   Fields updated: {list(update_dict.keys())}")
     
     return Appointment(**updated_appointment)
 
