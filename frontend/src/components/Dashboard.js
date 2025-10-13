@@ -206,12 +206,21 @@ const Dashboard = ({ user, onLogout }) => {
                 notification.type === 'new_appointment' || 
                 notification.type === 'appointment_accepted' || 
                 notification.type === 'appointment_updated' ||
+                notification.type === 'appointment_deleted' ||
                 notification.type === 'appointment_cancelled' ||
                 notification.type === 'video_call_invitation' ||
                 notification.type === 'appointment_created' ||
                 notification.type === 'appointment_status_changed') {
               
               console.log('📅 REAL-TIME: Appointment sync notification received:', notification.type);
+              
+              // If appointment was deleted, remove it immediately from state
+              if (notification.type === 'appointment_deleted' && notification.appointment_id) {
+                console.log('🗑️ PROVIDER: Removing deleted appointment immediately:', notification.appointment_id);
+                setAppointments(prevAppointments => 
+                  prevAppointments.filter(apt => apt.id !== notification.appointment_id)
+                );
+              }
               
               // AGGRESSIVE REAL-TIME SYNC - NO MORE LOGOUT/LOGIN REQUIRED
               console.log('🚨 FORCING IMMEDIATE APPOINTMENT SYNC');
