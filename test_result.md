@@ -914,14 +914,13 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Enhanced Admin Permissions Testing"
-    - "Doctor Appointment Visibility Testing"
-    - "Provider Appointment Visibility Testing"
-    - "Role-Based Access Verification"
+    - "Real-Time Sync for All CRUD Operations (Create, Update, Delete)"
+    - "Admin Password Viewing for New Users"
+    - "WebSocket Broadcast for Deletions and Updates"
   stuck_tasks: 
     - "Authentication Persistence Fix - Multi-Device Login Issue"
   test_all: false
-  test_priority: "review_request_first"
+  test_priority: "critical_fixes_first"
 
 agent_communication:
   - agent: "testing"
