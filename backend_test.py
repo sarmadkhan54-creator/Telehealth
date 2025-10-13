@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 class MedConnectAPITester:
-    def __init__(self, base_url="https://medconnect-app-5.preview.emergentagent.com"):
+    def __init__(self, base_url="https://healthlink-app-6.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.tokens = {}  # Store tokens for different user roles
