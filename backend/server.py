@@ -673,6 +673,26 @@ async def create_user_admin(user: UserCreate, current_user: User = Depends(get_c
     user_data["password"] = plain_password  # Store plain password for admin access
     
     await db.users.insert_one(user_data)
+    
+    # Broadcast new user creation to ALL users (especially admins) for instant UI update
+    user_creation_notification = {
+        "type": "user_created",
+        "user_id": new_user.id,
+        "user_name": new_user.full_name,
+        "username": new_user.username,
+        "role": new_user.role,
+        "created_by": current_user.full_name,
+        "message": f"New user {new_user.full_name} ({new_user.role}) created by {current_user.full_name}",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "force_refresh": True
+    }
+    await manager.broadcast(user_creation_notification)
+    
+    print(f"📡 BROADCAST: User creation notification sent to all users")
+    print(f"   User: {new_user.full_name} ({new_user.username})")
+    print(f"   Role: {new_user.role}")
+    print(f"   Created by: {current_user.full_name}")
+    
     return new_user
 
 @api_router.post("/login", response_model=Token)
