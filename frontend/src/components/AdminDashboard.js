@@ -54,13 +54,23 @@ const AdminDashboard = ({ user, onLogout }) => {
     fetchData();
     setupWebSocket();
     
-    // Set up auto-refresh interval as fallback
-    const refreshInterval = setInterval(fetchData, 60000); // Refresh every 60 seconds
+    return () => {
+      // Cleanup will be handled by separate polling useEffect
+    };
+  }, [user.role, onLogout]);
+
+  useEffect(() => {
+    // AGGRESSIVE Auto-refresh data every 5 seconds for real-time sync
+    console.log('🔄 Setting up aggressive 5-second polling for Admin Dashboard');
+    const refreshInterval = setInterval(() => {
+      console.log('⏰ Admin auto-refresh triggered (5s interval)');
+      fetchData();
+    }, 5000); // Refresh every 5 seconds for real-time feel
     
     return () => {
       clearInterval(refreshInterval);
     };
-  }, [user.role, onLogout]);
+  }, []);
 
   const setupWebSocket = () => {
     const wsUrl = `${BACKEND_URL.replace('https:', 'wss:').replace('http:', 'ws:')}/api/ws/${user.id}`;
