@@ -73,9 +73,14 @@ const AdminDashboard = ({ user, onLogout }) => {
       if (notification.type === 'emergency_appointment' || 
           notification.type === 'appointment_accepted' || 
           notification.type === 'appointment_updated' ||
+          notification.type === 'appointment_deleted' ||
           notification.type === 'user_created' ||
-          notification.type === 'user_updated') {
-        fetchData(); // Refresh all data
+          notification.type === 'user_updated' ||
+          notification.type === 'user_deleted' ||
+          notification.type === 'user_permanently_deleted' ||
+          notification.type === 'new_appointment_created') {
+        console.log('📡 Admin Dashboard: Received real-time update, refreshing data...', notification.type);
+        fetchData(); // Refresh all data for instant UI update
       }
       
       // Show browser notification for admin updates
