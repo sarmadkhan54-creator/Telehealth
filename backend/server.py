@@ -793,6 +793,23 @@ async def permanent_delete_user(user_id: str, current_user: User = Depends(get_c
     await db.appointments.delete_many({"doctor_id": user_id})
     await db.appointment_notes.delete_many({"created_by": user_id})
     
+    # Broadcast permanent deletion to ALL users for instant UI update
+    user_permanent_deletion_notification = {
+        "type": "user_permanently_deleted",
+        "user_id": user_id,
+        "user_name": user['full_name'],
+        "deletion_type": "permanent",
+        "deleted_by": current_user.full_name,
+        "message": f"User {user['full_name']} has been permanently removed",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "force_refresh": True
+    }
+    await manager.broadcast(user_permanent_deletion_notification)
+    
+    print(f"📡 BROADCAST: User permanent deletion notification sent to all users")
+    print(f"   User: {user['full_name']} ({user_id})")
+    print(f"   Permanently deleted by: {current_user.full_name}")
+    
     return {"message": f"User {user['full_name']} permanently deleted successfully"}
 
 @api_router.put("/users/{user_id}/status")
