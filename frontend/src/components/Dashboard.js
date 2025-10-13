@@ -876,58 +876,7 @@ const Dashboard = ({ user, onLogout }) => {
               <p className="font-semibold text-gray-900">{user.full_name}</p>
               <p className="text-sm text-gray-600">{user.district}</p>
             </div>
-            {/* Enhanced Refresh Button */}
-            <button
-              onClick={async () => {
-                console.log('🔄 ENHANCED Manual refresh triggered');
-                
-                // Visual feedback
-                const button = event.target.closest('button');
-                const originalContent = button.innerHTML;
-                button.innerHTML = '<div class="animate-spin w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full"></div> Refreshing...';
-                button.disabled = true;
-                
-                try {
-                  // Force multiple data refreshes
-                  await fetchAppointments();
-                  
-                  // Also refresh notifications and other data
-                  if (typeof fetchNotifications === 'function') {
-                    await fetchNotifications();
-                  }
-                  
-                  // Force WebSocket reconnection if needed
-                  if (ws && ws.readyState !== WebSocket.OPEN) {
-                    console.log('🔄 Reconnecting WebSocket during manual refresh');
-                    setupWebSocket();
-                  }
-                  
-                  // Show success feedback
-                  const toast = document.createElement('div');
-                  toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-                  toast.textContent = '✅ Data refreshed successfully!';
-                  document.body.appendChild(toast);
-                  setTimeout(() => {
-                    if (document.body.contains(toast)) {
-                      document.body.removeChild(toast);
-                    }
-                  }, 3000);
-                  
-                } catch (error) {
-                  console.error('❌ Error during manual refresh:', error);
-                  alert('❌ Refresh failed. Please try again.');
-                } finally {
-                  // Restore button
-                  button.innerHTML = originalContent;
-                  button.disabled = false;
-                }
-              }}
-              className="flex items-center space-x-2 px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
-              title="Force refresh all data"
-            >
-              <Calendar className="w-5 h-5" />
-              <span className="hidden sm:inline">Refresh</span>
-            </button>
+            {/* Refresh button removed as requested */}
             
             <button
               onClick={() => setShowNotificationPanel(true)}
