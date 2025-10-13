@@ -33,9 +33,6 @@ const Dashboard = ({ user, onLogout }) => {
     fetchAppointments();
     setupWebSocket();
     
-    // Auto-refresh appointments every 30 seconds
-    const refreshInterval = setInterval(fetchAppointments, 30000); // Refresh every 30 seconds
-    
     // Request notification permissions immediately (simpler approach)
     const requestNotificationPermission = async () => {
       try {
@@ -92,9 +89,18 @@ const Dashboard = ({ user, onLogout }) => {
     const keepAliveInterval = keepAlive();
     
     return () => {
-      clearInterval(refreshInterval);
       clearInterval(keepAliveInterval);
     };
+  }, []);
+
+  useEffect(() => {
+    // AGGRESSIVE Auto-refresh appointments every 5 seconds for real-time sync
+    console.log('🔄 Setting up aggressive 5-second polling for Provider Dashboard');
+    const refreshInterval = setInterval(() => {
+      console.log('⏰ Provider auto-refresh triggered (5s interval)');
+      fetchAppointments();
+    }, 5000); // Refresh every 5 seconds for real-time feel
+    return () => clearInterval(refreshInterval);
   }, []);
 
   const setupWebSocket = () => {
