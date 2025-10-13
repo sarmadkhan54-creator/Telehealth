@@ -220,11 +220,20 @@ const DoctorDashboard = ({ user, onLogout }) => {
                 notification.type === 'new_appointment' || 
                 notification.type === 'appointment_accepted' || 
                 notification.type === 'appointment_updated' ||
+                notification.type === 'appointment_deleted' ||
                 notification.type === 'appointment_cancelled' ||
                 notification.type === 'appointment_created' ||
                 notification.type === 'appointment_status_changed') {
               
               console.log('📅 REAL-TIME: Doctor appointment sync notification:', notification.type);
+              
+              // If appointment was deleted, remove it immediately from state
+              if (notification.type === 'appointment_deleted' && notification.appointment_id) {
+                console.log('🗑️ DOCTOR: Removing deleted appointment immediately:', notification.appointment_id);
+                setAppointments(prevAppointments => 
+                  prevAppointments.filter(apt => apt.id !== notification.appointment_id)
+                );
+              }
               
               // AGGRESSIVE REAL-TIME SYNC FOR DOCTORS
               console.log('🚨 DOCTOR: FORCING IMMEDIATE APPOINTMENT SYNC');
