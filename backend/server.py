@@ -753,6 +753,24 @@ async def delete_user(user_id: str, current_user: User = Depends(get_current_use
             "deleted_by": current_user.id
         }}
     )
+    
+    # Broadcast deletion to ALL users for instant UI update
+    user_deletion_notification = {
+        "type": "user_deleted",
+        "user_id": user_id,
+        "user_name": user['full_name'],
+        "deletion_type": "soft",
+        "deleted_by": current_user.full_name,
+        "message": f"User {user['full_name']} has been disabled",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "force_refresh": True
+    }
+    await manager.broadcast(user_deletion_notification)
+    
+    print(f"📡 BROADCAST: User soft deletion notification sent to all users")
+    print(f"   User: {user['full_name']} ({user_id})")
+    print(f"   Deleted by: {current_user.full_name}")
+    
     return {"message": f"User {user['full_name']} soft deleted successfully"}
 
 @api_router.delete("/admin/users/{user_id}/permanent")
