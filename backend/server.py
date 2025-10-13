@@ -1178,6 +1178,22 @@ async def delete_appointment(appointment_id: str, current_user: User = Depends(g
     await db.appointment_notes.delete_many({"appointment_id": appointment_id})
     await db.patients.delete_one({"id": appointment["patient_id"]})
     
+    # Broadcast deletion to ALL users for instant UI update
+    deletion_notification = {
+        "type": "appointment_deleted",
+        "appointment_id": appointment_id,
+        "deleted_by": current_user.full_name,
+        "deleted_by_role": current_user.role,
+        "message": f"Appointment deleted by {current_user.full_name}",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "force_refresh": True
+    }
+    await manager.broadcast(deletion_notification)
+    
+    print(f"📡 BROADCAST: Appointment deletion notification sent to all users")
+    print(f"   Appointment ID: {appointment_id}")
+    print(f"   Deleted by: {current_user.full_name} ({current_user.role})")
+    
     return {"message": "Appointment deleted successfully"}
 
 @api_router.delete("/admin/appointments/cleanup")
