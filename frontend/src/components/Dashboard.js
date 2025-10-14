@@ -44,10 +44,14 @@ const Dashboard = ({ user, onLogout }) => {
             console.log('✅ Notifications enabled successfully');
             
             // Test notification
-            new Notification('✅ Notifications Enabled', {
-              body: 'You will now receive video call and appointment notifications',
-              icon: '/icons/icon-192x192.png'
-            });
+            try {
+              new Notification('✅ Notifications Enabled', {
+                body: 'You will now receive video call and appointment notifications',
+                icon: '/favicon.ico'
+              });
+            } catch (notifError) {
+              console.log('Browser notification error (ignored):', notifError);
+            }
           }
         }
       } catch (error) {
