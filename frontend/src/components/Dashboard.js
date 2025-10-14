@@ -1292,33 +1292,19 @@ const Dashboard = ({ user, onLogout }) => {
               )}
             </div>
 
-            {/* Action Buttons */}
+            {/* Action Buttons - Simplified */}
             <div className="flex justify-end space-x-4 mt-6 pt-6 border-t">
-              {selectedAppointment.status === 'accepted' && (
-                <button
-                  onClick={() => {
-                    handleJoinCall(selectedAppointment.id);
-                    setShowAppointmentModal(false);
-                  }}
-                  className="btn-primary flex items-center space-x-2"
-                >
-                  <Phone className="w-4 h-4" />
-                  <span>Join Video Call</span>
-                </button>
-              )}
-              
-              {(selectedAppointment.status === 'pending' || selectedAppointment.status === 'accepted') && (
-                <button
-                  onClick={() => {
-                    handleCancelAppointment(selectedAppointment.id);
-                    setShowAppointmentModal(false);
-                  }}
-                  className="btn-secondary flex items-center space-x-2 text-orange-600 hover:text-orange-800"
-                >
-                  <X className="w-4 h-4" />
-                  <span>Cancel Appointment</span>
-                </button>
-              )}
+              {/* Send Note to Doctor button */}
+              <button
+                onClick={() => {
+                  setShowAppointmentModal(false);
+                  handleProviderNote(selectedAppointment);
+                }}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>Send Note to Doctor</span>
+              </button>
             </div>
           </div>
         </div>
