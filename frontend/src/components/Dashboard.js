@@ -406,17 +406,21 @@ const Dashboard = ({ user, onLogout }) => {
             
             // Handle other notification types with browser notifications
             if (Notification.permission === 'granted') {
-              if (notification.type === 'appointment_accepted') {
-                new Notification('✅ Appointment Accepted', {
-                  body: `Doctor accepted your appointment for ${notification.patient_name}`,
-                  icon: '/icons/icon-192x192.png'
-                });
-              } else if (notification.type === 'emergency_appointment') {
-                new Notification('🚨 Emergency Appointment', {
-                  body: `New emergency appointment: ${notification.patient_name}`,
-                  icon: '/icons/icon-192x192.png',
-                  requireInteraction: true
-                });
+              try {
+                if (notification.type === 'appointment_accepted') {
+                  new Notification('✅ Appointment Accepted', {
+                    body: `Doctor accepted your appointment for ${notification.patient_name}`,
+                    icon: '/favicon.ico'
+                  });
+                } else if (notification.type === 'emergency_appointment') {
+                  new Notification('🚨 Emergency Appointment', {
+                    body: `New emergency appointment: ${notification.patient_name}`,
+                    icon: '/favicon.ico',
+                    requireInteraction: true
+                  });
+                }
+              } catch (notifError) {
+                console.log('Browser notification not supported:', notifError);
               }
             }
           } catch (error) {
