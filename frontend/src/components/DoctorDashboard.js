@@ -309,27 +309,19 @@ const DoctorDashboard = ({ user, onLogout }) => {
             // Show browser notifications for critical events
             if (notification.type === 'emergency_appointment') {
               if (Notification.permission === 'granted') {
-                try {
-                  new Notification('🚨 Emergency Appointment', {
-                    body: `${notification.patient_name || 'Patient'} needs immediate consultation`,
-                    icon: '/favicon.ico',
-                    requireInteraction: true
-                  });
-                } catch (notifError) {
-                  console.log('Browser notification error (ignored):', notifError);
-                }
+                showNotification('🚨 Emergency Appointment', {
+                  body: `${notification.patient_name || 'Patient'} needs immediate consultation`,
+                  icon: '/favicon.ico',
+                  requireInteraction: true
+                });
               }
             } else if (notification.type === 'video_call_invitation') {
               if (Notification.permission === 'granted') {
-                try {
-                  new Notification('📞 Video Call Invitation', {
-                    body: `${notification.caller || 'Someone'} is inviting you to a video call`,
-                    icon: '/favicon.ico',
-                    requireInteraction: true
-                  });
-                } catch (notifError) {
-                  console.log('Browser notification error (ignored):', notifError);
-                }
+                showNotification('📞 Video Call Invitation', {
+                  body: `${notification.caller || 'Someone'} is inviting you to a video call`,
+                  icon: '/favicon.ico',
+                  requireInteraction: true
+                });
               }
             }
           } catch (error) {
