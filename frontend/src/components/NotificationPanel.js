@@ -96,43 +96,39 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
           });
 
           // Show browser notification if permission granted and supported
-          try {
-            if (typeof Notification !== 'undefined' && 
-                Notification.permission === 'granted' && 
-                newNotification.title && 
-                newNotification.message) {
-              
-              try {
-                const browserNotification = new Notification(newNotification.title, {
-                  body: newNotification.message.substring(0, 100), // Limit body length
-                  icon: '/favicon.ico',
-                  tag: notification.type || 'default',
-                  requireInteraction: notification.type === 'jitsi_call_invitation'
-                });
+          if (typeof Notification !== 'undefined' && 
+              Notification.permission === 'granted' && 
+              newNotification.title && 
+              newNotification.message) {
+            
+            try {
+              const browserNotification = new Notification(newNotification.title, {
+                body: newNotification.message.substring(0, 100), // Limit body length
+                icon: '/favicon.ico',
+                tag: notification.type || 'default',
+                requireInteraction: notification.type === 'jitsi_call_invitation'
+              });
 
-                browserNotification.onclick = () => {
-                  try {
-                    handleNotificationClick(newNotification);
-                    browserNotification.close();
-                  } catch (clickError) {
-                    console.error('Error handling notification click:', clickError);
-                  }
-                };
-              } catch (notifError) {
-                console.log('Browser notification not supported:', notifError);
-              }
-            }
+              browserNotification.onclick = () => {
+                try {
+                  handleNotificationClick(newNotification);
+                  browserNotification.close();
+                } catch (clickError) {
+                  console.error('Error handling notification click:', clickError);
+                }
+              };
+              
               // Auto-close notification after 10 seconds
               setTimeout(() => {
                 try {
                   browserNotification.close();
                 } catch (error) {
-                  console.error('Error closing notification:', error);
+                  // Notification already closed
                 }
               }, 10000);
+            } catch (notifError) {
+              console.log('Browser notification not supported:', notifError);
             }
-          } catch (error) {
-            console.error('Error creating browser notification:', error);
           }
 
           // Play notification sound for urgent notifications
