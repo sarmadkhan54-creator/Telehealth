@@ -531,11 +531,15 @@ const Dashboard = ({ user, onLogout }) => {
         
         // Also show browser notification
         if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('📞 Incoming Video Call', {
-            body: 'A doctor is calling you for consultation',
-            icon: '/favicon.ico',
-            requireInteraction: true
-          });
+          try {
+            new Notification('📞 Incoming Video Call', {
+              body: 'A doctor is calling you for consultation',
+              icon: '/favicon.ico',
+              requireInteraction: true
+            });
+          } catch (notifError) {
+            console.log('Browser notification error (ignored):', notifError);
+          }
         }
         
       }, 1500); // Ring every 1.5 seconds
