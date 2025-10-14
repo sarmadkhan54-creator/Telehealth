@@ -408,21 +408,12 @@ const Dashboard = ({ user, onLogout }) => {
 
               // Send browser notification if permission granted
               if (Notification.permission === 'granted') {
-                try {
-                  const browserNotification = new Notification('📞 Incoming Video Call', {
-                    body: `${notification.caller} is inviting you to a video consultation`,
-                    icon: '/favicon.ico',
-                    tag: 'video-call-invitation',
-                    requireInteraction: true
-                  });
-                  
-                  browserNotification.onclick = () => {
-                    handleAcceptVideoCall();
-                    browserNotification.close();
-                  };
-                } catch (notifError) {
-                  console.log('Browser notification not supported, using in-app notification only:', notifError);
-                }
+                showNotification('📞 Incoming Video Call', {
+                  body: `${notification.caller} is inviting you to a video consultation`,
+                  icon: '/favicon.ico',
+                  tag: 'video-call-invitation',
+                  requireInteraction: true
+                });
               }
             }
             
