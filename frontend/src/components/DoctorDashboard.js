@@ -1005,49 +1005,38 @@ const DoctorDashboard = ({ user, onLogout }) => {
                     </div>
 
                     <div className="ml-4 flex flex-col space-y-2">
-                      {appointment.status === 'accepted' && (
-                        <>
-                          <CallButton
-                            appointmentId={appointment.id}
-                            targetUser={appointment.provider}
-                            currentUser={user}
-                            size="medium"
-                            variant="primary"
-                          />
-                        </>
-                      )}
-                      
-                      {appointment.status === 'pending' && (
+                      {/* Emergency appointments: Show Video Call button */}
+                      {appointment.appointment_type === 'emergency' && (
                         <button
-                          onClick={() => handleAcceptAppointment(appointment.id)}
-                          className="btn-primary flex items-center space-x-2"
+                          onClick={() => handleVideoCall(appointment)}
+                          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
                         >
-                          <CheckCircle className="w-4 h-4" />
-                          <span>Accept</span>
+                          <Video className="w-4 h-4" />
+                          <span>Video Call</span>
                         </button>
                       )}
                       
-                      {appointment.status === 'accepted' && (
-                        <button
-                          onClick={() => handleCompleteAppointment(appointment.id)}
-                          className="btn-secondary flex items-center space-x-2"
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                          <span>Complete</span>
-                        </button>
-                      )}
+                      {/* All appointments: Show Write Note button */}
+                      <button
+                        onClick={() => {
+                          setSelectedAppointment(appointment);
+                          setShowNoteModal(true);
+                        }}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        <span>Write Note</span>
+                      </button>
                       
-                      {/* Enhanced options for ALL appointments */}
+                      {/* View Details button */}
                       <button
                         onClick={() => viewAppointmentDetails(appointment)}
-                        className="btn-secondary flex items-center space-x-2"
+                        className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
                       >
                         <Eye className="w-4 h-4" />
                         <span>View Details</span>
                       </button>
-                      
-                      {/* Doctors can call providers for any appointment */}
-                      <CallButton
+                    </div>
                         appointmentId={appointment.id}
                         targetUser={appointment.provider}
                         currentUser={user}
