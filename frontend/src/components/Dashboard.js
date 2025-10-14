@@ -1094,7 +1094,6 @@ const Dashboard = ({ user, onLogout }) => {
                         <span>View Details</span>
                       </button>
                     </div>
-                    </div>
                   </div>
                 </div>
               ))}
