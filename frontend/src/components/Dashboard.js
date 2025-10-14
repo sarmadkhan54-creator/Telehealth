@@ -1065,64 +1065,35 @@ const Dashboard = ({ user, onLogout }) => {
                       )}
                     </div>
 
-                    {/* Provider Actions - Can accept calls and cancel appointments */}
+                    {/* Provider Actions - Simple and clean */}
                     <div className="ml-4 flex flex-col space-y-2">
-                      {appointment.status === 'accepted' && (
+                      {/* Emergency appointments: Show Video Call status */}
+                      {appointment.appointment_type === 'emergency' && appointment.status === 'accepted' && (
                         <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
                           <Phone className="w-5 h-5 text-green-600 mx-auto mb-2" />
                           <p className="text-sm text-green-800 font-medium mb-1">Ready for Video Call</p>
-                          <p className="text-xs text-green-600">Waiting for Dr. {appointment.doctor?.full_name} to call</p>
+                          <p className="text-xs text-green-600">Waiting for Dr. {appointment.doctor?.full_name || 'doctor'} to call</p>
                         </div>
                       )}
                       
-                      {/* Cancel appointment button for pending appointments */}
-                      {appointment.status === 'pending' && (
-                        <button
-                          onClick={() => handleCancelAppointment(appointment.id)}
-                          className="btn-danger flex items-center space-x-2"
-                        >
-                          <X className="w-4 h-4" />
-                          <span>Cancel</span>
-                        </button>
-                      )}
-                      
-                      {/* Cancel appointment button for accepted appointments */}
-                      {appointment.status === 'accepted' && (
-                        <button
-                          onClick={() => handleCancelAppointment(appointment.id)}
-                          className="btn-secondary flex items-center space-x-2 text-red-600 hover:bg-red-50"
-                        >
-                          <X className="w-4 h-4" />
-                          <span>Cancel Appointment</span>
-                        </button>
-                      )}
-
+                      {/* Send Note to Doctor button - Always available */}
                       <button
                         onClick={() => handleProviderNote(appointment)}
-                        className="btn-primary flex items-center space-x-2 bg-blue-600 hover:bg-blue-700"
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
                       >
                         <MessageSquare className="w-4 h-4" />
                         <span>Send Note to Doctor</span>
                       </button>
                       
+                      {/* View Details button */}
                       <button
                         onClick={() => viewAppointmentDetails(appointment)}
-                        className="btn-secondary flex items-center space-x-2"
+                        className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
                       >
                         <Eye className="w-4 h-4" />
                         <span>View Details</span>
                       </button>
-
-                      {/* Only cancel allowed for providers - delete restricted to doctors only */}
-                      {(appointment.status === 'pending' || appointment.status === 'accepted') && (
-                        <button
-                          onClick={() => handleCancelAppointment(appointment.id)}
-                          className="btn-secondary flex items-center space-x-2 text-orange-600 hover:text-orange-800"
-                        >
-                          <X className="w-4 h-4" />
-                          <span>Cancel</span>
-                        </button>
-                      )}
+                    </div>
                     </div>
                   </div>
                 </div>
