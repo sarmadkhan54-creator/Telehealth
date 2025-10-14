@@ -1308,44 +1308,28 @@ const DoctorDashboard = ({ user, onLogout }) => {
 
             {/* Action Buttons */}
             <div className="flex justify-end space-x-4 mt-6 pt-6 border-t">
-              {selectedAppointment.appointment_type === 'non_emergency' && (
+              {/* Emergency appointments: Show Video Call button */}
+              {selectedAppointment.appointment_type === 'emergency' && (
                 <button
-                  onClick={() => callProvider(selectedAppointment)}
-                  className="btn-secondary flex items-center space-x-2"
+                  onClick={() => handleVideoCall(selectedAppointment)}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
                 >
-                  <PhoneCall className="w-4 h-4" />
-                  <span>Call Provider</span>
+                  <Video className="w-4 h-4" />
+                  <span>Video Call</span>
                 </button>
               )}
               
-              {selectedAppointment.status === 'pending' && (
-                <button
-                  onClick={() => handleAcceptAppointment(selectedAppointment.id)}
-                  className="btn-primary flex items-center space-x-2"
-                >
-                  <CheckCircle className="w-4 h-4" />
-                  <span>Accept Appointment</span>
-                </button>
-              )}
-              
-              {selectedAppointment.status === 'accepted' && (
-                <>
-                  <button
-                    onClick={() => startVideoCall(selectedAppointment.id)}
-                    className="btn-primary flex items-center space-x-2"
-                  >
-                    <Video className="w-4 h-4" />
-                    <span>Start Video Call</span>
-                  </button>
-                  <button
-                    onClick={() => handleCompleteAppointment(selectedAppointment.id)}
-                    className="btn-secondary flex items-center space-x-2"
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                    <span>Mark Complete</span>
-                  </button>
-                </>
-              )}
+              {/* All appointments: Show Write Note button */}
+              <button
+                onClick={() => {
+                  setShowAppointmentModal(false);
+                  setShowNoteModal(true);
+                }}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>Write Note</span>
+              </button>
             </div>
           </div>
         </div>
