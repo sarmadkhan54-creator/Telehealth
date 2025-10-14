@@ -102,17 +102,25 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
                 newNotification.title && 
                 newNotification.message) {
               
-              const browserNotification = new Notification(newNotification.title, {
-                body: newNotification.message.substring(0, 100), // Limit body length
-                icon: '/icons/icon-192x192.png',
-                badge: '/icons/badge-72x72.png',
-                tag: notification.type || 'default',
-                requireInteraction: notification.type === 'jitsi_call_invitation'
-              });
+              try {
+                const browserNotification = new Notification(newNotification.title, {
+                  body: newNotification.message.substring(0, 100), // Limit body length
+                  icon: '/favicon.ico',
+                  tag: notification.type || 'default',
+                  requireInteraction: notification.type === 'jitsi_call_invitation'
+                });
 
-              browserNotification.onclick = () => {
-                try {
-                  handleNotificationClick(newNotification);
+                browserNotification.onclick = () => {
+                  try {
+                    handleNotificationClick(newNotification);
+                    browserNotification.close();
+                  } catch (clickError) {
+                    console.error('Error handling notification click:', clickError);
+                  }
+                };
+              } catch (notifError) {
+                console.log('Browser notification not supported:', notifError);
+              }
                   browserNotification.close();
                 } catch (error) {
                   console.error('Error handling notification click:', error);
