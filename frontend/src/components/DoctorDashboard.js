@@ -1037,13 +1037,6 @@ const DoctorDashboard = ({ user, onLogout }) => {
                         <span>View Details</span>
                       </button>
                     </div>
-                        appointmentId={appointment.id}
-                        targetUser={appointment.provider}
-                        currentUser={user}
-                        size="small"
-                        variant="outline"
-                      />
-                    </div>
                   </div>
                 </div>
               ))}
