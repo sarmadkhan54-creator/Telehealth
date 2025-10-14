@@ -102,30 +102,42 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
               newNotification.message) {
             
             try {
-              const browserNotification = new Notification(newNotification.title, {
-                body: newNotification.message.substring(0, 100), // Limit body length
-                icon: '/favicon.ico',
-                tag: notification.type || 'default',
-                requireInteraction: notification.type === 'jitsi_call_invitation'
-              });
+              // Check if service worker is available
+              if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.ready.then(registration => {
+                  registration.showNotification(newNotification.title, {
+                    body: newNotification.message.substring(0, 100),
+                    icon: '/favicon.ico',
+                    tag: notification.type || 'default',
+                    requireInteraction: notification.type === 'jitsi_call_invitation'
+                  });
+                });
+              } else {
+                // Fallback for non-service worker
+                const browserNotification = new Notification(newNotification.title, {
+                  body: newNotification.message.substring(0, 100),
+                  icon: '/favicon.ico',
+                  tag: notification.type || 'default',
+                  requireInteraction: notification.type === 'jitsi_call_invitation'
+                });
 
-              browserNotification.onclick = () => {
-                try {
-                  handleNotificationClick(newNotification);
-                  browserNotification.close();
-                } catch (clickError) {
-                  console.error('Error handling notification click:', clickError);
-                }
-              };
-              
-              // Auto-close notification after 10 seconds
-              setTimeout(() => {
-                try {
-                  browserNotification.close();
-                } catch (error) {
-                  // Notification already closed
-                }
-              }, 10000);
+                browserNotification.onclick = () => {
+                  try {
+                    handleNotificationClick(newNotification);
+                    browserNotification.close();
+                  } catch (clickError) {
+                    console.error('Error handling notification click:', clickError);
+                  }
+                };
+                
+                setTimeout(() => {
+                  try {
+                    browserNotification.close();
+                  } catch (error) {
+                    // Notification already closed
+                  }
+                }, 10000);
+              }
             } catch (notifError) {
               console.log('Browser notification not supported:', notifError);
             }
