@@ -117,15 +117,11 @@ const AdminDashboard = ({ user, onLogout }) => {
       
       // Show browser notification for admin updates
       if (Notification.permission === 'granted') {
-        try {
-          if (notification.type === 'emergency_appointment') {
-            new Notification('Emergency Appointment', {
-              body: `Emergency appointment created by ${notification.provider_name}`,
-              icon: '/favicon.ico'
-            });
-          }
-        } catch (notifError) {
-          console.log('Browser notification error (ignored):', notifError);
+        if (notification.type === 'emergency_appointment') {
+          showNotification('Emergency Appointment', {
+            body: `Emergency appointment created by ${notification.provider_name}`,
+            icon: '/favicon.ico'
+          });
         }
       }
     };
