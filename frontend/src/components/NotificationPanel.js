@@ -121,12 +121,7 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
               } catch (notifError) {
                 console.log('Browser notification not supported:', notifError);
               }
-                  browserNotification.close();
-                } catch (error) {
-                  console.error('Error handling notification click:', error);
-                }
-              };
-              
+            }
               // Auto-close notification after 10 seconds
               setTimeout(() => {
                 try {
