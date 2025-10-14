@@ -562,10 +562,14 @@ const Dashboard = ({ user, onLogout }) => {
       
       // Browser notification as backup
       if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('📞 Incoming Call', {
-          body: 'You have an incoming video call',
-          requireInteraction: true
-        });
+        try {
+          new Notification('📞 Incoming Call', {
+            body: 'You have an incoming video call',
+            requireInteraction: true
+          });
+        } catch (notifError) {
+          console.log('Browser notification error (ignored):', notifError);
+        }
       }
     }
   };
