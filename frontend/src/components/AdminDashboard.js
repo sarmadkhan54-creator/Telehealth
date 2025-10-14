@@ -45,6 +45,28 @@ const AdminDashboard = ({ user, onLogout }) => {
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
 
+  // Helper function to show notifications (Service Worker compatible)
+  const showNotification = async (title, options) => {
+    if (!('Notification' in window) || Notification.permission !== 'granted') {
+      return;
+    }
+
+    try {
+      // Check if service worker is available
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification(title, options);
+        console.log('✅ Service Worker notification shown:', title);
+      } else {
+        // Fallback: No service worker, use regular notification
+        new Notification(title, options);
+        console.log('✅ Regular notification shown:', title);
+      }
+    } catch (error) {
+      console.log('Notification not supported or failed:', error.message);
+    }
+  };
+
   useEffect(() => {
     if (user.role !== 'admin') {
       alert('Access Denied: Only administrators can access this dashboard');
