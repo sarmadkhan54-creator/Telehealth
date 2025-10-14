@@ -40,10 +40,20 @@ const PWAInstallPrompt = () => {
       // Show success notification
       if ('Notification' in window && Notification.permission === 'granted') {
         try {
-          new Notification('Greenstar Health Installed!', {
-            body: 'The app has been installed successfully and can be accessed from your home screen.',
-            icon: '/favicon.ico'
-          });
+          // Check if service worker is available
+          if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.ready.then(registration => {
+              registration.showNotification('Greenstar Health Installed!', {
+                body: 'The app has been installed successfully and can be accessed from your home screen.',
+                icon: '/favicon.ico'
+              });
+            });
+          } else {
+            new Notification('Greenstar Health Installed!', {
+              body: 'The app has been installed successfully and can be accessed from your home screen.',
+              icon: '/favicon.ico'
+            });
+          }
         } catch (notifError) {
           console.log('Browser notification error (ignored):', notifError);
         }
