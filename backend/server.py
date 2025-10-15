@@ -984,6 +984,27 @@ async def create_appointment(appointment_data: AppointmentCreate, current_user: 
     print(f"   Type: {appointment.appointment_type}")
     print(f"   Provider: {current_user.full_name}")
     
+    # Send FCM Push Notifications to all doctors
+    try:
+        doctors = await db.users.find({"role": "doctor"}).to_list(100)
+        for doctor in doctors:
+            if "fcm_token" in doctor and doctor["fcm_token"]:
+                await send_notification_to_user(
+                    db,
+                    doctor["id"],
+                    f"🚨 New {appointment.appointment_type.upper()} Appointment",
+                    f"Patient: {patient.name}, Age: {patient.age}",
+                    {
+                        "type": "new_appointment" if appointment.appointment_type == "non_emergency" else "emergency_appointment",
+                        "appointment_id": appointment.id,
+                        "patient_name": patient.name,
+                        "appointment_type": appointment.appointment_type
+                    }
+                )
+        print(f"📱 FCM notifications sent to {len(doctors)} doctors")
+    except Exception as e:
+        print(f"⚠️ Error sending FCM notifications: {e}")
+    
     return appointment
 
 @api_router.get("/appointments", response_model=List[dict])
