@@ -51,6 +51,22 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
+  // FORCE close all modals when video call comes in - HIGHEST PRIORITY
+  useEffect(() => {
+    if (showVideoCallInvitation && videoCallInvitation) {
+      console.log('🚨 INCOMING CALL - FORCING ALL MODALS TO CLOSE');
+      // Close all other modals
+      setShowAppointmentModal(false);
+      setShowProviderNoteModal(false);
+      setShowNotificationPanel(false);
+      setShowNotificationSettings(false);
+      // Bring video call to front with highest z-index
+      document.body.style.overflow = 'hidden'; // Prevent scrolling
+    } else {
+      document.body.style.overflow = 'auto'; // Restore scrolling
+    }
+  }, [showVideoCallInvitation, videoCallInvitation]);
+
   useEffect(() => {
     fetchAppointments();
     setupWebSocket();
