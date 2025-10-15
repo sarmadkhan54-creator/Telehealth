@@ -554,93 +554,122 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
               <p className="text-gray-500">No notifications</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {filteredNotifications.map((notification, index) => (
-                <div 
-                  key={index}
-                  className={`p-4 rounded-lg border-l-4 cursor-pointer hover:bg-gray-100 transition-colors ${
-                    notification.type === 'emergency_appointment' || notification.type === 'new_appointment_created' && notification.appointment?.appointment_type === 'emergency' ? 'border-red-500 bg-red-50' : 
-                    notification.type === 'new_appointment' || notification.type === 'new_appointment_created' ? 'border-blue-500 bg-blue-50' :
-                    'border-gray-300 bg-gray-50'
-                  }`}
-                  onClick={() => handleNotificationClick(notification)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900">
-                        {getNotificationIcon(notification.type)} {notification.message}
-                      </p>
+            <div className="space-y-2">
+              {filteredNotifications.map((notification, index) => {
+                const isEmergency = notification.type === 'emergency_appointment' || 
+                                   (notification.appointment?.appointment_type === 'emergency');
+                const isVideoCall = notification.type === 'incoming_video_call' || 
+                                   notification.type === 'video_call_invitation';
+                
+                return (
+                  <div 
+                    key={index}
+                    className={`relative p-4 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md ${
+                      isEmergency ? 'bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200' : 
+                      isVideoCall ? 'bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200' :
+                      'bg-white hover:bg-gray-50 border border-gray-200'
+                    }`}
+                    onClick={() => handleNotificationClick(notification)}
+                  >
+                    {/* Left colored indicator line - Like Facebook */}
+                    <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${
+                      isEmergency ? 'bg-red-500' :
+                      isVideoCall ? 'bg-green-500' :
+                      'bg-blue-500'
+                    }`} />
+                    
+                    <div className="flex items-start gap-3 ml-2">
+                      {/* Icon/Avatar Circle - Like Instagram */}
+                      <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
+                        isEmergency ? 'bg-red-500 text-white' :
+                        isVideoCall ? 'bg-green-500 text-white' :
+                        'bg-blue-500 text-white'
+                      }`}>
+                        {getNotificationIcon(notification.type)}
+                      </div>
                       
-                      {/* FULL APPOINTMENT DETAILS IN NOTIFICATION */}
-                      {notification.appointment && (
-                        <div className="mt-3 p-3 bg-white rounded-lg border">
-                          <div className="grid grid-cols-2 gap-2 text-sm">
-                            <div>
-                              <span className="font-medium text-gray-600">Patient:</span> {notification.appointment.patient?.name}
-                            </div>
-                            <div>
-                              <span className="font-medium text-gray-600">Age:</span> {notification.appointment.patient?.age}
-                            </div>
-                            <div>
-                              <span className="font-medium text-gray-600">Type:</span> 
-                              <span className={`ml-1 px-2 py-1 rounded text-xs ${
+                      <div className="flex-1 min-w-0">
+                        {/* Title and message */}
+                        <p className="font-semibold text-gray-900 text-sm mb-1">
+                          {notification.message}
+                        </p>
+                        
+                        {/* Appointment preview - Compact like Facebook */}
+                        {notification.appointment && (
+                          <div className="bg-white/80 rounded-lg p-3 mt-2 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <User className="w-4 h-4 text-gray-500" />
+                                <span className="font-medium text-gray-900 text-sm">
+                                  {notification.appointment.patient?.name}
+                                </span>
+                                <span className="text-gray-500 text-xs">
+                                  • Age {notification.appointment.patient?.age}
+                                </span>
+                              </div>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                                 notification.appointment.appointment_type === 'emergency' 
-                                  ? 'bg-red-100 text-red-800' 
-                                  : 'bg-blue-100 text-blue-800'
+                                  ? 'bg-red-100 text-red-700' 
+                                  : 'bg-blue-100 text-blue-700'
                               }`}>
-                                {notification.appointment.appointment_type?.toUpperCase()}
+                                {notification.appointment.appointment_type === 'emergency' ? '🚨 Emergency' : '📋 Regular'}
                               </span>
                             </div>
-                            <div>
-                              <span className="font-medium text-gray-600">Provider:</span> {notification.appointment.provider_name}
-                            </div>
-                          </div>
-                          
-                          <div className="mt-2">
-                            <span className="font-medium text-gray-600">Area:</span> {notification.appointment.patient?.area_of_consultation}
-                          </div>
-                          
-                          {notification.appointment.patient?.history && (
-                            <div className="mt-2">
-                              <span className="font-medium text-gray-600">History:</span>
-                              <p className="text-gray-800 text-sm mt-1">{notification.appointment.patient.history}</p>
-                            </div>
-                          )}
-                          
-                          {/* Vitals Display */}
-                          {notification.appointment.patient?.vitals && (
-                            <div className="mt-3">
-                              <span className="font-medium text-gray-600">Vitals:</span>
-                              <div className="grid grid-cols-2 gap-1 mt-1 text-xs">
+                            
+                            {notification.appointment.patient?.area_of_consultation && (
+                              <div className="flex items-center gap-2 text-xs text-gray-600">
+                                <AlertTriangle className="w-3 h-3" />
+                                <span>{notification.appointment.patient.area_of_consultation}</span>
+                              </div>
+                            )}
+                            
+                            {notification.appointment.patient?.history && (
+                              <p className="text-xs text-gray-600 line-clamp-2">
+                                {notification.appointment.patient.history}
+                              </p>
+                            )}
+                            
+                            {/* Quick vitals preview */}
+                            {notification.appointment.patient?.vitals && (
+                              <div className="flex gap-3 text-xs">
                                 {notification.appointment.patient.vitals.blood_pressure && (
-                                  <div>BP: {notification.appointment.patient.vitals.blood_pressure}</div>
+                                  <span className="text-gray-600">
+                                    <span className="font-medium">BP:</span> {notification.appointment.patient.vitals.blood_pressure}
+                                  </span>
                                 )}
                                 {notification.appointment.patient.vitals.heart_rate && (
-                                  <div>HR: {notification.appointment.patient.vitals.heart_rate}</div>
-                                )}
-                                {notification.appointment.patient.vitals.temperature && (
-                                  <div>Temp: {notification.appointment.patient.vitals.temperature}°F</div>
-                                )}
-                                {notification.appointment.patient.vitals.hb && (
-                                  <div>Hb: {notification.appointment.patient.vitals.hb} g/dL</div>
+                                  <span className="text-gray-600">
+                                    <span className="font-medium">HR:</span> {notification.appointment.patient.vitals.heart_rate}
+                                  </span>
                                 )}
                               </div>
-                            </div>
-                          )}
-                          
-                          <div className="mt-3 pt-2 border-t">
-                            <p className="text-xs text-gray-500">💡 Click to view full details and take action</p>
+                            )}
                           </div>
+                        )}
+                        
+                        {/* Note preview if it's a note notification */}
+                        {(notification.type === 'new_note' || notification.type === 'doctor_note' || notification.type === 'provider_note') && notification.note_text && (
+                          <div className="bg-white/80 rounded-lg p-3 mt-2">
+                            <p className="text-sm text-gray-700 italic line-clamp-2">
+                              "{notification.note_text}"
+                            </p>
+                          </div>
+                        )}
+                        
+                        {/* Timestamp and action hint - Like social media */}
+                        <div className="flex items-center justify-between mt-3">
+                          <span className="text-xs text-gray-500">
+                            {formatDateTime(notification.timestamp)}
+                          </span>
+                          <span className="text-xs text-blue-600 font-medium">
+                            Tap to view →
+                          </span>
                         </div>
-                      )}
-                      
-                      <p className="text-sm text-gray-600 mt-2">
-                        {formatDateTime(notification.timestamp)}
-                      </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
