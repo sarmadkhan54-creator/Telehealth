@@ -94,6 +94,41 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Initialize FCM when user logs in
+  useEffect(() => {
+    if (user && user.id) {
+      console.log('🔔 Initializing Firebase Cloud Messaging for user:', user.id);
+      
+      // Request FCM permission and get token
+      requestNotificationPermission(user.id).then(token => {
+        if (token) {
+          console.log('✅ FCM initialized successfully');
+        }
+      });
+      
+      // Listen for foreground messages
+      onMessageListener((payload) => {
+        console.log('📨 [App] Foreground notification received:', payload);
+        
+        // You can show custom UI notifications here
+        // Or let the service worker handle it
+      });
+      
+      // Listen for notification clicks (from service worker)
+      listenForNotificationClicks((data) => {
+        console.log('🖱️ [App] Notification clicked, handling action:', data);
+        
+        // Handle different notification types
+        if (data.type === 'video_call' && data.jitsi_url) {
+          window.open(data.jitsi_url, '_blank');
+        } else if (data.appointment_id) {
+          // Navigate to appointment or trigger action
+          console.log('📋 Opening appointment:', data.appointment_id);
+        }
+      });
+    }
+  }, [user]);
+
   useEffect(() => {
     // Enhanced authentication check for cross-device compatibility
     const checkAuthStatus = async () => {
