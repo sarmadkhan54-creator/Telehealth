@@ -564,12 +564,24 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
                 return (
                   <div 
                     key={index}
-                    className={`relative p-4 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md ${
+                    className={`relative p-4 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md active:scale-98 ${
                       isEmergency ? 'bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200' : 
                       isVideoCall ? 'bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200' :
                       'bg-white hover:bg-gray-50 border border-gray-200'
                     }`}
-                    onClick={() => handleNotificationClick(notification)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log('🔔 NOTIFICATION CLICKED:', notification);
+                      handleNotificationClick(notification);
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleNotificationClick(notification);
+                      }
+                    }}
                   >
                     {/* Left colored indicator line - Like Facebook */}
                     <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${
