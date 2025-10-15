@@ -16,6 +16,8 @@ from passlib.context import CryptContext
 import json
 from pywebpush import webpush, WebPushException
 import base64
+import firebase_admin
+from firebase_admin import credentials, messaging
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -24,6 +26,21 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+
+# Initialize Firebase Admin SDK
+# TODO: Add your Firebase service account JSON file
+try:
+    # For now, use default credentials or environment variable
+    # You can set GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
+    if not firebase_admin._apps:
+        firebase_admin.initialize_app()
+    print("✅ Firebase Admin SDK initialized")
+except Exception as e:
+    print(f"⚠️ Firebase Admin SDK not initialized: {e}")
+    print("   Add GOOGLE_APPLICATION_CREDENTIALS env variable or service account JSON")
+
+# Import FCM service
+from fcm_service import save_fcm_token, send_notification_to_user
 
 # Create the main app without a prefix
 app = FastAPI(title="MedConnect Telehealth API", version="1.0.0")
