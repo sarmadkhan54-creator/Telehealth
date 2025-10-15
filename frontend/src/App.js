@@ -9,6 +9,7 @@ import DoctorDashboard from './components/DoctorDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import { pushNotificationManager } from './utils/pushNotifications';
+import { requestNotificationPermission, onMessageListener, listenForNotificationClicks } from './fcmService';
 
 // Cross-device compatible backend URL configuration
 const getBackendURL = () => {
