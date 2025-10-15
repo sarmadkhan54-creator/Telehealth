@@ -1796,6 +1796,42 @@ async def test_websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         pass
 
+# FCM Token Management Endpoints
+@api_router.post("/fcm/token")
+async def register_fcm_token(request: Dict[str, Any], current_user: dict = Depends(get_current_user)):
+    """Register FCM token for push notifications"""
+    try:
+        user_id = request.get("user_id")
+        fcm_token = request.get("fcm_token")
+        device_type = request.get("device_type", "web")
+        
+        if not user_id or not fcm_token:
+            raise HTTPException(status_code=400, detail="user_id and fcm_token required")
+        
+        # Save token to database
+        success = await save_fcm_token(db, user_id, fcm_token, device_type)
+        
+        if success:
+            return {"message": "FCM token registered successfully", "user_id": user_id}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to save FCM token")
+    except Exception as e:
+        print(f"❌ Error registering FCM token: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/fcm/token/{user_id}")
+async def delete_fcm_token(user_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete FCM token (on logout)"""
+    try:
+        await db.users.update_one(
+            {"id": user_id},
+            {"$unset": {"fcm_token": "", "device_type": "", "fcm_updated_at": ""}}
+        )
+        return {"message": "FCM token deleted successfully"}
+    except Exception as e:
+        print(f"❌ Error deleting FCM token: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Include the router in the main app
 app.include_router(api_router)
 
