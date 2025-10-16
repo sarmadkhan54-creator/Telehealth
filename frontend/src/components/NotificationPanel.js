@@ -482,22 +482,32 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40" style={{zIndex: 40}}>
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl h-4/5 flex flex-col">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40" 
+      style={{zIndex: 40}}
+      onClick={(e) => {
+        // Close panel if clicking outside
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <div className="bg-white rounded-lg shadow-2xl w-full mx-4 md:mx-8 lg:w-4/5 xl:w-3/4 2xl:w-2/3 max-w-6xl h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
           <div className="flex items-center space-x-3">
-            <h2 className="text-xl font-bold text-gray-900">Notifications</h2>
+            <Bell className="w-6 h-6 text-blue-600" />
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900">Notifications</h2>
             {unreadCount > 0 && (
-              <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+              <span className="bg-red-500 text-white text-xs md:text-sm font-bold px-2 md:px-3 py-1 rounded-full animate-pulse">
                 {unreadCount}
               </span>
             )}
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 md:space-x-4">
             <button
               onClick={markAllAsRead}
-              className="text-sm text-blue-600 hover:text-blue-800"
+              className="text-xs md:text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline"
             >
               Mark all read
             </button>
