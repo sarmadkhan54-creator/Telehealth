@@ -680,12 +680,14 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
                         )}
                         
                         {/* Timestamp and action hint - Like social media */}
-                        <div className="flex items-center justify-between mt-3">
-                          <span className="text-xs text-gray-500">
+                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
+                          <span className="text-xs md:text-sm text-gray-500 font-medium">
                             {formatDateTime(notification.timestamp)}
                           </span>
-                          <span className="text-xs text-blue-600 font-medium">
-                            Tap to view →
+                          <span className="text-xs md:text-sm text-blue-600 font-bold flex items-center gap-1 hover:text-blue-700 transition-colors">
+                            <span className="hidden md:inline">Click to open</span>
+                            <span className="md:hidden">Tap</span>
+                            <span>→</span>
                           </span>
                         </div>
                       </div>
