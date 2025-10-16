@@ -575,18 +575,26 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
                 return (
                   <div 
                     key={index}
-                    className={`relative p-4 md:p-6 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] ${
+                    className={`relative p-4 md:p-6 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] select-none ${
                       isEmergency ? 'bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 border-l-4 border-red-500' : 
                       isVideoCall ? 'bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 border-l-4 border-green-500' :
                       'bg-white hover:bg-gray-50 border border-gray-200 hover:border-blue-300'
                     }`}
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       console.log('🔔 NOTIFICATION CLICKED:', notification);
+                      console.log('📋 Notification type:', notification.type);
+                      console.log('📋 Appointment data:', notification.appointment);
                       handleNotificationClick(notification);
+                    }}
+                    onMouseDown={(e) => {
+                      console.log('🖱️ Mouse down on notification');
                     }}
                     role="button"
                     tabIndex={0}
+                    aria-label={`View ${notification.message}`}
+                    style={{cursor: 'pointer'}}
                     onKeyPress={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
