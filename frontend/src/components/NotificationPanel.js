@@ -330,73 +330,29 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
   };
 
   const handleNotificationClick = (notification) => {
-    console.log('🔔 Notification clicked:', notification);
-    console.log('🔍 Opening appointment modal for notification');
+    console.log('🔔 CLICK DETECTED - Notification:', notification);
     
-    switch (notification.type) {
-      case 'jitsi_call_invitation':
-      case 'video_call_invitation':
-      case 'incoming_video_call':
-        // Handle video call invitation
-        console.log('📞 Opening video call:', notification.jitsi_url);
-        if (notification.jitsi_url) {
-          window.open(notification.jitsi_url, '_blank');
-        }
-        markAsRead(notification.id);
-        break;
-        
-      case 'new_appointment_created':
-      case 'emergency_appointment':
-      case 'new_appointment':
-        // Navigate to appointment details
-        console.log('📋 Opening appointment details modal');
-        if (notification.appointment) {
-          setSelectedNotificationAppointment(notification.appointment);
-          setShowAppointmentDetailsModal(true);
-          console.log('✅ Modal state set to true');
-        } else if (notification.appointment_id) {
-          // Fetch appointment details and show modal
-          console.log('📋 Fetching appointment by ID:', notification.appointment_id);
-          fetchAppointmentDetails(notification.appointment_id);
-        }
-        markAsRead(notification.id);
-        break;
-        
-      case 'new_note':
-      case 'doctor_note':
-      case 'provider_note':
-        // Navigate to appointment with note focus
-        console.log('📝 Opening notes for appointment:', notification.appointment_id);
-        if (notification.appointment_id) {
-          fetchAppointmentDetails(notification.appointment_id, 'notes');
-        }
-        markAsRead(notification.id);
-        break;
-        
-      case 'user_deleted':
-      case 'appointment_cancelled':
-        // Show acknowledgment and refresh
-        alert(`${notification.message} - Data will be refreshed`);
-        if (typeof window.location.reload === 'function') {
-          setTimeout(() => window.location.reload(), 1000);
-        }
-        markAsRead(notification.id);
-        break;
-        
-      default:
-        // Generic notification - show details if available
-        console.log('📋 Default case - opening appointment');
-        if (notification.appointment || notification.appointment_id) {
-          if (notification.appointment) {
-            setSelectedNotificationAppointment(notification.appointment);
-            setShowAppointmentDetailsModal(true);
-            console.log('✅ Modal state set to true (default)');
-          } else {
-            fetchAppointmentDetails(notification.appointment_id);
-          }
-        }
-        markAsRead(notification.id);
+    // Close notification panel immediately
+    onClose();
+    
+    // Get appointment ID from notification
+    const appointmentId = notification.appointment_id || notification.appointment?.id;
+    console.log('📋 Appointment ID:', appointmentId);
+    
+    if (appointmentId) {
+      // If we have appointment ID, fetch and display it
+      console.log('✅ Fetching appointment details...');
+      fetchAppointmentDetails(appointmentId);
+    } else if (notification.jitsi_url) {
+      // Video call
+      console.log('📞 Opening video call');
+      window.open(notification.jitsi_url, '_blank');
+    } else {
+      console.error('❌ No appointment ID or action available');
+      alert('Cannot open this notification - no appointment data');
     }
+    
+    markAsRead(notification.id);
   };
 
   const fetchAppointmentDetails = async (appointmentId, focusTab = 'details') => {
