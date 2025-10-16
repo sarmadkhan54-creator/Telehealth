@@ -726,9 +726,9 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
           )}
         </div>
 
-      {/* Appointment Details Modal from Notification */}
+      {/* Appointment Details Modal from Notification - HIGHEST Z-INDEX */}
       {showAppointmentDetailsModal && selectedNotificationAppointment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[100] p-4" style={{zIndex: 100}}>
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
