@@ -601,19 +601,21 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
                       'bg-blue-500'
                     }`} />
                     
-                    <div className="flex items-start gap-3 ml-2">
+                    <div className="flex items-start gap-3 md:gap-4 ml-0 md:ml-2">
                       {/* Icon/Avatar Circle - Like Instagram */}
-                      <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
+                      <div className={`flex-shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-md ${
                         isEmergency ? 'bg-red-500 text-white' :
                         isVideoCall ? 'bg-green-500 text-white' :
                         'bg-blue-500 text-white'
                       }`}>
-                        {getNotificationIcon(notification.type)}
+                        <div className="scale-110">
+                          {getNotificationIcon(notification.type)}
+                        </div>
                       </div>
                       
                       <div className="flex-1 min-w-0">
                         {/* Title and message */}
-                        <p className="font-semibold text-gray-900 text-sm mb-1">
+                        <p className="font-semibold text-gray-900 text-sm md:text-base mb-2 leading-snug">
                           {notification.message}
                         </p>
                         
