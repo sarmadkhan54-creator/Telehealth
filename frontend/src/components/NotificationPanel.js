@@ -691,14 +691,23 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
                         
                         {/* Timestamp and action hint - Like social media */}
                         <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
-                          <span className="text-xs md:text-sm text-gray-500 font-medium">
+                          <span className="text-xs md:text-sm text-gray-500 font-medium pointer-events-none">
                             {formatDateTime(notification.timestamp)}
                           </span>
-                          <span className="text-xs md:text-sm text-blue-600 font-bold flex items-center gap-1 hover:text-blue-700 transition-colors">
-                            <span className="hidden md:inline">Click to open</span>
-                            <span className="md:hidden">Tap</span>
+                          <button
+                            className="text-xs md:text-sm bg-blue-500 hover:bg-blue-600 text-white px-3 md:px-4 py-1.5 md:py-2 rounded-lg font-bold flex items-center gap-1 transition-all pointer-events-auto"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              console.log('🔘 BUTTON CLICKED - Opening notification');
+                              handleNotificationClick(notification);
+                            }}
+                            type="button"
+                          >
+                            <span className="hidden md:inline">Click to Open</span>
+                            <span className="md:hidden">Open</span>
                             <span>→</span>
-                          </span>
+                          </button>
                         </div>
                       </div>
                     </div>
