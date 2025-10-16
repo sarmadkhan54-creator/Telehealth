@@ -601,7 +601,7 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
                       'bg-blue-500'
                     }`} />
                     
-                    <div className="flex items-start gap-3 md:gap-4 ml-0 md:ml-2">
+                    <div className="flex items-start gap-3 md:gap-4 ml-0 md:ml-2 pointer-events-none">
                       {/* Icon/Avatar Circle - Like Instagram */}
                       <div className={`flex-shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-md ${
                         isEmergency ? 'bg-red-500 text-white' :
