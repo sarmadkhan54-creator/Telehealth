@@ -357,15 +357,18 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
 
   const fetchAppointmentDetails = async (appointmentId, focusTab = 'details') => {
     try {
-      console.log('📋 Fetching appointment details for:', appointmentId);
+      console.log('🔍 Fetching appointment:', appointmentId);
       const response = await axios.get(`${API}/appointments/${appointmentId}`);
+      console.log('✅ Got appointment data:', response.data);
+      
       if (response.data) {
         setSelectedNotificationAppointment(response.data);
         setShowAppointmentDetailsModal(true);
+        console.log('✅ Modal opened successfully');
       }
     } catch (error) {
-      console.error('❌ Error fetching appointment details:', error);
-      alert('❌ Could not load appointment details. Please try again.');
+      console.error('❌ Error fetching appointment:', error);
+      alert('Could not load appointment. Please refresh and try again.');
     }
   };
 
