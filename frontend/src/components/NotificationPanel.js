@@ -527,7 +527,7 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200">
+        <div className="flex border-b border-gray-200 bg-gray-50">
           {[
             { key: 'all', label: 'All', icon: null },
             { key: 'calls', label: 'Calls', icon: Phone },
@@ -540,16 +540,17 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
+                className={`flex-1 flex items-center justify-center space-x-2 py-3 md:py-4 px-2 md:px-6 text-xs md:text-sm font-medium border-b-2 transition-all duration-200 ${
                   activeTab === tab.key
-                    ? 'border-green-500 text-green-600 bg-green-50'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    ? 'border-blue-500 text-blue-600 bg-white shadow-sm'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                 }`}
               >
-                {Icon && <Icon className="w-4 h-4" />}
-                <span>{tab.label}</span>
+                {Icon && <Icon className="w-4 h-4 md:w-5 md:h-5" />}
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.label.charAt(0)}</span>
                 {tab.key === activeTab && count > 0 && (
-                  <span className="ml-1 text-xs">({count})</span>
+                  <span className="ml-1 text-xs bg-blue-100 px-2 py-0.5 rounded-full">({count})</span>
                 )}
               </button>
             );
@@ -557,7 +558,7 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
         </div>
 
         {/* Notifications List */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
           {filteredNotifications.length === 0 ? (
             <div className="text-center py-8">
               <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
