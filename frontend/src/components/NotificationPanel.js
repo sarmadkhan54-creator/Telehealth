@@ -565,7 +565,7 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
               <p className="text-gray-500">No notifications</p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3 md:space-y-4">
               {filteredNotifications.map((notification, index) => {
                 const isEmergency = notification.type === 'emergency_appointment' || 
                                    (notification.appointment?.appointment_type === 'emergency');
@@ -575,10 +575,10 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
                 return (
                   <div 
                     key={index}
-                    className={`relative p-4 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md active:scale-98 ${
-                      isEmergency ? 'bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200' : 
-                      isVideoCall ? 'bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200' :
-                      'bg-white hover:bg-gray-50 border border-gray-200'
+                    className={`relative p-4 md:p-6 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] ${
+                      isEmergency ? 'bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 border-l-4 border-red-500' : 
+                      isVideoCall ? 'bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 border-l-4 border-green-500' :
+                      'bg-white hover:bg-gray-50 border border-gray-200 hover:border-blue-300'
                     }`}
                     onClick={(e) => {
                       e.stopPropagation();
