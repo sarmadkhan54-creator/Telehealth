@@ -78,20 +78,34 @@ const LoginPage = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="glass-card">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-white relative overflow-hidden">
+      {/* Background Logo - Large and Faded */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
+        <img 
+          src="/greenstar-logo.jpg" 
+          alt="Background" 
+          className="w-full h-full object-contain max-w-4xl"
+        />
+      </div>
+
+      <div className="max-w-md w-full space-y-8 relative z-10">
+        <div className="bg-white rounded-2xl shadow-2xl border-2 border-gray-100 p-8 md:p-10">
           <div className="text-center mb-8">
-            {/* Greenstar Logo */}
+            {/* Greenstar Logo - Your Uploaded Logo */}
             <div className="mx-auto mb-6 flex justify-center">
               <img 
-                src="https://customer-assets.emergentagent.com/job_medconnect-app/artifacts/syacsqjj_Greenstar-Logo.png" 
+                src="/greenstar-logo.jpg" 
                 alt="Greenstar Healthcare" 
-                className="h-20 w-auto object-contain"
+                className="h-32 w-auto object-contain drop-shadow-lg"
               />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Greenstar Telehealth</h2>
-            <p className="text-gray-600 font-medium">health • prosperity • future</p>
+            {/* Title in Dark Green */}
+            <h2 className="text-3xl md:text-4xl font-bold mb-2" style={{color: '#006838'}}>
+              Greenstar Digital Health Solution
+            </h2>
+            <p className="text-gray-600 font-medium text-sm md:text-base">
+              health • prosperity • future
+            </p>
           </div>
 
           {error && (
