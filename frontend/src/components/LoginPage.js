@@ -78,8 +78,8 @@ const LoginPage = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* LEFT SIDE - Green Gradient with Greenstar General Hospital Logo */}
+    <div className="min-h-screen flex flex-col lg:flex-row">
+      {/* LEFT SIDE - Green Gradient with Greenstar General Hospital Logo (Desktop Only) */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
            style={{
              background: 'linear-gradient(135deg, #004d2c 0%, #006838 50%, #008844 100%)'
@@ -117,25 +117,25 @@ const LoginPage = ({ onLogin }) => {
       </div>
 
       {/* RIGHT SIDE - White Background with Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center bg-white py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
+      <div className="w-full lg:w-1/2 flex items-center justify-center bg-white py-8 sm:py-12 px-4 sm:px-6 lg:px-8 min-h-screen lg:min-h-0">
+        <div className="max-w-md w-full space-y-6 sm:space-y-8">
           <div className="text-center">
             {/* Main GSM Logo */}
-            <div className="mx-auto mb-6 flex justify-center transform hover:scale-105 transition-transform duration-300">
+            <div className="mx-auto mb-4 sm:mb-6 flex justify-center transform hover:scale-105 transition-transform duration-300">
               <img 
                 src="/greenstar-logo.png" 
                 alt="Greenstar Social Marketing" 
-                className="h-36 w-auto object-contain drop-shadow-xl"
+                className="h-28 sm:h-32 md:h-36 w-auto object-contain drop-shadow-xl"
               />
             </div>
             
             {/* Elegant Divider */}
-            <div className="flex items-center justify-center my-6">
+            <div className="flex items-center justify-center my-4 sm:my-6">
               <div className="h-px bg-gradient-to-r from-transparent via-green-300 to-transparent w-full max-w-xs"></div>
             </div>
             
             {/* Title in Dark Green with Shadow - Responsive */}
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 tracking-tight px-2" 
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-3 tracking-tight px-2" 
                 style={{
                   color: '#006838',
                   textShadow: '0 2px 4px rgba(0,104,56,0.1)'
