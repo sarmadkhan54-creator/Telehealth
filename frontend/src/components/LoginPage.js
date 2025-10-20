@@ -83,13 +83,17 @@ const LoginPage = ({ onLogin }) => {
            background: 'linear-gradient(135deg, #f8fffe 0%, #e8f5f0 50%, #f8fffe 100%)'
          }}>
       
-      {/* Background Watermark - Greenstar General Hospital Logo */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-8 pointer-events-none">
+      {/* Background Watermark - Greenstar General Hospital Logo - More Visible */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <img 
           src="/hospital-logo.jpg" 
-          alt="Background" 
-          className="w-full h-full object-contain max-w-5xl"
-          style={{filter: 'blur(0.5px)'}}
+          alt="Greenstar General Hospital" 
+          className="w-[130%] h-[130%] object-contain"
+          style={{
+            opacity: 0.12,
+            filter: 'blur(0.3px)',
+            transform: 'scale(1.3)'
+          }}
         />
       </div>
 
