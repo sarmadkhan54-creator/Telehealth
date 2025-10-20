@@ -1227,7 +1227,7 @@ const AdminDashboard = ({ user, onLogout }) => {
               className="h-10 w-auto object-contain"
             />
             <div>
-              <h1 className="nav-brand text-green-700">Greenstar Admin</h1>
+              <h1 className="nav-brand text-green-700">Greenstar Digital Health Solutions - Admin</h1>
               <p className="text-sm text-gray-600">Administrative Dashboard</p>
             </div>
           </div>
