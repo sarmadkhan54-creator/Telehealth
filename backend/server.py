@@ -1453,6 +1453,7 @@ async def start_video_call(appointment_id: str, current_user: User = Depends(get
     )
     
     # Send real-time notification to provider (WhatsApp-like instant delivery)
+    # CRITICAL: Use MULTIPLE delivery methods to ensure provider ALWAYS gets the call
     call_notification = {
         "type": "incoming_video_call",
         "call_id": call_attempt.call_id,
@@ -1465,11 +1466,40 @@ async def start_video_call(appointment_id: str, current_user: User = Depends(get
         "call_attempt": call_attempt_number,
         "message": f"Dr. {current_user.full_name} is calling you for {appointment.get('patient', {}).get('name', 'patient')} consultation",
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "auto_answer": True  # WhatsApp-like instant call delivery
+        "auto_answer": True,  # WhatsApp-like instant call delivery
+        "priority": "urgent",  # Mark as urgent for immediate handling
+        "provider_id": appointment["provider_id"]  # Add provider_id for filtering
     }
     
-    # Send to provider immediately
-    await manager.send_personal_message(call_notification, appointment["provider_id"])
+    # METHOD 1: Send to provider directly via WebSocket
+    provider_notified_ws = await manager.send_personal_message(call_notification, appointment["provider_id"])
+    print(f"📞 WebSocket notification to provider: {'✅ SUCCESS' if provider_notified_ws else '❌ FAILED'}")
+    
+    # METHOD 2: BROADCAST to ALL users (ensures provider gets it even if WebSocket connection failed)
+    await manager.broadcast(call_notification)
+    print(f"📡 BROADCAST: Video call notification sent to all users (including provider {appointment['provider_id']})")
+    
+    # METHOD 3: Send FCM push notification to provider for GUARANTEED delivery
+    try:
+        # Send FCM notification to the specific provider
+        await send_notification_to_user(
+            db,
+            appointment["provider_id"],
+            f"📞 Incoming Call from Dr. {current_user.full_name}",
+            f"Patient: {appointment.get('patient', {}).get('name', 'Unknown Patient')} - Tap to answer",
+            {
+                "type": "incoming_video_call",
+                "appointment_id": appointment_id,
+                "jitsi_url": jitsi_url,
+                "room_name": room_name,
+                "call_id": call_attempt.call_id,
+                "doctor_name": current_user.full_name,
+                "call_attempt": call_attempt_number
+            }
+        )
+        print(f"📱 FCM notification sent to provider {appointment['provider_id']}")
+    except Exception as e:
+        print(f"⚠️ Error sending FCM notification to provider: {e}")
     
     return {
         "success": True,
