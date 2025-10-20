@@ -124,13 +124,13 @@ const LoginPage = ({ onLogin }) => {
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
             {/* Main GSM Logo */}
-            <div className="mx-auto mb-6 flex justify-center transform hover:scale-105 transition-transform duration-300 bg-white rounded-2xl p-3">
+            <div className="mx-auto mb-6 flex justify-center transform hover:scale-105 transition-transform duration-300">
               <img 
                 src="/gsm-logo.jpg" 
                 alt="Greenstar Social Marketing" 
-                className="h-36 w-auto object-contain"
+                className="h-36 w-auto object-contain drop-shadow-xl"
                 style={{
-                  mixBlendMode: 'multiply'
+                  mixBlendMode: 'darken'
                 }}
               />
             </div>
