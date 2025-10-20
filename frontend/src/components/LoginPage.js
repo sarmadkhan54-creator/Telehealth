@@ -91,13 +91,13 @@ const LoginPage = ({ onLogin }) => {
         {/* Content */}
         <div className="relative z-10 flex flex-col items-center justify-center w-full p-12">
           {/* Greenstar General Hospital Logo */}
-          <div className="mb-8 bg-white rounded-2xl p-4">
+          <div className="mb-8">
             <img 
               src="/hospital-logo.jpg" 
               alt="Greenstar General Hospital" 
-              className="h-32 w-auto object-contain"
+              className="h-32 w-auto object-contain filter drop-shadow-2xl"
               style={{
-                mixBlendMode: 'multiply'
+                mixBlendMode: 'darken'
               }}
             />
           </div>
