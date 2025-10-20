@@ -184,6 +184,8 @@ const DoctorDashboard = ({ user, onLogout }) => {
               message: getNotificationMessage(notification),
               timestamp: new Date(),
               data: notification,
+              appointment_id: notification.appointment_id || notification.appointment?.id,  // CRITICAL: Add appointment_id
+              appointment: notification.appointment,  // Include full appointment data if available
               isRead: false,
               priority: notification.type === 'emergency_appointment' ? 'high' : 'normal'
             };
