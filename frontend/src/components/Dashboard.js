@@ -435,6 +435,41 @@ const Dashboard = ({ user, onLogout }) => {
               }
             }
             
+            // Handle call cancellation from doctor
+            if (notification.type === 'call_cancelled') {
+              console.log('🔴 Doctor cancelled the call:', notification);
+              
+              // Stop ringing immediately
+              stopRingingSound();
+              
+              // Dismiss video call invitation modal
+              setShowVideoCallInvitation(false);
+              setVideoCallInvitation(null);
+              
+              // Show brief notification
+              const cancelToast = document.createElement('div');
+              cancelToast.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-lg shadow-2xl z-[10000] max-w-md animate-bounce';
+              cancelToast.innerHTML = `
+                <div class="flex items-center space-x-3">
+                  <div class="text-2xl">❌</div>
+                  <div>
+                    <div class="font-bold text-lg">Call Cancelled</div>
+                    <div class="text-sm">${notification.doctor_name || 'Doctor'} ended the call</div>
+                  </div>
+                </div>
+              `;
+              document.body.appendChild(cancelToast);
+              
+              // Auto-remove after 5 seconds
+              setTimeout(() => {
+                if (document.body.contains(cancelToast)) {
+                  document.body.removeChild(cancelToast);
+                }
+              }, 5000);
+              
+              console.log('✅ Call cancellation handled - modal dismissed and ringing stopped');
+            }
+            
             // Handle other notification types with browser notifications
             if (Notification.permission === 'granted') {
               if (notification.type === 'appointment_accepted') {
