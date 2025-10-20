@@ -135,12 +135,12 @@ const LoginPage = ({ onLogin }) => {
             </div>
             
             {/* Title in Dark Green with Shadow - Single Line */}
-            <h2 className="text-2xl md:text-3xl font-bold mb-3 tracking-tight" 
+            <h2 className="text-2xl md:text-3xl font-bold mb-3 tracking-tight whitespace-nowrap" 
                 style={{
                   color: '#006838',
                   textShadow: '0 2px 4px rgba(0,104,56,0.1)'
                 }}>
-              Greenstar Digital Health Solutions - Connecting Care, Empowering Health
+              Greenstar Digital Health Solutions
             </h2>
           </div>
 
