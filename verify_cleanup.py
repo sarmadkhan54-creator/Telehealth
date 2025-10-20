@@ -8,7 +8,7 @@ import sys
 import json
 
 def verify_cleanup():
-    base_url = "https://healthlink-app-6.preview.emergentagent.com"
+    base_url = "https://medconnect-live-1.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login as admin

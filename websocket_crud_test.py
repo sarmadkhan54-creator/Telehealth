@@ -16,7 +16,7 @@ import sys
 class WebSocketCRUDTester:
     def __init__(self):
         # Use REACT_APP_BACKEND_URL from frontend/.env
-        self.base_url = "https://healthlink-app-6.preview.emergentagent.com"
+        self.base_url = "https://medconnect-live-1.preview.emergentagent.com"
         self.api_url = f"{self.base_url}/api"
         self.tokens = {}
         self.users = {}
