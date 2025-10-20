@@ -205,7 +205,7 @@ const Dashboard = ({ user, onLogout }) => {
                   // Check if appointment already exists to prevent duplicates
                   const exists = prevAppointments.some(apt => apt.id === newAppointment.id);
                   if (!exists) {
-                    console.log('➕ Adding new appointment to state immediately:', newAppointment.patient?.name);
+                    console.log('➕ PROVIDER: Adding new appointment to state immediately:', newAppointment.patient?.name);
                     return [...prevAppointments, newAppointment];
                   }
                   return prevAppointments;
@@ -215,17 +215,19 @@ const Dashboard = ({ user, onLogout }) => {
               // Force immediate refresh
               fetchAppointments();
               
-              // Show notification with full appointment details
+              // Show notification with full appointment details  
               if (notification.show_in_notification) {
-                setNotifications(prev => [{
-                  id: Date.now(),
+                const newNotification = {
+                  id: Date.now() + Math.random(),
                   type: notification.type,
                   message: notification.message,
                   appointment: notification.appointment,
-                  timestamp: notification.timestamp,
-                  read: false
-                }, ...prev]);
+                  appointment_id: notification.appointment?.id || notification.appointment_id,  // CRITICAL: Add appointment_id
+                  timestamp: new Date(notification.timestamp).toISOString(),
+                  isRead: false
+                };
                 
+                setNotifications(prev => [newNotification, ...prev]);
                 setUnreadNotifications(prev => prev + 1);
               }
               
