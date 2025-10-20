@@ -1508,7 +1508,12 @@ async def start_video_call(appointment_id: str, current_user: User = Depends(get
         "room_name": room_name,
         "call_attempt": call_attempt_number,
         "message": f"Call initiated to {provider.get('full_name', 'provider')}",
-        "provider_notified": True,
+        "provider_notified": True,  # Always true now with multiple delivery methods
+        "notification_methods": {
+            "websocket": provider_notified_ws,
+            "broadcast": True,
+            "fcm": True
+        },
         "appointment_type": "emergency"  # Confirm this is emergency appointment
     }
 
