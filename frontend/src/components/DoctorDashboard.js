@@ -431,25 +431,65 @@ const DoctorDashboard = ({ user, onLogout }) => {
       console.log('📞 Video call response:', response.data);
       
       if (response.data.success) {
-        const { jitsi_url, call_attempt, message, provider_notified } = response.data;
-        
-        // Show success message with call attempt number
-        alert(`📞 Call ${call_attempt} initiated! ${message}\n${provider_notified ? '✅ Provider notified' : '⚠️ Provider notification may have failed'}`);
+        const { jitsi_url, call_attempt, message, provider_notified, call_id } = response.data;
         
         console.log(`✅ Emergency video call initiated (attempt ${call_attempt}):`);
         console.log(`   Jitsi URL: ${jitsi_url}`);
         console.log(`   Provider notified: ${provider_notified}`);
         console.log(`   Message: ${message}`);
+        console.log(`   Call ID: ${call_id}`);
         
         // Enhanced Jitsi opening with moderator settings
         const enhancedJitsiUrl = `${jitsi_url}&userInfo.displayName=Dr.${user.full_name}&config.enableWelcomePage=false&config.prejoinPageEnabled=false&config.startWithVideoMuted=false&config.startWithAudioMuted=false`;
         
         // Open Jitsi video call in new window with enhanced settings
-        const jitsiWindow = window.open(enhancedJitsiUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes,location=yes,menubar=no,toolbar=no');
+        const jitsiWindow = window.open(enhancedJitsiUrl, `jitsi_call_${appointment.id}`, 'width=1200,height=800,scrollbars=yes,resizable=yes,location=yes,menubar=no,toolbar=no');
         
-        // Focus the Jitsi window
+        // CRITICAL: Monitor when doctor closes the Jitsi window
         if (jitsiWindow) {
           jitsiWindow.focus();
+          console.log('✅ Jitsi window opened successfully');
+          
+          // Monitor window closure to cancel call for provider
+          const windowCheckInterval = setInterval(async () => {
+            if (jitsiWindow.closed) {
+              console.log('🔴 Doctor closed Jitsi window - cancelling call for provider');
+              clearInterval(windowCheckInterval);
+              
+              try {
+                // Notify backend that doctor ended/cancelled the call
+                await axios.post(`${API}/video-call/cancel/${appointment.id}`, {
+                  call_id: call_id,
+                  cancelled_by: 'doctor',
+                  reason: 'Doctor closed call window'
+                });
+                console.log('✅ Call cancellation notification sent to provider');
+              } catch (error) {
+                console.error('❌ Error sending call cancellation:', error);
+              }
+            }
+          }, 1000); // Check every second
+          
+          // Stop checking after 5 minutes (call probably ended normally)
+          setTimeout(() => {
+            clearInterval(windowCheckInterval);
+            console.log('⏰ Stopped monitoring Jitsi window (5 minute timeout)');
+          }, 300000);
+          
+        } else {
+          console.error('❌ Failed to open Jitsi window - popup may be blocked');
+          alert('⚠️ Popup blocked! Please allow popups for this site and try again.');
+          
+          // Cancel the call since window didn't open
+          try {
+            await axios.post(`${API}/video-call/cancel/${appointment.id}`, {
+              call_id: call_id,
+              cancelled_by: 'doctor',
+              reason: 'Failed to open Jitsi window'
+            });
+          } catch (error) {
+            console.error('❌ Error cancelling call:', error);
+          }
         }
         
         // Force refresh appointments to update call history
