@@ -123,7 +123,7 @@ const LoginPage = ({ onLogin }) => {
             {/* Main GSM Logo */}
             <div className="mx-auto mb-6 flex justify-center transform hover:scale-105 transition-transform duration-300">
               <img 
-                src="/gsm-logo.jpg" 
+                src="/greenstar-logo.png" 
                 alt="Greenstar Social Marketing" 
                 className="h-36 w-auto object-contain drop-shadow-xl"
               />
