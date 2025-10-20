@@ -1571,6 +1571,72 @@ async def end_video_call(appointment_id: str, current_user: User = Depends(get_c
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
+
+@api_router.post("/video-call/cancel/{appointment_id}")
+async def cancel_video_call(appointment_id: str, cancel_data: dict, current_user: User = Depends(get_current_user)):
+    """Cancel video call - notifies provider to stop ringing"""
+    
+    # Get appointment details
+    appointment = await db.appointments.find_one({"id": appointment_id})
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    
+    # Only doctor can cancel calls they initiated
+    if current_user.role != "doctor":
+        raise HTTPException(status_code=403, detail="Only doctors can cancel calls")
+    
+    call_id = cancel_data.get('call_id')
+    reason = cancel_data.get('reason', 'Call cancelled by doctor')
+    cancelled_by = cancel_data.get('cancelled_by', 'doctor')
+    
+    print(f"🔴 Doctor cancelled video call:")
+    print(f"   Appointment ID: {appointment_id}")
+    print(f"   Call ID: {call_id}")
+    print(f"   Reason: {reason}")
+    print(f"   Cancelled by: Dr. {current_user.full_name}")
+    
+    # Update call attempt status
+    if call_id:
+        await db.call_attempts.update_one(
+            {"call_id": call_id},
+            {"$set": {
+                "status": "cancelled",
+                "cancelled_at": datetime.now(timezone.utc),
+                "cancelled_by": current_user.id,
+                "cancel_reason": reason
+            }}
+        )
+    
+    # Send cancellation notification to provider
+    cancellation_notification = {
+        "type": "call_cancelled",
+        "appointment_id": appointment_id,
+        "call_id": call_id,
+        "doctor_name": current_user.full_name,
+        "doctor_id": current_user.id,
+        "reason": reason,
+        "message": f"Dr. {current_user.full_name} cancelled the call",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "action": "dismiss_call"  # Tell provider to dismiss the ringing modal
+    }
+    
+    # METHOD 1: Send directly to provider
+    provider_id = appointment["provider_id"]
+    await manager.send_personal_message(cancellation_notification, provider_id)
+    print(f"✅ Call cancellation sent to provider: {provider_id}")
+    
+    # METHOD 2: Broadcast to ensure delivery
+    await manager.broadcast(cancellation_notification)
+    print(f"📡 BROADCAST: Call cancellation sent to all users")
+    
+    return {
+        "success": True,
+        "message": "Call cancelled successfully",
+        "appointment_id": appointment_id,
+        "call_id": call_id,
+        "provider_notified": True
+    }
+
 @api_router.get("/video-call/status/{appointment_id}")
 async def get_call_status(appointment_id: str, current_user: User = Depends(get_current_user)):
     """Get current call status for appointment"""
