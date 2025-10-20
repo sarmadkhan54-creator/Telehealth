@@ -142,6 +142,11 @@ const LoginPage = ({ onLogin }) => {
                 }}>
               Greenstar Digital Health Solutions
             </h2>
+            
+            {/* Subtitle */}
+            <p className="text-gray-600 font-medium text-sm tracking-wide">
+              Connecting Care, Empowering Health
+            </p>
           </div>
 
           {error && (
