@@ -78,38 +78,54 @@ const LoginPage = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden" 
-         style={{
-           background: 'linear-gradient(135deg, #f8fffe 0%, #e8f5f0 50%, #f8fffe 100%)'
-         }}>
-      
-      {/* Background Watermark - Greenstar General Hospital Logo - More Visible */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <img 
-          src="/hospital-logo.jpg" 
-          alt="Greenstar General Hospital" 
-          className="w-[130%] h-[130%] object-contain"
-          style={{
-            opacity: 0.12,
-            filter: 'blur(0.3px)',
-            transform: 'scale(1.3)'
-          }}
-        />
+    <div className="min-h-screen flex">
+      {/* LEFT SIDE - Green Gradient with Greenstar General Hospital Logo */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
+           style={{
+             background: 'linear-gradient(135deg, #004d2c 0%, #006838 50%, #008844 100%)'
+           }}>
+        {/* Decorative circles */}
+        <div className="absolute top-20 left-20 w-96 h-96 bg-white/5 rounded-full filter blur-3xl"></div>
+        <div className="absolute bottom-20 right-20 w-80 h-80 bg-white/5 rounded-full filter blur-3xl"></div>
+        
+        {/* Content */}
+        <div className="relative z-10 flex flex-col items-center justify-center w-full p-12">
+          {/* Greenstar General Hospital Logo */}
+          <div className="mb-8">
+            <img 
+              src="/hospital-logo.jpg" 
+              alt="Greenstar General Hospital" 
+              className="h-32 w-auto object-contain filter drop-shadow-2xl"
+            />
+          </div>
+          
+          {/* Welcome Text */}
+          <div className="text-center text-white space-y-6 max-w-md">
+            <h1 className="text-4xl lg:text-5xl font-bold leading-tight">
+              Welcome to Digital Healthcare
+            </h1>
+            <p className="text-lg text-white/90 leading-relaxed">
+              Empowering healthcare professionals with seamless telehealth solutions
+            </p>
+            <div className="pt-8 flex items-center justify-center gap-3">
+              <div className="h-1 w-12 bg-white/80 rounded-full"></div>
+              <div className="h-1 w-8 bg-white/60 rounded-full"></div>
+              <div className="h-1 w-4 bg-white/40 rounded-full"></div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Decorative Elements */}
-      <div className="absolute top-0 left-0 w-64 h-64 bg-green-100 rounded-full filter blur-3xl opacity-20 -translate-x-1/2 -translate-y-1/2"></div>
-      <div className="absolute bottom-0 right-0 w-64 h-64 bg-green-100 rounded-full filter blur-3xl opacity-20 translate-x-1/2 translate-y-1/2"></div>
-
-      <div className="max-w-md w-full space-y-8 relative z-10">
-        <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl border border-green-100 p-8 md:p-12 hover:shadow-green-200/50 transition-all duration-300">
-          <div className="text-center mb-8">
+      {/* RIGHT SIDE - White Background with Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center bg-white py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <div className="text-center">
             {/* Main GSM Logo */}
             <div className="mx-auto mb-6 flex justify-center transform hover:scale-105 transition-transform duration-300">
               <img 
                 src="/gsm-logo.jpg" 
                 alt="Greenstar Social Marketing" 
-                className="h-44 w-auto object-contain drop-shadow-2xl filter brightness-105"
+                className="h-40 w-auto object-contain drop-shadow-xl"
               />
             </div>
             
@@ -119,7 +135,7 @@ const LoginPage = ({ onLogin }) => {
             </div>
             
             {/* Title in Dark Green with Shadow */}
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight" 
+            <h2 className="text-2xl md:text-3xl font-bold mb-3 tracking-tight" 
                 style={{
                   color: '#006838',
                   textShadow: '0 2px 4px rgba(0,104,56,0.1)'
@@ -128,7 +144,7 @@ const LoginPage = ({ onLogin }) => {
             </h2>
             
             {/* Subtitle */}
-            <p className="text-gray-600 font-medium text-sm md:text-base tracking-wide">
+            <p className="text-gray-600 font-medium text-sm tracking-wide">
               Connecting Care, Empowering Health
             </p>
           </div>
