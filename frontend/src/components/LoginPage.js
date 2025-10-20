@@ -137,17 +137,19 @@ const LoginPage = ({ onLogin }) => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="form-group">
-              <label htmlFor="username" className="form-label" style={{color: '#006838', fontWeight: '600'}}>
+              <label htmlFor="username" className="form-label font-semibold text-sm mb-2 block" 
+                     style={{color: '#006838'}}>
                 Username
               </label>
-              <div className="relative">
-                <UserCheck className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{color: '#006838'}} />
+              <div className="relative group">
+                <UserCheck className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 transition-colors duration-200" 
+                          style={{color: '#006838'}} />
                 <input
                   id="username"
                   name="username"
                   type="text"
                   required
-                  className="form-input pl-12 border-2 focus:border-green-600 focus:ring-2 focus:ring-green-200"
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition-all duration-300 bg-gray-50 hover:bg-white group-hover:border-green-300"
                   placeholder="Enter your username"
                   value={formData.username}
                   onChange={handleChange}
@@ -156,23 +158,24 @@ const LoginPage = ({ onLogin }) => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="password" className="form-label" style={{color: '#006838', fontWeight: '600'}}>
+              <label htmlFor="password" className="form-label font-semibold text-sm mb-2 block" 
+                     style={{color: '#006838'}}>
                 Password
               </label>
-              <div className="relative">
+              <div className="relative group">
                 <input
                   id="password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
-                  className="form-input pr-12 border-2 focus:border-green-600 focus:ring-2 focus:ring-green-200"
+                  className="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition-all duration-300 bg-gray-50 hover:bg-white group-hover:border-green-300"
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleChange}
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 hover:opacity-70"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 hover:opacity-70 transition-opacity duration-200"
                   style={{color: '#006838'}}
                   onClick={() => setShowPassword(!showPassword)}
                 >
