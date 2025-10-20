@@ -126,9 +126,6 @@ const LoginPage = ({ onLogin }) => {
                 src="/gsm-logo.jpg" 
                 alt="Greenstar Social Marketing" 
                 className="h-36 w-auto object-contain drop-shadow-xl"
-                style={{
-                  mixBlendMode: 'darken'
-                }}
               />
             </div>
             
