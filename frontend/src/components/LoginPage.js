@@ -140,13 +140,8 @@ const LoginPage = ({ onLogin }) => {
                   color: '#006838',
                   textShadow: '0 2px 4px rgba(0,104,56,0.1)'
                 }}>
-              Greenstar Digital Health Solution
+              Greenstar Digital Health Solutions
             </h2>
-            
-            {/* Subtitle */}
-            <p className="text-gray-600 font-medium text-sm tracking-wide">
-              Connecting Care, Empowering Health
-            </p>
           </div>
 
           {error && (
