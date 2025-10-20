@@ -78,31 +78,55 @@ const LoginPage = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-white relative overflow-hidden">
-      {/* Background Logo - Large and More Visible */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-15 pointer-events-none">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden" 
+         style={{
+           background: 'linear-gradient(135deg, #f8fffe 0%, #e8f5f0 50%, #f8fffe 100%)'
+         }}>
+      
+      {/* Background Watermark - Greenstar General Hospital Logo */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-8 pointer-events-none">
         <img 
-          src="/greenstar-logo.jpg" 
+          src="/hospital-logo.jpg" 
           alt="Background" 
-          className="w-full h-full object-contain max-w-4xl"
+          className="w-full h-full object-contain max-w-5xl"
+          style={{filter: 'blur(0.5px)'}}
         />
       </div>
 
+      {/* Decorative Elements */}
+      <div className="absolute top-0 left-0 w-64 h-64 bg-green-100 rounded-full filter blur-3xl opacity-20 -translate-x-1/2 -translate-y-1/2"></div>
+      <div className="absolute bottom-0 right-0 w-64 h-64 bg-green-100 rounded-full filter blur-3xl opacity-20 translate-x-1/2 translate-y-1/2"></div>
+
       <div className="max-w-md w-full space-y-8 relative z-10">
-        <div className="bg-white rounded-2xl shadow-2xl border-2 border-gray-100 p-8 md:p-10">
+        <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl border border-green-100 p-8 md:p-12 hover:shadow-green-200/50 transition-all duration-300">
           <div className="text-center mb-8">
-            {/* Main GSM Logo - New Logo */}
-            <div className="mx-auto mb-6 flex justify-center">
+            {/* Main GSM Logo */}
+            <div className="mx-auto mb-6 flex justify-center transform hover:scale-105 transition-transform duration-300">
               <img 
                 src="/gsm-logo.jpg" 
                 alt="Greenstar Social Marketing" 
-                className="h-40 w-auto object-contain drop-shadow-lg"
+                className="h-44 w-auto object-contain drop-shadow-2xl filter brightness-105"
               />
             </div>
-            {/* Title in Dark Green */}
-            <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{color: '#006838'}}>
+            
+            {/* Elegant Divider */}
+            <div className="flex items-center justify-center my-6">
+              <div className="h-px bg-gradient-to-r from-transparent via-green-300 to-transparent w-full max-w-xs"></div>
+            </div>
+            
+            {/* Title in Dark Green with Shadow */}
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight" 
+                style={{
+                  color: '#006838',
+                  textShadow: '0 2px 4px rgba(0,104,56,0.1)'
+                }}>
               Greenstar Digital Health Solution
             </h2>
+            
+            {/* Subtitle */}
+            <p className="text-gray-600 font-medium text-sm md:text-base tracking-wide">
+              Connecting Care, Empowering Health
+            </p>
           </div>
 
           {error && (
