@@ -191,28 +191,37 @@ const LoginPage = ({ onLogin }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="w-full text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98] relative overflow-hidden group"
               style={{
-                backgroundColor: '#006838',
-                ':hover': {backgroundColor: '#005030'}
+                background: 'linear-gradient(135deg, #006838 0%, #005030 100%)',
               }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#005030'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#006838'}
             >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="loading-spinner mr-2"></div>
-                  Signing in...
-                </div>
-              ) : (
-                'Sign In'
-              )}
+              <span className="relative z-10">
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="loading-spinner mr-2"></div>
+                    Signing in...
+                  </div>
+                ) : (
+                  <span className="flex items-center justify-center gap-2">
+                    Sign In
+                    <svg className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </span>
+                )}
+              </span>
+              {/* Shine effect on hover */}
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-10 transform -translate-x-full group-hover:translate-x-full transition-all duration-1000"></span>
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Only pre-registered healthcare professionals can access this platform
+          <div className="mt-8 text-center">
+            <div className="flex items-center justify-center mb-4">
+              <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent w-full"></div>
+            </div>
+            <p className="text-sm text-gray-600 px-4">
+              🔒 Only pre-registered healthcare professionals can access this platform
             </p>
           </div>
         </div>
