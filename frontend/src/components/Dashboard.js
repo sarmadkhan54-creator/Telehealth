@@ -948,7 +948,7 @@ const Dashboard = ({ user, onLogout }) => {
               className="h-10 w-auto object-contain"
             />
             <div>
-              <h1 className="nav-brand text-green-700">Greenstar Telehealth</h1>
+              <h1 className="nav-brand text-green-700">Greenstar Digital Health Solutions</h1>
               <p className="text-sm text-gray-600">Provider Dashboard</p>
             </div>
           </div>
