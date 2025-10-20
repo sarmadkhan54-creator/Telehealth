@@ -134,19 +134,14 @@ const LoginPage = ({ onLogin }) => {
               <div className="h-px bg-gradient-to-r from-transparent via-green-300 to-transparent w-full max-w-xs"></div>
             </div>
             
-            {/* Title in Dark Green with Shadow */}
+            {/* Title in Dark Green with Shadow - Single Line */}
             <h2 className="text-2xl md:text-3xl font-bold mb-3 tracking-tight" 
                 style={{
                   color: '#006838',
                   textShadow: '0 2px 4px rgba(0,104,56,0.1)'
                 }}>
-              Greenstar Digital Health Solutions
+              Greenstar Digital Health Solutions - Connecting Care, Empowering Health
             </h2>
-            
-            {/* Subtitle */}
-            <p className="text-gray-600 font-medium text-sm tracking-wide">
-              Connecting Care, Empowering Health
-            </p>
           </div>
 
           {error && (
