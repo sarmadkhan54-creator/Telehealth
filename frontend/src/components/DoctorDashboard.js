@@ -214,15 +214,17 @@ const DoctorDashboard = ({ user, onLogout }) => {
               
               // Show notification with full appointment details for doctors
               if (notification.show_in_notification) {
-                setNotifications(prev => [{
-                  id: Date.now(),
+                const newNotification = {
+                  id: Date.now() + Math.random(),
                   type: notification.type,
                   message: notification.message,
                   appointment: notification.appointment,
-                  timestamp: notification.timestamp,
-                  read: false
-                }, ...prev]);
+                  appointment_id: notification.appointment?.id || notification.appointment_id,  // CRITICAL: Add appointment_id
+                  timestamp: new Date(notification.timestamp).toISOString(),
+                  isRead: false
+                };
                 
+                setNotifications(prev => [newNotification, ...prev]);
                 setUnreadNotifications(prev => prev + 1);
               }
               
