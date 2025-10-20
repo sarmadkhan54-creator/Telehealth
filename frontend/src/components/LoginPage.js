@@ -79,8 +79,8 @@ const LoginPage = ({ onLogin }) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-white relative overflow-hidden">
-      {/* Background Logo - Large and Faded */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
+      {/* Background Logo - Large and More Visible */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-15 pointer-events-none">
         <img 
           src="/greenstar-logo.jpg" 
           alt="Background" 
@@ -91,12 +91,12 @@ const LoginPage = ({ onLogin }) => {
       <div className="max-w-md w-full space-y-8 relative z-10">
         <div className="bg-white rounded-2xl shadow-2xl border-2 border-gray-100 p-8 md:p-10">
           <div className="text-center mb-8">
-            {/* Greenstar Logo - Your Uploaded Logo */}
+            {/* Main GSM Logo - New Logo */}
             <div className="mx-auto mb-6 flex justify-center">
               <img 
-                src="/greenstar-logo.jpg" 
-                alt="Greenstar Healthcare" 
-                className="h-32 w-auto object-contain drop-shadow-lg"
+                src="/gsm-logo.jpg" 
+                alt="Greenstar Social Marketing" 
+                className="h-40 w-auto object-contain drop-shadow-lg"
               />
             </div>
             {/* Title in Dark Green */}
