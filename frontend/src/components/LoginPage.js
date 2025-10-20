@@ -93,7 +93,7 @@ const LoginPage = ({ onLogin }) => {
           {/* Greenstar General Hospital Logo */}
           <div className="mb-8">
             <img 
-              src="/hospital-logo.jpg" 
+              src="/hospital-logo.png" 
               alt="Greenstar General Hospital" 
               className="h-32 w-auto object-contain filter drop-shadow-2xl"
             />
