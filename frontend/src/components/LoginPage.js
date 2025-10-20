@@ -96,9 +96,6 @@ const LoginPage = ({ onLogin }) => {
               src="/hospital-logo.jpg" 
               alt="Greenstar General Hospital" 
               className="h-32 w-auto object-contain filter drop-shadow-2xl"
-              style={{
-                mixBlendMode: 'darken'
-              }}
             />
           </div>
           
