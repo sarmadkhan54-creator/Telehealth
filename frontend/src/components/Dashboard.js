@@ -415,9 +415,11 @@ const Dashboard = ({ user, onLogout }) => {
                 id: Date.now() + Math.random(),
                 type: notification.type,
                 title: 'Incoming Video Call',
-                message: `${notification.caller} is inviting you to a video consultation`,
+                message: `${notification.doctor_name || notification.caller || 'Doctor'} is calling you for consultation`,
                 timestamp: new Date().toISOString(),
-                isRead: false
+                isRead: false,
+                appointment_id: notification.appointment_id,
+                jitsi_url: notification.jitsi_url
               };
               setNotifications(prev => [newNotification, ...prev]);
               setUnreadNotifications(prev => prev + 1);
@@ -425,7 +427,7 @@ const Dashboard = ({ user, onLogout }) => {
               // Send browser notification if permission granted
               if (Notification.permission === 'granted') {
                 showNotification('📞 Incoming Video Call', {
-                  body: `${notification.caller} is inviting you to a video consultation`,
+                  body: `${notification.doctor_name || notification.caller || 'Doctor'} is calling you for ${notification.patient_name || 'patient'} consultation`,
                   icon: '/favicon.ico',
                   tag: 'video-call-invitation',
                   requireInteraction: true
