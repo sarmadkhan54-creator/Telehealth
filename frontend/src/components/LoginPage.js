@@ -116,17 +116,17 @@ const LoginPage = ({ onLogin }) => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="form-group">
-              <label htmlFor="username" className="form-label">
+              <label htmlFor="username" className="form-label" style={{color: '#006838', fontWeight: '600'}}>
                 Username
               </label>
               <div className="relative">
-                <UserCheck className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <UserCheck className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" style={{color: '#006838'}} />
                 <input
                   id="username"
                   name="username"
                   type="text"
                   required
-                  className="form-input pl-12"
+                  className="form-input pl-12 border-2 focus:border-green-600 focus:ring-2 focus:ring-green-200"
                   placeholder="Enter your username"
                   value={formData.username}
                   onChange={handleChange}
@@ -135,7 +135,7 @@ const LoginPage = ({ onLogin }) => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="password" className="form-label">
+              <label htmlFor="password" className="form-label" style={{color: '#006838', fontWeight: '600'}}>
                 Password
               </label>
               <div className="relative">
@@ -144,14 +144,15 @@ const LoginPage = ({ onLogin }) => {
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
-                  className="form-input pr-12"
+                  className="form-input pr-12 border-2 focus:border-green-600 focus:ring-2 focus:ring-green-200"
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleChange}
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 hover:opacity-70"
+                  style={{color: '#006838'}}
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
