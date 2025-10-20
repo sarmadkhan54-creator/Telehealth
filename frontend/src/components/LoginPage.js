@@ -124,11 +124,14 @@ const LoginPage = ({ onLogin }) => {
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
             {/* Main GSM Logo */}
-            <div className="mx-auto mb-6 flex justify-center transform hover:scale-105 transition-transform duration-300">
+            <div className="mx-auto mb-6 flex justify-center transform hover:scale-105 transition-transform duration-300 bg-white rounded-2xl p-3">
               <img 
                 src="/gsm-logo.jpg" 
                 alt="Greenstar Social Marketing" 
-                className="h-40 w-auto object-contain drop-shadow-xl"
+                className="h-36 w-auto object-contain"
+                style={{
+                  mixBlendMode: 'multiply'
+                }}
               />
             </div>
             
@@ -137,8 +140,8 @@ const LoginPage = ({ onLogin }) => {
               <div className="h-px bg-gradient-to-r from-transparent via-green-300 to-transparent w-full max-w-xs"></div>
             </div>
             
-            {/* Title in Dark Green with Shadow - Single Line */}
-            <h2 className="text-2xl md:text-3xl font-bold mb-3 tracking-tight whitespace-nowrap" 
+            {/* Title in Dark Green with Shadow - Responsive */}
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 tracking-tight px-2" 
                 style={{
                   color: '#006838',
                   textShadow: '0 2px 4px rgba(0,104,56,0.1)'
