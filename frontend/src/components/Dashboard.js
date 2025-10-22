@@ -1616,8 +1616,8 @@ const Dashboard = ({ user, onLogout }) => {
 
       {/* Provider Note Modal */}
       {showProviderNoteModal && selectedAppointment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[80vh] overflow-y-auto relative z-[10000]">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-900">
@@ -1629,7 +1629,8 @@ const Dashboard = ({ user, onLogout }) => {
                     setProviderNoteText('');
                     setSelectedAppointment(null);
                   }}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors relative z-[10001]"
+                  aria-label="Close"
                 >
                   <X className="w-6 h-6" />
                 </button>
