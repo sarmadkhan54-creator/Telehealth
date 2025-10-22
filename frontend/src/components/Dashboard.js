@@ -1551,8 +1551,8 @@ const Dashboard = ({ user, onLogout }) => {
 
       {/* Provider Note Modal */}
       {showProviderNoteModal && selectedAppointment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
-          <div className="glass-card max-w-lg w-full mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
+          <div className="glass-card max-w-lg w-full mx-4 relative z-[10000]">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-gray-900">Send Note to Doctor</h3>
               <button
@@ -1561,7 +1561,7 @@ const Dashboard = ({ user, onLogout }) => {
                   setProviderNoteText('');
                   setSelectedAppointment(null);
                 }}
-                className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-full transition-colors"
+                className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-full transition-colors relative z-[10001]"
                 aria-label="Close"
               >
                 <X className="w-6 h-6" />
