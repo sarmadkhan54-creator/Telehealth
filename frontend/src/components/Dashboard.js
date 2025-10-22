@@ -1561,9 +1561,10 @@ const Dashboard = ({ user, onLogout }) => {
                   setProviderNoteText('');
                   setSelectedAppointment(null);
                 }}
-                className="text-gray-500 hover:text-gray-700 text-xl"
+                className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-full transition-colors"
+                aria-label="Close"
               >
-                ×
+                <X className="w-6 h-6" />
               </button>
             </div>
 
