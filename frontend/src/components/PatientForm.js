@@ -73,13 +73,14 @@ const PatientForm = ({ user }) => {
 
       await axios.post(`${API}/appointments`, appointmentData);
       
-      // Show success message and redirect
+      // Show success message
       alert(appointmentType === 'emergency' 
         ? 'Emergency appointment created! Doctors will be notified immediately.' 
         : 'Appointment created successfully!'
       );
       
-      navigate('/');
+      // Force refresh to show new appointment immediately
+      window.location.href = '/';  // This will reload the dashboard and fetch new data
     } catch (error) {
       setError(error.response?.data?.detail || 'Failed to create appointment');
     } finally {
