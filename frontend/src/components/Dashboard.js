@@ -142,6 +142,12 @@ const Dashboard = ({ user, onLogout }) => {
   }, []);
 
   const setupWebSocket = () => {
+    // CRITICAL: Only set up WebSocket if user is available
+    if (!user || !user.id) {
+      console.log('⚠️ Provider WebSocket setup skipped - no user context available');
+      return;
+    }
+    
     let reconnectAttempts = 0;
     const maxReconnectAttempts = 50; // Increased for persistence
     let heartbeatInterval = null;
@@ -162,6 +168,8 @@ const Dashboard = ({ user, onLogout }) => {
         }
         
         console.log(`🔌 Provider WebSocket connecting (attempt ${reconnectAttempts + 1}):`, wsUrl);
+        console.log(`   User ID: ${user.id}`);
+        console.log(`   Backend URL: ${BACKEND_URL}`);
         
         ws = new WebSocket(wsUrl);
         
