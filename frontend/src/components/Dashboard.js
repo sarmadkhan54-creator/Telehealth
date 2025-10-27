@@ -132,12 +132,12 @@ const Dashboard = ({ user, onLogout }) => {
   }, []);
 
   useEffect(() => {
-    // AGGRESSIVE Auto-refresh appointments every 5 seconds for real-time sync
-    console.log('🔄 Setting up aggressive 5-second polling for Provider Dashboard');
+    // AGGRESSIVE Auto-refresh appointments every 2 seconds for GUARANTEED real-time sync
+    console.log('🔄 Setting up ULTRA-AGGRESSIVE 2-second polling for Provider Dashboard');
     const refreshInterval = setInterval(() => {
-      console.log('⏰ Provider auto-refresh triggered (5s interval)');
+      console.log('⏰ Provider auto-refresh triggered (2s interval) - FORCING UPDATE');
       fetchAppointments();
-    }, 5000); // Refresh every 5 seconds for real-time feel
+    }, 2000); // Refresh every 2 seconds - GUARANTEED updates
     return () => clearInterval(refreshInterval);
   }, []);
 
