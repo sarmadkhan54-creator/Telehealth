@@ -95,7 +95,16 @@ const AdminDashboard = ({ user, onLogout }) => {
   }, []);
 
   const setupWebSocket = () => {
+    // CRITICAL: Only set up WebSocket if user is available
+    if (!user || !user.id) {
+      console.log('⚠️ Admin WebSocket setup skipped - no user context available');
+      return;
+    }
+    
     const wsUrl = `${BACKEND_URL.replace('https:', 'wss:').replace('http:', 'ws:')}/api/ws/${user.id}`;
+    console.log(`🔌 Admin WebSocket connecting to:`, wsUrl);
+    console.log(`   User ID: ${user.id}`);
+    console.log(`   Backend URL: ${BACKEND_URL}`);
     const ws = new WebSocket(wsUrl);
     
     ws.onmessage = (event) => {
