@@ -92,12 +92,12 @@ const DoctorDashboard = ({ user, onLogout }) => {
   }, []);
 
   useEffect(() => {
-    // AGGRESSIVE Auto-refresh appointments every 5 seconds for real-time sync
-    console.log('🔄 Setting up aggressive 5-second polling for Doctor Dashboard');
+    // AGGRESSIVE Auto-refresh appointments every 2 seconds for GUARANTEED real-time sync
+    console.log('🔄 Setting up ULTRA-AGGRESSIVE 2-second polling for Doctor Dashboard');
     const refreshInterval = setInterval(() => {
-      console.log('⏰ Auto-refresh triggered (5s interval)');
+      console.log('⏰ Auto-refresh triggered (2s interval) - FORCING UPDATE');
       fetchAppointments();
-    }, 5000); // Refresh every 5 seconds for real-time feel
+    }, 2000); // Refresh every 2 seconds - GUARANTEED updates
     
     // Listen for appointment updates from notifications
     const handleAppointmentUpdate = () => {
