@@ -1797,20 +1797,53 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
     await manager.connect(websocket, user_id)
     print(f"✅ User {user_id} connected to WebSocket")
     
+    # Send immediate acknowledgment to prevent idle timeout
+    try:
+        await websocket.send_text(json.dumps({
+            "type": "connection_established",
+            "user_id": user_id,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "message": "WebSocket connection successful"
+        }))
+        print(f"✅ Connection acknowledgment sent to user {user_id}")
+    except Exception as e:
+        print(f"❌ Failed to send connection ack: {e}")
+    
     try:
         while True:
-            data = await websocket.receive_text()
-            message = json.loads(data)
-            
-            # Handle different message types
-            if message.get("type") == "ping":
-                await websocket.send_text(json.dumps({"type": "pong"}))
-                print(f"🏓 Ping/Pong with user {user_id}")
-            elif message.get("type") == "heartbeat_response":
-                print(f"💓 Heartbeat response from user {user_id}")
+            try:
+                # Use asyncio.wait_for with timeout to prevent indefinite blocking
+                # Wait for 60 seconds for a message, then loop again
+                data = await asyncio.wait_for(websocket.receive_text(), timeout=60.0)
+                message = json.loads(data)
                 
+                # Handle different message types
+                if message.get("type") == "ping":
+                    await websocket.send_text(json.dumps({"type": "pong", "timestamp": datetime.now(timezone.utc).isoformat()}))
+                    print(f"🏓 Ping/Pong with user {user_id}")
+                elif message.get("type") == "heartbeat":
+                    await websocket.send_text(json.dumps({"type": "heartbeat_ack", "timestamp": datetime.now(timezone.utc).isoformat()}))
+                    print(f"💓 Heartbeat from user {user_id}")
+                elif message.get("type") == "heartbeat_response":
+                    print(f"💓 Heartbeat response from user {user_id}")
+                    
+            except asyncio.TimeoutError:
+                # No message received in 60 seconds, send keep-alive
+                try:
+                    await websocket.send_text(json.dumps({
+                        "type": "keep_alive",
+                        "timestamp": datetime.now(timezone.utc).isoformat()
+                    }))
+                    print(f"🔄 Keep-alive sent to user {user_id}")
+                except Exception as e:
+                    print(f"❌ Keep-alive failed for user {user_id}: {e}")
+                    break  # Connection is dead, exit loop
+                    
     except WebSocketDisconnect:
         print(f"🔌 User {user_id} disconnected from WebSocket")
+        manager.disconnect(user_id)
+    except Exception as e:
+        print(f"❌ WebSocket error for user {user_id}: {e}")
         manager.disconnect(user_id)
 
 # Push notification endpoints
