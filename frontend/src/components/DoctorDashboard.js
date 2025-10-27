@@ -115,6 +115,12 @@ const DoctorDashboard = ({ user, onLogout }) => {
 
   // Enhanced WebSocket setup with debounced refresh
   useEffect(() => {
+    // CRITICAL: Only set up WebSocket if user is available
+    if (!user || !user.id) {
+      console.log('⚠️ Doctor WebSocket setup skipped - no user context available');
+      return;
+    }
+    
     let refreshTimeout = null;
     
     // Debounced refresh function to prevent race conditions
@@ -136,6 +142,8 @@ const DoctorDashboard = ({ user, onLogout }) => {
       try {
         const wsUrl = `${BACKEND_URL.replace('https:', 'wss:').replace('http:', 'ws:')}/api/ws/${user.id}`;
         console.log(`🔌 Doctor WebSocket connecting (attempt ${reconnectAttempts + 1}):`, wsUrl);
+        console.log(`   User ID: ${user.id}`);
+        console.log(`   Backend URL: ${BACKEND_URL}`);
         const ws = new WebSocket(wsUrl);
         
         ws.onopen = () => {
