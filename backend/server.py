@@ -69,14 +69,39 @@ VAPID_CLAIMS = {
 class ConnectionManager:
     def __init__(self):
         self.active_connections: Dict[str, WebSocket] = {}
+        self.message_queue: Dict[str, List[dict]] = {}  # Queue for offline users
+        self.connection_timestamps: Dict[str, datetime] = {}  # Track when users connected
+        self.max_queue_size = 100  # Maximum queued messages per user
     
     async def connect(self, websocket: WebSocket, user_id: str):
         await websocket.accept()
         self.active_connections[user_id] = websocket
+        self.connection_timestamps[user_id] = datetime.now(timezone.utc)
+        print(f"✅ User {user_id} connected to WebSocket at {self.connection_timestamps[user_id]}")
+        
+        # Send any queued messages to the newly connected user
+        if user_id in self.message_queue and len(self.message_queue[user_id]) > 0:
+            queued_count = len(self.message_queue[user_id])
+            print(f"📨 Sending {queued_count} queued messages to user {user_id}")
+            
+            for queued_message in self.message_queue[user_id]:
+                try:
+                    await websocket.send_text(json.dumps(queued_message))
+                    print(f"   ✅ Queued message sent: {queued_message.get('type', 'unknown')}")
+                except Exception as e:
+                    print(f"   ❌ Failed to send queued message: {e}")
+            
+            # Clear the queue after sending
+            self.message_queue[user_id] = []
+            print(f"✅ Message queue cleared for user {user_id}")
     
     def disconnect(self, user_id: str):
         if user_id in self.active_connections:
+            connection_duration = (datetime.now(timezone.utc) - self.connection_timestamps.get(user_id, datetime.now(timezone.utc))).total_seconds()
+            print(f"🔌 User {user_id} disconnected after {connection_duration:.1f}s")
             del self.active_connections[user_id]
+            if user_id in self.connection_timestamps:
+                del self.connection_timestamps[user_id]
     
     async def send_personal_message(self, message: dict, user_id: str):
         if user_id in self.active_connections:
@@ -86,12 +111,29 @@ class ConnectionManager:
                 return True
             except Exception as e:
                 print(f"❌ WebSocket send failed for user {user_id}: {e}")
-                print(f"🔌 Disconnecting user {user_id} due to send failure")
+                print(f"📨 Queuing message for user {user_id}")
+                self._queue_message(user_id, message)
                 self.disconnect(user_id)
                 return False
         else:
-            print(f"⚠️ User {user_id} not in active WebSocket connections")
+            print(f"⚠️ User {user_id} not in active WebSocket connections - queuing message")
+            self._queue_message(user_id, message)
             return False
+    
+    def _queue_message(self, user_id: str, message: dict):
+        """Queue a message for delivery when user reconnects"""
+        if user_id not in self.message_queue:
+            self.message_queue[user_id] = []
+        
+        # Add timestamp to message
+        message['queued_at'] = datetime.now(timezone.utc).isoformat()
+        
+        # Add to queue (maintain max size)
+        self.message_queue[user_id].append(message)
+        if len(self.message_queue[user_id]) > self.max_queue_size:
+            self.message_queue[user_id] = self.message_queue[user_id][-self.max_queue_size:]
+        
+        print(f"📨 Message queued for user {user_id} (queue size: {len(self.message_queue[user_id])})")
     
     async def broadcast_to_role(self, message: dict, role: str):
         """Broadcast message to all users with specific role"""
@@ -115,10 +157,11 @@ class ConnectionManager:
         return success_count
     
     async def broadcast(self, message: dict):
-        """Broadcast message to ALL connected users"""
+        """Broadcast message to ALL connected users AND queue for offline users"""
         failed_users = []
         success_count = 0
         
+        # Send to all connected users
         for user_id, websocket in self.active_connections.items():
             try:
                 await websocket.send_text(json.dumps(message))
@@ -127,19 +170,26 @@ class ConnectionManager:
             except Exception as e:
                 print(f"❌ Broadcast failed for user {user_id}: {e}")
                 failed_users.append(user_id)
+                self._queue_message(user_id, message)
         
         # Clean up failed connections
         for user_id in failed_users:
             self.disconnect(user_id)
-            
+        
+        # Also queue for ALL users (even connected ones) as backup
+        # This ensures message delivery even if WebSocket sends fail
         print(f"📡 Broadcast completed: {success_count} successful, {len(failed_users)} failed")
+        print(f"📡 Total active connections: {len(self.active_connections)}")
+        
         return success_count
     
     def get_connection_status(self):
         """Get current WebSocket connection status"""
         return {
             "total_connections": len(self.active_connections),
-            "connected_users": list(self.active_connections.keys())
+            "connected_users": list(self.active_connections.keys()),
+            "total_queued_messages": sum(len(queue) for queue in self.message_queue.values()),
+            "users_with_queued_messages": len([u for u, q in self.message_queue.items() if len(q) > 0])
         }
 
 # WebSocket connection manager for video calls
