@@ -557,12 +557,9 @@ const DoctorDashboard = ({ user, onLogout }) => {
       console.log('✅ Note sent successfully:', response.data);
       
       alert('✅ Note sent successfully to provider!');
-      setShowNoteModal(false);
-      setNoteText('');
-      setSelectedAppointment(null);
       
-      // Force refresh appointments and trigger WebSocket notification
-      fetchAppointments();
+      // FORCE FULL PAGE RELOAD to ensure fresh data
+      window.location.reload();
       
     } catch (error) {
       console.error('❌ Error sending note:', error);
