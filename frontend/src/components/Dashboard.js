@@ -887,14 +887,9 @@ const Dashboard = ({ user, onLogout }) => {
       });
 
       alert('Note sent to doctor successfully!');
-      setNoteText('');
       
-      // Refresh notes
-      const notesResponse = await axios.get(`${API}/appointments/${selectedAppointment.id}/notes`);
-      setAppointmentNotes(notesResponse.data);
-      
-      // CRITICAL: Also refresh appointments to ensure any status changes are reflected
-      fetchAppointments();
+      // FORCE FULL PAGE RELOAD to ensure fresh data
+      window.location.reload();
     } catch (error) {
       console.error('Error sending note:', error);
       alert('Error sending note to doctor');
