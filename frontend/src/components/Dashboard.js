@@ -78,15 +78,7 @@ const Dashboard = ({ user, onLogout }) => {
     return () => clearInterval(interval);
   }, []); // Run once on mount
 
-  useEffect(() => {
-    // AGGRESSIVE Auto-refresh appointments every 2 seconds for GUARANTEED real-time sync
-    console.log('🔄 Setting up ULTRA-AGGRESSIVE 2-second polling for Provider Dashboard');
-    const refreshInterval = setInterval(() => {
-      console.log('⏰ Provider auto-refresh triggered (2s interval) - FORCING UPDATE');
-      fetchAppointments();
-    }, 2000); // Refresh every 2 seconds - GUARANTEED updates
-    return () => clearInterval(refreshInterval);
-  }, []);
+  // Duplicate polling removed - now using simple polling above
 
   const setupWebSocket = () => {
     // CRITICAL: Only set up WebSocket if user is available
