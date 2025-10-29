@@ -984,7 +984,11 @@ async def create_appointment(appointment_data: AppointmentCreate, current_user: 
     
     # Create patient record
     patient = Patient(**appointment_data.patient.dict())
-    await db.patients.insert_one(patient.dict())
+    patient_insert_result = await db.patients.insert_one(patient.dict())
+    
+    # Wait for write to be acknowledged
+    if not patient_insert_result.acknowledged:
+        raise HTTPException(status_code=500, detail="Failed to create patient record")
     
     # Create appointment with enhanced multiple account support
     appointment = Appointment(
@@ -996,7 +1000,21 @@ async def create_appointment(appointment_data: AppointmentCreate, current_user: 
         call_history=[]  # Initialize empty call history
     )
     
-    await db.appointments.insert_one(appointment.dict())
+    appointment_insert_result = await db.appointments.insert_one(appointment.dict())
+    
+    # CRITICAL: Wait for write to be acknowledged before returning
+    if not appointment_insert_result.acknowledged:
+        raise HTTPException(status_code=500, detail="Failed to create appointment")
+    
+    # Double-check the appointment was actually written to database
+    db_check = await db.appointments.find_one({"id": appointment.id})
+    if not db_check:
+        raise HTTPException(status_code=500, detail="Appointment creation not confirmed in database")
+    
+    print(f"✅ Appointment created and confirmed in database: {appointment.id}")
+    print(f"   Provider ID: {current_user.id}")
+    print(f"   Patient: {patient.name}")
+    print(f"   Type: {appointment.appointment_type}")
     
     # Send DETAILED notification to ALL users for INSTANT sync
     full_appointment_data = {
