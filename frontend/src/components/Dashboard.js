@@ -853,7 +853,9 @@ const Dashboard = ({ user, onLogout }) => {
     try {
       await axios.delete(`${API}/appointments/${appointmentId}`);
       alert('Appointment deleted successfully');
-      fetchAppointments();
+      
+      // FORCE FULL PAGE RELOAD to ensure fresh data
+      window.location.reload();
     } catch (error) {
       console.error('Error deleting appointment:', error);
       alert('Error deleting appointment');
