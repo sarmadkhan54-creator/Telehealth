@@ -71,13 +71,16 @@ const PatientForm = ({ user }) => {
         consultation_notes: ''
       };
 
-      await axios.post(`${API}/appointments`, appointmentData);
+      const response = await axios.post(`${API}/appointments`, appointmentData);
       
       // Show success message
       alert(appointmentType === 'emergency' 
         ? 'Emergency appointment created! Doctors will be notified immediately.' 
         : 'Appointment created successfully!'
       );
+      
+      // Add small delay to ensure database write is committed before reload
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Force refresh to show new appointment immediately
       window.location.href = '/';  // This will reload the dashboard and fetch new data
