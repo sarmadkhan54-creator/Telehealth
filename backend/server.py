@@ -1059,15 +1059,21 @@ async def create_appointment(appointment_data: AppointmentCreate, current_user: 
 
 @api_router.get("/appointments", response_model=List[dict])
 async def get_appointments(current_user: User = Depends(get_current_user)):
+    print(f"📋 GET /appointments called by user: {current_user.full_name} (ID: {current_user.id}, Role: {current_user.role})")
+    
     if current_user.role == "provider":
         # Providers can ONLY see their own created appointments
+        print(f"🔍 Provider querying appointments with provider_id: {current_user.id}")
         appointments = await db.appointments.find({"provider_id": current_user.id}).to_list(1000)
+        print(f"📊 Found {len(appointments)} appointments for provider {current_user.id}")
     elif current_user.role == "doctor":
         # Doctors can see ALL appointments (not just pending or their own)
         appointments = await db.appointments.find().to_list(1000)
+        print(f"📊 Found {len(appointments)} total appointments for doctor")
     elif current_user.role == "admin":
         # Admins can see all appointments
         appointments = await db.appointments.find().to_list(1000)
+        print(f"📊 Found {len(appointments)} total appointments for admin")
     else:
         raise HTTPException(status_code=403, detail="Access denied")
     
