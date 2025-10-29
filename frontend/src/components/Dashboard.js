@@ -67,69 +67,16 @@ const Dashboard = ({ user, onLogout }) => {
     }
   }, [showVideoCallInvitation, videoCallInvitation]);
 
+  // Simple polling - fetch every 2 seconds
   useEffect(() => {
-    fetchAppointments();
-    setupWebSocket();
+    fetchAppointments(); // Initial fetch
     
-    // Request notification permissions immediately (simpler approach)
-    const requestNotificationPermission = async () => {
-      try {
-        if ('Notification' in window && Notification.permission === 'default') {
-          const permission = await Notification.requestPermission();
-          console.log('📱 Notification permission:', permission);
-          
-          if (permission === 'granted') {
-            console.log('✅ Notifications enabled successfully');
-            
-            // Test notification
-            showNotification('✅ Notifications Enabled', {
-              body: 'You will now receive video call and appointment notifications',
-              icon: '/favicon.ico'
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Error requesting notification permission:', error);
-      }
-    };
+    const interval = setInterval(() => {
+      fetchAppointments();
+    }, 2000);
     
-    // Auto-request notification permission after component mounts
-    setTimeout(requestNotificationPermission, 2000);
-    
-    // Keep service alive - prevent Android Doze mode and background throttling
-    const keepAlive = () => {
-      // Send periodic keepalive signals
-      const keepAliveInterval = setInterval(() => {
-        // Wake lock API for preventing sleep (if supported)
-        if ('wakeLock' in navigator) {
-          navigator.wakeLock.request('screen').catch(err => {
-            console.log('Wake Lock request failed:', err);
-          });
-        }
-        
-        // Page visibility API to detect background/foreground
-        if (document.visibilityState === 'visible') {
-          console.log('📱 Provider service ACTIVE - keeping online');
-        }
-        
-        // Service worker keepalive
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.ready.then(() => {
-            console.log('🔄 Service Worker keepalive signal');
-          });
-        }
-        
-      }, 60000); // Every minute
-      
-      return keepAliveInterval;
-    };
-    
-    const keepAliveInterval = keepAlive();
-    
-    return () => {
-      clearInterval(keepAliveInterval);
-    };
-  }, []);
+    return () => clearInterval(interval);
+  }, []); // Run once on mount
 
   useEffect(() => {
     // AGGRESSIVE Auto-refresh appointments every 2 seconds for GUARANTEED real-time sync
