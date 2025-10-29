@@ -835,12 +835,9 @@ const Dashboard = ({ user, onLogout }) => {
       console.log('✅ Provider note sent successfully:', response.data);
       
       alert('✅ Note sent successfully to doctor!');
-      setShowProviderNoteModal(false);
-      setProviderNoteText('');
-      setSelectedAppointment(null);
       
-      // Force refresh appointments 
-      fetchAppointments();
+      // FORCE FULL PAGE RELOAD to ensure fresh data
+      window.location.reload();
       
     } catch (error) {
       console.error('❌ Error sending provider note:', error);
