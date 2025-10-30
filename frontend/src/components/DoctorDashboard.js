@@ -100,21 +100,20 @@ const DoctorDashboard = ({ user, onLogout }) => {
 
   const fetchAppointments = async () => {
     try {
-      console.log('Fetching appointments for doctor...');
       const response = await axios.get(`${API}/appointments`);
-      console.log('Appointments fetched:', response.data.length, 'appointments');
-      setAppointments(response.data);
-    } catch (error) {
-      console.error('Error fetching appointments:', error);
-      if (error.response?.status === 401) {
-        console.log('Authentication error - user might need to login again');
-        // The axios interceptor will handle this
-      } else {
-        const errorMessage = error.response?.data?.detail || 'Error loading appointments. Please refresh the page.';
-        console.error('Appointment fetch error:', errorMessage);
-      }
-    } finally {
+      console.log('✅ DOCTOR: Fetched appointments:', response.data.length);
+      
+      // FORCE update by creating new array reference
+      setAppointments([...response.data]);
+      
+      // Force component re-render
       setLoading(false);
+    } catch (error) {
+      console.error('❌ Error fetching appointments:', error);
+      if (error.response?.status === 401) {
+        console.error('⛔ Unauthorized - redirecting to login');
+        onLogout();
+      }
     }
   };
 
