@@ -406,8 +406,8 @@ const DoctorDashboard = ({ user, onLogout }) => {
             >
               <Bell className="w-6 h-6 text-gray-600" />
               {unreadNotifications > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1 py-0.5 rounded-full min-w-[16px] h-4 flex items-center justify-center">
-                  {unreadNotifications}
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+                  {unreadNotifications > 9 ? '9+' : unreadNotifications}
                 </span>
               )}
               <span className="hidden sm:inline">Notifications</span>
