@@ -680,9 +680,13 @@ const Dashboard = ({ user, onLogout }) => {
     try {
       const response = await axios.get(`${API}/appointments`);
       console.log('✅ PROVIDER: Fetched appointments:', response.data.length);
+      console.log('📋 Appointment IDs:', response.data.map(a => a.id).slice(0, 5));
       
       // FORCE update by creating new array reference
       setAppointments([...response.data]);
+      
+      // Force complete re-render by changing key
+      setRenderKey(prev => prev + 1);
       
       // Force component re-render
       setLoading(false);
