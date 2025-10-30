@@ -676,10 +676,14 @@ const Dashboard = ({ user, onLogout }) => {
 
   const fetchAppointments = async () => {
     try {
-      console.log('Fetching appointments for provider...');
       const response = await axios.get(`${API}/appointments`);
-      console.log('Provider appointments fetched:', response.data.length, 'appointments');
-      setAppointments(response.data);
+      console.log('✅ PROVIDER: Fetched appointments:', response.data.length);
+      
+      // FORCE update by creating new array reference
+      setAppointments([...response.data]);
+      
+      // Force component re-render
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching appointments:', error);
       if (error.response?.status === 401) {
