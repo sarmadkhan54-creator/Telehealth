@@ -88,6 +88,9 @@ const NotificationPanelNew = ({ user, isOpen, onClose, notifications, setNotific
     // Mark as read
     markAsRead(notification.id);
 
+    // Close the notification panel
+    onClose();
+
     // Handle different notification types
     if (notification.type === 'incoming_video_call' || notification.type === 'jitsi_call_invitation') {
       // Open video call
@@ -95,16 +98,36 @@ const NotificationPanelNew = ({ user, isOpen, onClose, notifications, setNotific
         window.open(notification.jitsi_url, '_blank');
       }
     } else if (notification.appointment_id || notification.appointment?.id) {
-      // Fetch and show appointment details
+      // Navigate to the appointment in the main dashboard
       const appointmentId = notification.appointment_id || notification.appointment?.id;
-      try {
-        const response = await axios.get(`${API}/appointments/${appointmentId}`);
-        setSelectedNotification(response.data);
-        setShowAppointmentModal(true);
-      } catch (error) {
-        console.error('Error fetching appointment:', error);
-        alert('Could not load appointment details');
-      }
+      
+      // Scroll to the appointment in the list
+      setTimeout(() => {
+        const appointmentElement = document.querySelector(`[data-appointment-id="${appointmentId}"]`);
+        if (appointmentElement) {
+          appointmentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          
+          // Highlight the appointment temporarily
+          appointmentElement.classList.add('ring-4', 'ring-blue-500', 'ring-opacity-50');
+          setTimeout(() => {
+            appointmentElement.classList.remove('ring-4', 'ring-blue-500', 'ring-opacity-50');
+          }, 3000);
+        } else {
+          // If appointment not found in current view, show details modal
+          fetchAndShowAppointmentDetails(appointmentId);
+        }
+      }, 300);
+    }
+  };
+
+  const fetchAndShowAppointmentDetails = async (appointmentId) => {
+    try {
+      const response = await axios.get(`${API}/appointments/${appointmentId}`);
+      setSelectedNotification(response.data);
+      setShowAppointmentModal(true);
+    } catch (error) {
+      console.error('Error fetching appointment:', error);
+      alert('Could not load appointment details');
     }
   };
 
