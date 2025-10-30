@@ -1020,10 +1020,10 @@ const Dashboard = ({ user, onLogout }) => {
               <p className="text-gray-400">Create your first appointment to get started</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4" key={renderKey}>
               {appointments.map((appointment) => (
                 <div
-                  key={appointment.id}
+                  key={`${appointment.id}-${renderKey}`}
                   className={`appointment-card ${appointment.appointment_type === 'emergency' ? 'emergency' : 'non-emergency'}`}
                 >
                   <div className="flex items-start justify-between">
