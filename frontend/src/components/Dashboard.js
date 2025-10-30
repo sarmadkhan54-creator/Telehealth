@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Plus, Clock, AlertTriangle, User, LogOut, Calendar, Phone, PhoneOff, X, Eye, Send, Bell, MessageSquare } from 'lucide-react';
 import NotificationSettings from './NotificationSettings';
-import NotificationPanel from './NotificationPanel';
+import NotificationPanelNew from './NotificationPanelNew';
 import CallButton from './CallButton';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
