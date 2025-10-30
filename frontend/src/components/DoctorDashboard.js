@@ -1088,11 +1088,15 @@ const DoctorDashboard = ({ user, onLogout }) => {
         </div>
       )}
 
-      {/* Notification Panel */}
-      <NotificationPanel
+      {/* Notification Panel - Facebook/Instagram Style */}
+      <NotificationPanelNew
         user={user}
         isOpen={showNotificationPanel}
         onClose={() => setShowNotificationPanel(false)}
+        notifications={notifications}
+        setNotifications={setNotifications}
+        unreadCount={unreadNotifications}
+        setUnreadCount={setUnreadNotifications}
       />
     </div>
   );
