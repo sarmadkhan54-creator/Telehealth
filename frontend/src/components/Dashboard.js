@@ -27,6 +27,8 @@ const Dashboard = ({ user, onLogout }) => {
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
   const [showNotificationPanel, setShowNotificationPanel] = useState(false);
   const [reconnectTimeout, setReconnectTimeout] = useState(null);
+  // Force re-render on every appointments change
+  const [renderKey, setRenderKey] = useState(0);
   const navigate = useNavigate();
 
   // Helper function to show notifications (Service Worker compatible)
