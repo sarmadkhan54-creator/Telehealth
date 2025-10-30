@@ -1024,7 +1024,8 @@ const Dashboard = ({ user, onLogout }) => {
               {appointments.map((appointment) => (
                 <div
                   key={`${appointment.id}-${renderKey}`}
-                  className={`appointment-card ${appointment.appointment_type === 'emergency' ? 'emergency' : 'non-emergency'}`}
+                  data-appointment-id={appointment.id}
+                  className={`appointment-card ${appointment.appointment_type === 'emergency' ? 'emergency' : 'non-emergency'} transition-all duration-300`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
