@@ -247,7 +247,7 @@ const AdminDashboard = ({ user, onLogout }) => {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="form-group">
                 <label className="form-label">Username *</label>
@@ -258,6 +258,8 @@ const AdminDashboard = ({ user, onLogout }) => {
                   className="form-input"
                   value={formData.username}
                   onChange={handleChange}
+                  autoComplete="new-username"
+                  placeholder="Enter username"
                 />
               </div>
 
@@ -270,6 +272,8 @@ const AdminDashboard = ({ user, onLogout }) => {
                   className="form-input"
                   value={formData.email}
                   onChange={handleChange}
+                  autoComplete="new-email"
+                  placeholder="Enter email"
                 />
               </div>
 
