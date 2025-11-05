@@ -1716,7 +1716,7 @@ const AdminDashboard = ({ user, onLogout }) => {
       </div>
 
       {/* Add User Modal */}
-      {showAddUserForm && <AddUserForm />}
+      {showAddUserForm && <AddUserForm key={formKey} />}
 
       {/* Edit Appointment Modal */}
       {showEditAppointmentModal && <EditAppointmentModal />}
