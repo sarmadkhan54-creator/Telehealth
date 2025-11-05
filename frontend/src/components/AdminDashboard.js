@@ -40,6 +40,7 @@ const AdminDashboard = ({ user, onLogout }) => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddUserForm, setShowAddUserForm] = useState(false);
+  const [formKey, setFormKey] = useState(0); // Key to force form reset
   const [showEditAppointmentModal, setShowEditAppointmentModal] = useState(false);
   const [showEditUserModal, setShowEditUserModal] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState(null);
