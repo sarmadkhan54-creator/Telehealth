@@ -287,6 +287,8 @@ const AdminDashboard = ({ user, onLogout }) => {
                     className="form-input pr-10"
                     value={formData.password}
                     onChange={handleChange}
+                    autoComplete="new-password"
+                    placeholder="Enter password"
                   />
                   <button
                     type="button"
@@ -307,6 +309,8 @@ const AdminDashboard = ({ user, onLogout }) => {
                   className="form-input"
                   value={formData.phone}
                   onChange={handleChange}
+                  autoComplete="off"
+                  placeholder="Enter phone number"
                 />
               </div>
 
@@ -319,6 +323,8 @@ const AdminDashboard = ({ user, onLogout }) => {
                   className="form-input"
                   value={formData.full_name}
                   onChange={handleChange}
+                  autoComplete="off"
+                  placeholder="Enter full name"
                 />
               </div>
 
