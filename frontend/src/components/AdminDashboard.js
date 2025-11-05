@@ -1403,7 +1403,10 @@ const AdminDashboard = ({ user, onLogout }) => {
               {/* Only show Add User button for admin users */}
               {user.role === 'admin' && (
                 <button
-                  onClick={() => setShowAddUserForm(true)}
+                  onClick={() => {
+                    setShowAddUserForm(true);
+                    setFormKey(prev => prev + 1); // Increment key to reset form
+                  }}
                   className="btn-primary flex items-center space-x-2"
                 >
                   <UserPlus className="w-4 h-4" />
