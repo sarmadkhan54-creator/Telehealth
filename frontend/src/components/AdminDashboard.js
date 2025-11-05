@@ -84,6 +84,12 @@ const AdminDashboard = ({ user, onLogout }) => {
 
   useEffect(() => {
     // AGGRESSIVE Auto-refresh data every 5 seconds for real-time sync
+    // BUT NOT when Add User form is open (prevents text disappearing)
+    if (showAddUserForm || showEditAppointmentModal || showEditUserModal) {
+      console.log('⏸️ Polling paused - form is open');
+      return;
+    }
+    
     console.log('🔄 Setting up aggressive 5-second polling for Admin Dashboard');
     const refreshInterval = setInterval(() => {
       console.log('⏰ Admin auto-refresh triggered (5s interval)');
@@ -93,7 +99,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     return () => {
       clearInterval(refreshInterval);
     };
-  }, []);
+  }, [showAddUserForm, showEditAppointmentModal, showEditUserModal]); // Re-run when form state changes
 
   const setupWebSocket = () => {
     // CRITICAL: Only set up WebSocket if user is available
