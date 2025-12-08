@@ -17,7 +17,7 @@ import json
 from pywebpush import webpush, WebPushException
 import base64
 import firebase_admin
-from firebase_admin import credentials, messaging
+from firebase_admin import credentials as firebase_credentials, messaging
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
