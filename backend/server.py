@@ -2025,7 +2025,7 @@ async def video_call_websocket(websocket: WebSocket, session_token: str):
             
         # Use session token as unique identifier for this call
         user_id = f"user-{session_token[:8]}"
-        user_name = f"Participant-{session_token[:8]}"
+        # user_name = f"Participant-{session_token[:8]}"  # Unused variable
         
         await websocket.accept()
         print(f"✅ Video call WebSocket accepted: session={session_token}, user={user_id}")
