@@ -43,7 +43,59 @@ except Exception as e:
 from fcm_service import save_fcm_token, send_notification_to_user
 
 # Create the main app without a prefix
-app = FastAPI(title="MedConnect Telehealth API", version="1.0.0")
+# Health check endpoints for Kubernetes deployment
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Kubernetes liveness probe"""
+    return {"status": "healthy", "service": "telehealth-api"}
+
+@app.get("/api/health")
+async def api_health_check():
+    """Health check endpoint for Kubernetes readiness probe"""
+    try:
+        # Check database connectivity
+        await db.command("ping")
+        return {
+            "status": "healthy",
+            "service": "telehealth-api",
+            "database": "connected",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "service": "telehealth-api",
+            "database": "disconnected",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+@app.get("/ready")
+async def readiness_check():
+    """Readiness probe endpoint"""
+    return {"ready": True, "service": "telehealth-api"}
+
+# Root API endpoint - return API info instead of redirect
+@app.get("/api")
+async def api_root():
+    """API root endpoint"""
+    return {
+        "service": "Greenstar Digital Health Solutions API",
+        "version": "1.0.0",
+        "status": "running",
+        "docs": "/docs",
+        "health": "/api/health"
+    }
+
+# Add proper CORS middleware and app configuration
+app = FastAPI(
+    title="Greenstar Digital Health Solutions API",
+    description="Telehealth platform API for managing appointments, consultations, and video calls",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
+)
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
