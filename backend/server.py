@@ -265,7 +265,7 @@ class VideoCallManager:
                         "userId": user_id,
                         "userName": user_name
                     }))
-                except:
+                except Exception:
                     pass
     
     def leave_session(self, session_token: str, user_id: str):
