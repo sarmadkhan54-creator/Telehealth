@@ -42,7 +42,16 @@ except Exception as e:
 # Import FCM service
 from fcm_service import save_fcm_token, send_notification_to_user
 
-# Create the main app without a prefix
+# Create the main app with proper configuration
+app = FastAPI(
+    title="Greenstar Digital Health Solutions API",
+    description="Telehealth platform API for managing appointments, consultations, and video calls",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
+)
+
 # Health check endpoints for Kubernetes deployment
 @app.get("/health")
 async def health_check():
@@ -86,16 +95,6 @@ async def api_root():
         "docs": "/docs",
         "health": "/api/health"
     }
-
-# Add proper CORS middleware and app configuration
-app = FastAPI(
-    title="Greenstar Digital Health Solutions API",
-    description="Telehealth platform API for managing appointments, consultations, and video calls",
-    version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url="/openapi.json"
-)
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
