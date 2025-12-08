@@ -1712,7 +1712,7 @@ async def cancel_video_call(appointment_id: str, cancel_data: dict, current_user
     
     call_id = cancel_data.get('call_id')
     reason = cancel_data.get('reason', 'Call cancelled by doctor')
-    cancelled_by = cancel_data.get('cancelled_by', 'doctor')
+    # cancelled_by = cancel_data.get('cancelled_by', 'doctor')  # Unused variable
     
     print("🔴 Doctor cancelled video call:")
     print(f"   Appointment ID: {appointment_id}")
