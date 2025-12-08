@@ -305,7 +305,7 @@ class VideoCallManager:
                         try:
                             message['from'] = from_user_id
                             await ws.send_text(json.dumps(message))
-                        except:
+                        except Exception:
                             pass
 
 # Call monitoring and auto-redial system
