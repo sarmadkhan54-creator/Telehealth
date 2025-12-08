@@ -278,7 +278,7 @@ class VideoCallManager:
                             "type": "user-left",
                             "userId": user_id
                         })))
-                    except:
+                    except Exception:
                         pass
             
             del self.active_sessions[session_token][user_id]
