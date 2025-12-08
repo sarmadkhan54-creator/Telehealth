@@ -296,7 +296,7 @@ class VideoCallManager:
                 try:
                     message['from'] = from_user_id
                     await self.active_sessions[session_token][target_user_id].send_text(json.dumps(message))
-                except:
+                except Exception:
                     pass
             else:
                 # Broadcast to all other users in session
