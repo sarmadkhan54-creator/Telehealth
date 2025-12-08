@@ -2006,10 +2006,7 @@ async def send_appointment_reminder(appointment_id: str, current_user: User = De
         print(f"Error sending appointment reminder: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-# Basic health check
-@api_router.get("/health")
-async def health_check():
-    return {"status": "healthy", "message": "Greenstar Telehealth API is running"}
+# Basic health check - removed duplicate (using main app health check instead)
 
 @api_router.get("/")
 async def root():
