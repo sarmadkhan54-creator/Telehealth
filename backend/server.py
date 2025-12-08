@@ -382,7 +382,7 @@ class CallManager:
         redial_notification = {
             "type": "jitsi_call_invitation",
             "title": f"Incoming Call (Retry {call_session.retry_count})",
-            "message": f"Doctor is calling again - Please answer",
+            "message": "Doctor is calling again - Please answer",
             "appointment_id": appointment_id,
             "caller": call_session.caller_id,
             "caller_role": "doctor",
@@ -806,7 +806,7 @@ async def create_user_admin(user: UserCreate, current_user: User = Depends(get_c
     }
     await manager.broadcast(user_creation_notification)
     
-    print(f"📡 BROADCAST: User creation notification sent to all users")
+    print("📡 BROADCAST: User creation notification sent to all users")
     print(f"   User: {new_user.full_name} ({new_user.username})")
     print(f"   Role: {new_user.role}")
     print(f"   Created by: {current_user.full_name}")
@@ -905,7 +905,7 @@ async def delete_user(user_id: str, current_user: User = Depends(get_current_use
     }
     await manager.broadcast(user_deletion_notification)
     
-    print(f"📡 BROADCAST: User soft deletion notification sent to all users")
+    print("📡 BROADCAST: User soft deletion notification sent to all users")
     print(f"   User: {user['full_name']} ({user_id})")
     print(f"   Deleted by: {current_user.full_name}")
     
@@ -944,7 +944,7 @@ async def permanent_delete_user(user_id: str, current_user: User = Depends(get_c
     }
     await manager.broadcast(user_permanent_deletion_notification)
     
-    print(f"📡 BROADCAST: User permanent deletion notification sent to all users")
+    print("📡 BROADCAST: User permanent deletion notification sent to all users")
     print(f"   User: {user['full_name']} ({user_id})")
     print(f"   Permanently deleted by: {current_user.full_name}")
     
@@ -1098,7 +1098,7 @@ async def create_appointment(appointment_data: AppointmentCreate, current_user: 
     # Broadcast to ALL connected users (doctors AND providers)
     await manager.broadcast(full_appointment_data)
     
-    print(f"📡 BROADCAST: New appointment notification sent to all users")
+    print("📡 BROADCAST: New appointment notification sent to all users")
     print(f"   Patient: {patient.name}")
     print(f"   Type: {appointment.appointment_type}")
     print(f"   Provider: {current_user.full_name}")
@@ -1264,7 +1264,7 @@ async def update_appointment(appointment_id: str, update_data: AppointmentUpdate
         }
         await manager.broadcast(broadcast_notification)
         
-        print(f"📡 BROADCAST: Appointment update notification sent to all users")
+        print("📡 BROADCAST: Appointment update notification sent to all users")
         print(f"   Appointment ID: {appointment_id}")
         print(f"   Updated by: {current_user.full_name} ({current_user.role})")
         print(f"   Fields updated: {list(update_dict.keys())}")
@@ -1427,7 +1427,7 @@ async def delete_appointment(appointment_id: str, current_user: User = Depends(g
     }
     await manager.broadcast(deletion_notification)
     
-    print(f"📡 BROADCAST: Appointment deletion notification sent to all users")
+    print("📡 BROADCAST: Appointment deletion notification sent to all users")
     print(f"   Appointment ID: {appointment_id}")
     print(f"   Deleted by: {current_user.full_name} ({current_user.role})")
     
@@ -1714,7 +1714,7 @@ async def cancel_video_call(appointment_id: str, cancel_data: dict, current_user
     reason = cancel_data.get('reason', 'Call cancelled by doctor')
     cancelled_by = cancel_data.get('cancelled_by', 'doctor')
     
-    print(f"🔴 Doctor cancelled video call:")
+    print("🔴 Doctor cancelled video call:")
     print(f"   Appointment ID: {appointment_id}")
     print(f"   Call ID: {call_id}")
     print(f"   Reason: {reason}")
@@ -1752,7 +1752,7 @@ async def cancel_video_call(appointment_id: str, cancel_data: dict, current_user
     
     # METHOD 2: Broadcast to ensure delivery
     await manager.broadcast(cancellation_notification)
-    print(f"📡 BROADCAST: Call cancellation sent to all users")
+    print("📡 BROADCAST: Call cancellation sent to all users")
     
     return {
         "success": True,
