@@ -1839,7 +1839,7 @@ async def join_video_call(session_token: str, current_user: User = Depends(get_c
 @api_router.get("/websocket/status")
 async def websocket_status(current_user: User = Depends(get_current_user)):
     """Get WebSocket connection status for debugging"""
-    status = manager.get_connection_status()
+    connection_status = manager.get_connection_status()
     return {
         "websocket_status": status,
         "current_user_connected": current_user.id in manager.active_connections,
