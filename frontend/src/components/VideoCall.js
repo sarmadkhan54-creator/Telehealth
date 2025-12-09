@@ -226,7 +226,6 @@ const VideoCall = ({ user }) => {
 
   const connectSignaling = () => {
     return new Promise((resolve, reject) => {
-      const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
       
       if (!BACKEND_URL) {
         reject(new Error('Backend URL not configured'));
