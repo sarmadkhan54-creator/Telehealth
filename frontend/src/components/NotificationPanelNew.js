@@ -9,8 +9,8 @@ const NotificationPanelNew = ({ user, isOpen, onClose, notifications, setNotific
   const [swipedNotification, setSwipedNotification] = useState(null);
   const panelRef = useRef(null);
 
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-  const API = `${BACKEND_URL}/api`;
+  import { BACKEND_URL, API_URL } from '../config';
+  const API = API_URL;
 
   // Close panel when clicking outside
   useEffect(() => {

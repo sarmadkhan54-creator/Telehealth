@@ -9,8 +9,8 @@ const NotificationPanel = ({ user, isOpen, onClose }) => {
   const [selectedNotificationAppointment, setSelectedNotificationAppointment] = useState(null);
   const [showAppointmentDetailsModal, setShowAppointmentDetailsModal] = useState(false);
 
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-  const API = `${BACKEND_URL}/api`;
+  import { BACKEND_URL, API_URL } from '../config';
+  const API = API_URL;
 
   useEffect(() => {
     if (isOpen) {

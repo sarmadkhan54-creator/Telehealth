@@ -3,8 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { ArrowLeft, User, Heart, Thermometer, Activity, Save } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+import { BACKEND_URL, API_URL } from '../config';
+const API = API_URL;
 
 const PatientForm = ({ user }) => {
   const navigate = useNavigate();

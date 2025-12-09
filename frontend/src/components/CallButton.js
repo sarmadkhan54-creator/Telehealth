@@ -17,8 +17,8 @@ const CallButton = ({
   const retryTimeoutRef = useRef(null);
   const countdownIntervalRef = useRef(null);
 
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-  const API = `${BACKEND_URL}/api`;
+  import { BACKEND_URL, API_URL } from '../config';
+  const API = API_URL;
 
   // Cleanup timers on unmount
   useEffect(() => {

@@ -20,8 +20,8 @@ import {
 import NotificationPanelNew from './NotificationPanelNew';
 import CallButton from './CallButton';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+import { BACKEND_URL, API_URL } from '../config';
+const API = API_URL;
 
 const DoctorDashboard = ({ user, onLogout }) => {
   const [appointments, setAppointments] = useState([]);
