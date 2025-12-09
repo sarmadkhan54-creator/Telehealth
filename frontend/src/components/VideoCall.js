@@ -14,6 +14,7 @@ import {
   Settings,
   User
 } from 'lucide-react';
+import { BACKEND_URL } from '../config';
 
 const VideoCall = ({ user }) => {
   const { sessionToken } = useParams();
