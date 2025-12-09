@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Phone, PhoneCall, PhoneOff } from 'lucide-react';
+import { BACKEND_URL, API_URL } from '../config';
 
 const CallButton = ({ 
   appointmentId, 
@@ -17,7 +18,6 @@ const CallButton = ({
   const retryTimeoutRef = useRef(null);
   const countdownIntervalRef = useRef(null);
 
-  import { BACKEND_URL, API_URL } from '../config';
   const API = API_URL;
 
   // Cleanup timers on unmount
