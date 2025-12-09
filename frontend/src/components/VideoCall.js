@@ -400,7 +400,6 @@ const VideoCall = ({ user }) => {
     
     // Then try to notify backend (but don't wait if it fails)
     try {
-      const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
       const endCallPromise = axios.post(`${BACKEND_URL}/api/video-call/end/${sessionToken}`);
       
       // Don't wait more than 2 seconds for backend response
