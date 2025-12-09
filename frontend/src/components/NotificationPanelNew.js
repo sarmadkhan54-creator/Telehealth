@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Bell, BellOff, Trash2, Check, Circle, Calendar, Video, FileText, UserPlus, AlertTriangle } from 'lucide-react';
 import axios from 'axios';
+import { BACKEND_URL, API_URL } from '../config';
 
 const NotificationPanelNew = ({ user, isOpen, onClose, notifications, setNotifications, unreadCount, setUnreadCount }) => {
   const [activeTab, setActiveTab] = useState('all');
@@ -9,7 +10,6 @@ const NotificationPanelNew = ({ user, isOpen, onClose, notifications, setNotific
   const [swipedNotification, setSwipedNotification] = useState(null);
   const panelRef = useRef(null);
 
-  import { BACKEND_URL, API_URL } from '../config';
   const API = API_URL;
 
   // Close panel when clicking outside
