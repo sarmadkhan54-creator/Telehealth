@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Eye, EyeOff, UserCheck, Shield } from 'lucide-react';
+import { BACKEND_URL, API_URL } from '../config';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = API_URL;
 
 const LoginPage = ({ onLogin }) => {
   const [formData, setFormData] = useState({
