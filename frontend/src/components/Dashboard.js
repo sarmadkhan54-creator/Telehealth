@@ -80,7 +80,20 @@ const Dashboard = ({ user, onLogout }) => {
     return () => clearInterval(interval);
   }, []); // Run once on mount
 
-  // Duplicate polling removed - now using simple polling above
+  // CRITICAL: Setup WebSocket for real-time call notifications
+  useEffect(() => {
+    if (user && user.id) {
+      console.log('🔌 Setting up WebSocket for provider:', user.id);
+      setupWebSocket();
+    }
+    
+    return () => {
+      // Cleanup on unmount
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+      }
+    };
+  }, [user]); // Re-run when user changes
 
   const setupWebSocket = () => {
     // CRITICAL: Only set up WebSocket if user is available
