@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="19" time="12.114" timestamp="2026-03-17T05:05:19.274617+00:00" hostname="agent-env-2a657eed-f68b-4aa1-95ff-b692b33765c8"><testcase classname="backend.tests.test_telehealth_api.TestHealthEndpoints" name="test_health_check" time="0.224"><failure message="requests.exceptions.JSONDecodeError: Expecting value: line 1 column 1 (char 0)">/root/.venv/lib/python3.11/site-packages/requests/models.py:976: in json
+    return complexjson.loads(self.text, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/json/__init__.py:346: in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/json/decoder.py:337: in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/json/decoder.py:355: in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+E   json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+backend/tests/test_telehealth_api.py:29: in test_health_check
+    data = response.json()
+           ^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/models.py:980: in json
+    raise RequestsJSONDecodeError(e.msg, e.doc, e.pos)
+E   requests.exceptions.JSONDecodeError: Expecting value: line 1 column 1 (char 0)</failure></testcase><testcase classname="backend.tests.test_telehealth_api.TestHealthEndpoints" name="test_api_health_check" time="0.170" /><testcase classname="backend.tests.test_telehealth_api.TestHealthEndpoints" name="test_ready_endpoint" time="0.121"><failure message="requests.exceptions.JSONDecodeError: Expecting value: line 1 column 1 (char 0)">/root/.venv/lib/python3.11/site-packages/requests/models.py:976: in json
+    return complexjson.loads(self.text, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/json/__init__.py:346: in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/json/decoder.py:337: in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/json/decoder.py:355: in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+E   json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+backend/tests/test_telehealth_api.py:46: in test_ready_endpoint
+    data = response.json()
+           ^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/models.py:980: in json
+    raise RequestsJSONDecodeError(e.msg, e.doc, e.pos)
+E   requests.exceptions.JSONDecodeError: Expecting value: line 1 column 1 (char 0)</failure></testcase><testcase classname="backend.tests.test_telehealth_api.TestAuthentication" name="test_login_provider" time="0.492" /><testcase classname="backend.tests.test_telehealth_api.TestAuthentication" name="test_login_doctor" time="0.408" /><testcase classname="backend.tests.test_telehealth_api.TestAuthentication" name="test_login_admin" time="0.390" /><testcase classname="backend.tests.test_telehealth_api.TestAuthentication" name="test_login_invalid_credentials" time="0.167" /><testcase classname="backend.tests.test_telehealth_api.TestAppointments" name="test_get_appointments_as_provider" time="0.531" /><testcase classname="backend.tests.test_telehealth_api.TestAppointments" name="test_get_appointments_as_doctor" time="0.518" /><testcase classname="backend.tests.test_telehealth_api.TestAppointments" name="test_create_emergency_appointment" time="0.519" /><testcase classname="backend.tests.test_telehealth_api.TestAppointments" name="test_create_non_emergency_appointment" time="0.526" /><testcase classname="backend.tests.test_telehealth_api.TestVideoCallEndpoints" name="test_start_video_call_emergency" time="1.168" /><testcase classname="backend.tests.test_telehealth_api.TestVideoCallEndpoints" name="test_video_call_not_allowed_for_non_emergency" time="1.017" /><testcase classname="backend.tests.test_telehealth_api.TestVideoCallEndpoints" name="test_cancel_video_call" time="1.152" /><testcase classname="backend.tests.test_telehealth_api.TestVideoCallEndpoints" name="test_get_video_call_session" time="1.122" /><testcase classname="backend.tests.test_telehealth_api.TestWebSocketStatus" name="test_websocket_status_endpoint" time="0.503" /><testcase classname="backend.tests.test_telehealth_api.TestAppointmentNotes" name="test_add_note_as_provider" time="0.656" /><testcase classname="backend.tests.test_telehealth_api.TestAppointmentNotes" name="test_get_appointment_notes" time="0.728" /><testcase classname="backend.tests.test_telehealth_api.TestCleanup" name="test_cleanup_test_appointments" time="1.437" /></testsuite></testsuites>
