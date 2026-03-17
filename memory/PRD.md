@@ -48,6 +48,7 @@ Full-stack telehealth platform enabling video consultations between healthcare p
 - Call notification popup with Answer/Decline
 - Call cancellation when doctor closes window
 - 2-second polling for appointment updates
+- **Real-time data synchronization** - Appointments created by one user appear on other dashboards within 2 seconds via polling
 
 ## Test Credentials
 - Provider: `testprovider` / `test123`
